@@ -12,6 +12,30 @@ TEST(FenTest, ApplyFen) {
   ASSERT_NE(~board.EmptySquares(), EMPTY);
 }
 
+TEST(FenTest, MaintainCastlingRights) {
+  Board board;
+
+  board =
+      ApplyFen(board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w Kq - 0 1");
+
+  ASSERT_TRUE(board.CanCastle(K_WHITE));
+  ASSERT_TRUE(board.CanCastle(Q_BLACK));
+  ASSERT_FALSE(board.CanCastle(Q_WHITE));
+  ASSERT_FALSE(board.CanCastle(K_BLACK));
+}
+
+TEST(FenTest, MaintainCastlingRightsIfMissing) {
+  Board board;
+
+  board =
+      ApplyFen(board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1");
+
+  ASSERT_FALSE(board.CanCastle(K_WHITE));
+  ASSERT_FALSE(board.CanCastle(Q_BLACK));
+  ASSERT_FALSE(board.CanCastle(Q_WHITE));
+  ASSERT_FALSE(board.CanCastle(K_BLACK));
+}
+
 TEST(FenTest, PositionToFen) {
   Board board;
 

@@ -17,6 +17,7 @@ void Board::Reset() {
   }
 
   turn_ = WHITE;
+  castling_rights_ = 0;
 }
 
 bool Board::Endgame() { return false; }

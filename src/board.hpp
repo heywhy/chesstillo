@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <list>
 #include <string>
 
@@ -12,6 +13,7 @@ const Bitboard EMPTY = 0;
 const Bitboard UNIVERSE = -1;
 
 enum File { a, b, c, d, e, f, g, h };
+enum Castling { K_WHITE, Q_WHITE, K_BLACK, Q_BLACK };
 
 Bitboard BitboardForSquare(File file, int rank);
 
@@ -27,15 +29,19 @@ public:
   bool Endgame();
   void ApplyMove(Move move);
   void Print();
-
   Bitboard EmptySquares() { return ~occupied_sqs_; }
 
   Bitboard Position(Piece piece, Color color) {
     return color == WHITE ? w_pieces_[piece] : b_pieces_[piece];
   }
 
+  bool CanCastle(Castling direction) {
+    return castling_rights_ & (1 << direction);
+  }
+
 private:
   Color turn_;
+  std::uint8_t castling_rights_;
 
   // pawn, rook, knight, bishop, queen, king
   Bitboard w_pieces_[6];

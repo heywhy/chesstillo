@@ -1,14 +1,16 @@
+#include <cstdint>
 #include <string>
 
 #include "fen.hpp"
 
-// TODO: process castling rights, en passant & clock moves
+// TODO: process en passant & clock moves
 Board &ApplyFen(Board &board, const char *fen) {
   Color turn;
   Bitboard *piece;
 
   int rank = 7;
   int file = 0;
+  std::int8_t castling_rights = 0;
 
   board.Reset();
 
@@ -89,6 +91,12 @@ Board &ApplyFen(Board &board, const char *fen) {
       rank = -1;
       break;
 
+    case '-':
+      if (castling_rights == 0) {
+        castling_rights = -1;
+      }
+      break;
+
     default:
       piece = NULL;
     }
@@ -97,10 +105,28 @@ Board &ApplyFen(Board &board, const char *fen) {
       *piece |= BitboardForSquare((File)file, rank);
 
       ++file;
+    } else if (rank < 0 && castling_rights > -1) {
+      switch (*fen) {
+      case 'K':
+        castling_rights |= 1 << K_WHITE;
+        break;
+      case 'Q':
+        castling_rights |= 1 << Q_WHITE;
+        break;
+      case 'k':
+        castling_rights |= 1 << K_BLACK;
+        break;
+      case 'q':
+        castling_rights |= 1 << Q_BLACK;
+        break;
+      }
     }
 
     ++fen;
   }
+
+  board.turn_ = turn;
+  board.castling_rights_ = 0 > castling_rights ? 0 : castling_rights;
 
   board.ComputeOccupied();
 
@@ -136,7 +162,25 @@ std::string PositionToFen(Board &board) {
     spaces = 0;
   }
 
-  // TODO: record castling rights, en passant & clock moves
+  fen.resize(fen.size() - 1);
 
-  return fen.substr(0, fen.size() - 1).append(" w KQkq - 0 1");
+  if (board.turn_ == WHITE) {
+    fen.append(" w ");
+  } else {
+    fen.append(" b ");
+  }
+
+  if (board.CanCastle(K_WHITE))
+    fen.append("K");
+  if (board.CanCastle(Q_WHITE))
+    fen.append("Q");
+  if (board.CanCastle(K_BLACK))
+    fen.append("k");
+  if (board.CanCastle(Q_BLACK))
+    fen.append("q");
+
+  // TODO: record en passant & clock moves
+
+  // return fen.substr(0, fen.size() - 1).append(" w KQkq - 0 1");
+  return fen.append(" - 0 1");
 }
