@@ -7,12 +7,12 @@
 TEST(Board, ApplyPawnMove) {
   Board board;
 
-  board = ApplyFen(board, START_FEN);
+  ApplyFen(board, START_FEN);
 
   Bitboard empty_squares = board.EmptySquares();
 
-  Bitboard e2 = BitboardForSquare(e, 1);
-  Bitboard e4 = BitboardForSquare(e, 3);
+  Bitboard e2 = BitboardForSquare('e', 2);
+  Bitboard e4 = BitboardForSquare('e', 4);
 
   Move move = {e2, e4, WHITE, PAWN};
 

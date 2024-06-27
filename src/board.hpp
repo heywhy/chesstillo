@@ -12,10 +12,16 @@
 const Bitboard EMPTY = 0;
 const Bitboard UNIVERSE = -1;
 
-enum File { a, b, c, d, e, f, g, h };
 enum Castling { K_WHITE, Q_WHITE, K_BLACK, Q_BLACK };
 
-Bitboard BitboardForSquare(File file, int rank);
+struct Coord {
+  char file;
+  int rank;
+};
+
+Bitboard BitboardForSquare(int file, int rank);
+Bitboard BitboardForSquare(char file, int rank);
+Coord CoordFromBitboard(Bitboard square);
 
 /**
  * TODO:
@@ -39,6 +45,9 @@ public:
     return castling_rights_ & (1 << direction);
   }
 
+  Bitboard EnPassantSquare() { return en_passant_sq_; }
+  bool IsEnPassantSquareEmpty() { return en_passant_sq_ == EMPTY; }
+
 private:
   Color turn_;
   std::uint8_t castling_rights_;
@@ -48,12 +57,13 @@ private:
   Bitboard b_pieces_[6];
 
   Bitboard occupied_sqs_ = EMPTY;
+  Bitboard en_passant_sq_ = EMPTY;
   Bitboard sqs_occupied_by_w_;
   Bitboard sqs_occupied_by_b_;
 
   std::list<Move> moves;
 
-  friend Board &ApplyFen(Board &board, const char *fen);
+  friend void ApplyFen(Board &board, const char *fen);
   friend std::string PositionToFen(Board &board);
 
   void ComputeOccupied() {

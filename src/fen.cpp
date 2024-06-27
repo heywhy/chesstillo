@@ -1,20 +1,23 @@
-#include <cstdint>
 #include <string>
 
+#include "board.hpp"
 #include "fen.hpp"
 
-// TODO: process en passant & clock moves
-Board &ApplyFen(Board &board, const char *fen) {
-  Color turn;
+// TODO: clock moves
+void ApplyFen(Board &board, const char *fen) {
   Bitboard *piece;
 
   int rank = 7;
   int file = 0;
-  std::int8_t castling_rights = 0;
+  int spaces = 0;
+  int en_passant_rank;
+  char en_passant_file;
 
   board.Reset();
 
   while (*fen) {
+    piece = NULL;
+
     switch (*fen) {
     case 'r':
       piece = &board.b_pieces_[ROOK];
@@ -26,15 +29,20 @@ Board &ApplyFen(Board &board, const char *fen) {
 
     case 'b':
       piece = &board.b_pieces_[BISHOP];
-      turn = BLACK;
+      board.turn_ = BLACK;
+      en_passant_file = *fen;
       break;
 
     case 'q':
       piece = &board.b_pieces_[QUEEN];
+      if (spaces == 2)
+        board.castling_rights_ |= 1 << Q_BLACK;
       break;
 
     case 'k':
       piece = &board.b_pieces_[KING];
+      if (spaces == 2)
+        board.castling_rights_ |= 1 << K_BLACK;
       break;
 
     case 'p':
@@ -55,14 +63,29 @@ Board &ApplyFen(Board &board, const char *fen) {
 
     case 'Q':
       piece = &board.w_pieces_[QUEEN];
+      if (spaces == 2)
+        board.castling_rights_ |= 1 << Q_WHITE;
       break;
 
     case 'K':
       piece = &board.w_pieces_[KING];
+
+      if (spaces == 2)
+        board.castling_rights_ |= 1 << K_WHITE;
       break;
 
     case 'P':
       piece = &board.w_pieces_[PAWN];
+      break;
+
+    case 'a':
+    case 'c':
+    case 'd':
+    case 'e':
+    case 'f':
+    case 'g':
+    case 'h':
+      en_passant_file = *fen;
       break;
 
     case '1':
@@ -74,63 +97,39 @@ Board &ApplyFen(Board &board, const char *fen) {
     case '7':
     case '8':
       file += atoi(fen);
-      piece = NULL;
+      en_passant_rank = atoi(fen);
       break;
 
     case '/':
       rank--;
       file = 0;
-      piece = NULL;
       break;
 
     case 'w':
-      turn = WHITE;
+      board.turn_ = WHITE;
       break;
 
     case ' ':
-      rank = -1;
+      spaces++;
+      en_passant_rank = 0;
+      en_passant_file = 0;
       break;
-
-    case '-':
-      if (castling_rights == 0) {
-        castling_rights = -1;
-      }
-      break;
-
-    default:
-      piece = NULL;
     }
 
-    if (rank >= 0 && piece) {
-      *piece |= BitboardForSquare((File)file, rank);
+    if (spaces == 0 && piece) {
+      *piece |= BitboardForSquare(file, rank);
 
-      ++file;
-    } else if (rank < 0 && castling_rights > -1) {
-      switch (*fen) {
-      case 'K':
-        castling_rights |= 1 << K_WHITE;
-        break;
-      case 'Q':
-        castling_rights |= 1 << Q_WHITE;
-        break;
-      case 'k':
-        castling_rights |= 1 << K_BLACK;
-        break;
-      case 'q':
-        castling_rights |= 1 << Q_BLACK;
-        break;
-      }
+      file++;
+    } else if (spaces == 3 && (en_passant_rank == 3 || en_passant_rank == 6) &&
+               en_passant_file >= 'a' && en_passant_file <= 'h') {
+      board.en_passant_sq_ =
+          BitboardForSquare(en_passant_file, en_passant_rank);
     }
 
-    ++fen;
+    fen++;
   }
 
-  board.turn_ = turn;
-  board.castling_rights_ = 0 > castling_rights ? 0 : castling_rights;
-
   board.ComputeOccupied();
-
-  return board;
 }
 
 std::string PositionToFen(Board &board) {
@@ -139,48 +138,61 @@ std::string PositionToFen(Board &board) {
 
   for (int rank = 7; rank >= 0; rank--) {
     for (int file = 0; file < 8; file++) {
-      Bitboard square = BitboardForSquare((File)file, rank);
+      Bitboard square = BitboardForSquare(file, rank);
 
       if (board.occupied_sqs_ & square) {
         if (spaces > 0) {
-          fen.append(std::to_string(spaces));
+          fen += ('0' + spaces);
           spaces = 0;
         }
 
-        fen.push_back(board.PieceAtSquare(square));
+        fen += board.PieceAtSquare(square);
       } else {
         spaces++;
       }
     }
 
     if (spaces > 0) {
-      fen.append(std::to_string(spaces));
+      fen += ('0' + spaces);
+      spaces = 0;
     }
 
-    fen.push_back('/');
-
-    spaces = 0;
+    if (rank != 0)
+      fen += '/';
   }
-
-  fen.resize(fen.size() - 1);
 
   if (board.turn_ == WHITE) {
-    fen.append(" w ");
+    fen += {' ', 'w', ' '};
   } else {
-    fen.append(" b ");
+    fen += {' ', 'b', ' '};
   }
 
-  if (board.CanCastle(K_WHITE))
-    fen.append("K");
-  if (board.CanCastle(Q_WHITE))
-    fen.append("Q");
-  if (board.CanCastle(K_BLACK))
-    fen.append("k");
-  if (board.CanCastle(Q_BLACK))
-    fen.append("q");
+  if (board.CanCastle(K_WHITE)) {
+    fen += 'K';
+  }
+  if (board.CanCastle(Q_WHITE)) {
+    fen += 'Q';
+  }
+  if (board.CanCastle(K_BLACK)) {
+    fen += 'k';
+  }
+  if (board.CanCastle(Q_BLACK)) {
+    fen += 'q';
+  }
 
-  // TODO: record en passant & clock moves
+  if (fen.ends_with(' ')) {
+    fen += '-';
+  }
 
-  // return fen.substr(0, fen.size() - 1).append(" w KQkq - 0 1");
-  return fen.append(" - 0 1");
+  // TODO: clock moves
+  if (!board.IsEnPassantSquareEmpty()) {
+    Coord coord = CoordFromBitboard(board.EnPassantSquare());
+    char rank = '0' + coord.rank;
+
+    fen += {' ', coord.file, rank, ' '};
+  } else {
+    fen += {' ', '-', ' '};
+  }
+
+  return fen += {'0', ' ', '1'};
 }
