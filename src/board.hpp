@@ -50,6 +50,8 @@ public:
 
 private:
   Color turn_;
+  int halfmove_clock_ = 0;
+  long fullmove_counter_ = 0;
   std::uint8_t castling_rights_;
 
   // pawn, rook, knight, bishop, queen, king

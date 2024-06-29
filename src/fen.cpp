@@ -3,13 +3,15 @@
 #include "board.hpp"
 #include "fen.hpp"
 
-// TODO: clock moves
+int ToInt(char num) { return num - '0'; }
+
 void ApplyFen(Board &board, const char *fen) {
   Bitboard *piece;
 
   int rank = 7;
   int file = 0;
   int spaces = 0;
+  long move_count = 0;
   int en_passant_rank;
   char en_passant_file;
 
@@ -96,8 +98,14 @@ void ApplyFen(Board &board, const char *fen) {
     case '6':
     case '7':
     case '8':
-      file += atoi(fen);
-      en_passant_rank = atoi(fen);
+      file += ToInt(*fen);
+      en_passant_rank = ToInt(*fen);
+      move_count = ToInt(*fen) + (move_count * 10);
+      break;
+
+    case '0':
+    case '9':
+      move_count = ToInt(*fen) + (move_count * 10);
       break;
 
     case '/':
@@ -111,6 +119,7 @@ void ApplyFen(Board &board, const char *fen) {
 
     case ' ':
       spaces++;
+      move_count = 0;
       en_passant_rank = 0;
       en_passant_file = 0;
       break;
@@ -124,6 +133,10 @@ void ApplyFen(Board &board, const char *fen) {
                en_passant_file >= 'a' && en_passant_file <= 'h') {
       board.en_passant_sq_ =
           BitboardForSquare(en_passant_file, en_passant_rank);
+    } else if (spaces == 4) {
+      board.halfmove_clock_ = move_count;
+    } else if (spaces == 5) {
+      board.fullmove_counter_ = move_count;
     }
 
     fen++;
@@ -184,7 +197,6 @@ std::string PositionToFen(Board &board) {
     fen += '-';
   }
 
-  // TODO: clock moves
   if (!board.IsEnPassantSquareEmpty()) {
     Coord coord = CoordFromBitboard(board.EnPassantSquare());
     char rank = '0' + coord.rank;
@@ -194,5 +206,6 @@ std::string PositionToFen(Board &board) {
     fen += {' ', '-', ' '};
   }
 
-  return fen += {'0', ' ', '1'};
+  return fen += std::to_string(board.halfmove_clock_) + ' ' +
+                std::to_string(board.fullmove_counter_);
 }

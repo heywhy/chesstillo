@@ -80,3 +80,16 @@ TEST(FenTest, RepresentEnPassantSquareInPositionFen) {
 
   ASSERT_EQ(PositionToFen(board), START_FEN);
 }
+
+TEST(FenTest, ClockMovesInFenAreRespected) {
+  Board board;
+  const char *fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - e3 50 97";
+
+  ApplyFen(board, fen);
+
+  ASSERT_EQ(PositionToFen(board), fen);
+
+  ApplyFen(board, START_FEN);
+
+  ASSERT_EQ(PositionToFen(board), START_FEN);
+}
