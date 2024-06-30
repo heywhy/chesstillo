@@ -142,7 +142,8 @@ void ApplyFen(Board &board, const char *fen) {
     fen++;
   }
 
-  board.ComputeOccupied();
+  board.ComputeOccupiedSqs();
+  board.ComputeAttackedSqs();
 }
 
 std::string PositionToFen(Board &board) {

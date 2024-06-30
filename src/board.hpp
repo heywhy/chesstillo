@@ -2,7 +2,6 @@
 #include <list>
 #include <string>
 
-#include "move.hpp"
 #include "types.hpp"
 
 #ifndef BOARD_HPP
@@ -49,14 +48,16 @@ public:
   bool IsEnPassantSquareEmpty() { return en_passant_sq_ == EMPTY; }
 
 private:
-  Color turn_;
-  int halfmove_clock_ = 0;
-  long fullmove_counter_ = 0;
+  int halfmove_clock_;
+  Color turn_ = WHITE;
+  long fullmove_counter_ = 1;
   std::uint8_t castling_rights_;
 
   // pawn, rook, knight, bishop, queen, king
   Bitboard w_pieces_[6];
   Bitboard b_pieces_[6];
+  Bitboard w_attacking_sqs_[6];
+  Bitboard b_attacking_sqs_[6];
 
   Bitboard occupied_sqs_ = EMPTY;
   Bitboard en_passant_sq_ = EMPTY;
@@ -67,8 +68,13 @@ private:
 
   friend void ApplyFen(Board &board, const char *fen);
   friend std::string PositionToFen(Board &board);
+  friend bool IsValidPawnMove(Board &board, Bitboard const piece,
+                              Move const &move, Bitboard const &attacking_sqs);
 
-  void ComputeOccupied() {
+  void ComputeAttackedSqs();
+  bool IsValidMove(Move const &move);
+
+  void ComputeOccupiedSqs() {
     sqs_occupied_by_w_ = EMPTY;
     sqs_occupied_by_b_ = EMPTY;
 

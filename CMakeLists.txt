@@ -6,7 +6,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-add_executable(chestillo src/board.cpp src/fen.cpp src/main.cpp)
+add_executable(chestillo src/board.cpp src/fen.cpp src/move.cpp src/main.cpp)
 target_link_options(chestillo PUBLIC -O3)
 
 include(FetchContent)
@@ -27,7 +27,7 @@ enable_testing()
 
 file(GLOB TEST_SRC LIST_DIRECTORIES false src/*_test.cpp)
 
-add_executable(chestillo_test src/board.cpp src/fen.cpp ${TEST_SRC})
+add_executable(chestillo_test src/board.cpp src/fen.cpp src/move.cpp ${TEST_SRC})
 target_link_libraries(chestillo_test GTest::gtest_main)
 
 include(GoogleTest)

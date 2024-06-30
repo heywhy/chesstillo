@@ -1,16 +1,10 @@
+#include "board.hpp"
 #include "constants.hpp"
 #include "types.hpp"
 
 #ifndef MOVE_HPP
 
 #define MOVE_HPP
-
-struct Move {
-  Bitboard from;
-  Bitboard to;
-  Color color;
-  Piece piece;
-};
 
 #define MOVE_NORTH(bitboard) bitboard << 8
 #define MOVE_SOUTH(bitboard) bitboard >> 8
@@ -21,4 +15,5 @@ struct Move {
 #define MOVE_SOUTH_WEST(bitboard) (bitboard >> 9) & ~kHFile
 #define MOVE_NORTH_WEST(bitboard) (bitboard << 7) & ~kHFile
 
+bool IsValidPawnMove(Board &board, Bitboard piece, Move const &move);
 #endif

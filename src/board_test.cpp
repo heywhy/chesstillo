@@ -4,11 +4,16 @@
 #include "fen.hpp"
 #include "move.hpp"
 
-TEST(Board, ApplyPawnMove) {
+class BoardTestSuite : public ::testing::Test {
+protected:
   Board board;
 
-  ApplyFen(board, START_FEN);
+  void SetUp() override { ApplyFen(board, START_FEN); }
 
+  void TearDown() override { board.Reset(); }
+};
+
+TEST_F(BoardTestSuite, ApplyPawnMove) {
   Bitboard empty_squares = board.EmptySquares();
 
   Bitboard e2 = BitboardForSquare('e', 2);
@@ -20,4 +25,50 @@ TEST(Board, ApplyPawnMove) {
 
   ASSERT_NE(board.EmptySquares(), empty_squares);
   ASSERT_TRUE(board.Position(PAWN, WHITE) & e4);
+}
+
+TEST_F(BoardTestSuite, FailToApplyInvalidPawnMove) {
+  Bitboard e2 = BitboardForSquare('e', 2);
+  Bitboard d4 = BitboardForSquare('d', 4);
+
+  Move move = {e2, d4, WHITE, PAWN};
+
+  board.ApplyMove(move);
+
+  ASSERT_EQ(PositionToFen(board), START_FEN);
+}
+
+TEST_F(BoardTestSuite, ApplyPawnCaptureMove) {
+  Move moves[] = {
+      Move(BitboardForSquare('e', 2), BitboardForSquare('e', 4), WHITE, PAWN),
+      Move(BitboardForSquare('d', 7), BitboardForSquare('d', 5), BLACK, PAWN),
+      Move(BitboardForSquare('e', 4), BitboardForSquare('d', 5), WHITE, PAWN),
+      Move(BitboardForSquare('c', 7), BitboardForSquare('c', 6), BLACK, PAWN),
+      Move(BitboardForSquare('d', 2), BitboardForSquare('d', 4), WHITE, PAWN),
+      Move(BitboardForSquare('c', 6), BitboardForSquare('d', 5), BLACK, PAWN),
+  };
+
+  for (Move &move : moves) {
+    board.ApplyMove(move);
+  }
+
+  ASSERT_EQ(PositionToFen(board),
+            "rnbqkbnr/pp2pppp/8/3p4/3P4/8/PPP2PPP/RNBQKBNR w KQkq - 0 4");
+}
+
+TEST_F(BoardTestSuite, FailToCaptureOwnPawn) {
+  Move moves[] = {
+      Move(BitboardForSquare('e', 2), BitboardForSquare('e', 4), WHITE, PAWN),
+      Move(BitboardForSquare('c', 7), BitboardForSquare('c', 5), BLACK, PAWN),
+      Move(BitboardForSquare('d', 2), BitboardForSquare('d', 3), WHITE, PAWN),
+      Move(BitboardForSquare('e', 7), BitboardForSquare('e', 6), BLACK, PAWN),
+      Move(BitboardForSquare('d', 3), BitboardForSquare('e', 4), WHITE, PAWN),
+  };
+
+  for (Move &move : moves) {
+    board.ApplyMove(move);
+  }
+
+  ASSERT_EQ(PositionToFen(board),
+            "rnbqkbnr/pp1p1ppp/4p3/2p5/4P3/3P4/PPP2PPP/RNBQKBNR w KQkq - 0 3");
 }

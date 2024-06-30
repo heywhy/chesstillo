@@ -65,7 +65,7 @@ TEST(FenTest, PositionToFen) {
   board.ApplyMove(black_move);
 
   ASSERT_EQ(PositionToFen(board),
-            "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1");
+            "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2");
 }
 
 TEST(FenTest, RepresentEnPassantSquareInPositionFen) {
