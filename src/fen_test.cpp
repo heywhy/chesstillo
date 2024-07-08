@@ -39,11 +39,11 @@ TEST(FenTest, ApplyEnPassantSquare) {
 
   ApplyFen(board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - e3 0 1");
 
-  ASSERT_FALSE(board.IsEnPassantSquareEmpty());
+  ASSERT_TRUE(board.EnPassantSquare());
 
   ApplyFen(board, START_FEN);
 
-  ASSERT_TRUE(board.IsEnPassantSquareEmpty());
+  ASSERT_FALSE(board.EnPassantSquare());
 }
 
 TEST(FenTest, PositionToFen) {

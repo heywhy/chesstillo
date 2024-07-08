@@ -198,7 +198,7 @@ std::string PositionToFen(Board &board) {
     fen += '-';
   }
 
-  if (!board.IsEnPassantSquareEmpty()) {
+  if (board.EnPassantSquare()) {
     Coord coord = CoordFromBitboard(board.EnPassantSquare());
     char rank = '0' + coord.rank;
 

@@ -45,7 +45,6 @@ public:
   }
 
   Bitboard EnPassantSquare() { return en_passant_sq_; }
-  bool IsEnPassantSquareEmpty() { return en_passant_sq_ == EMPTY; }
 
 private:
   int halfmove_clock_;
@@ -70,9 +69,16 @@ private:
   friend std::string PositionToFen(Board &board);
   friend bool IsValidPawnMove(Board &board, Bitboard const piece,
                               Move const &move, Bitboard const &attacking_sqs);
+  friend bool IsValidKnightMove(Board &board, Bitboard const piece,
+                                Move const &move,
+                                Bitboard const &attacking_sqs);
 
   void ComputeAttackedSqs();
   bool IsValidMove(Move const &move);
+
+  inline Bitboard SquaresOccupiedByOpp(Color &color) {
+    return color == WHITE ? sqs_occupied_by_b_ : sqs_occupied_by_w_;
+  }
 
   void ComputeOccupiedSqs() {
     sqs_occupied_by_w_ = EMPTY;
@@ -80,9 +86,6 @@ private:
 
     for (int i = 0; i < 6; i++) {
       sqs_occupied_by_w_ |= w_pieces_[i];
-    }
-
-    for (int i = 0; i < 6; i++) {
       sqs_occupied_by_b_ |= b_pieces_[i];
     }
 

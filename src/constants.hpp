@@ -5,6 +5,7 @@
 #define CONSTANTS_HPP
 
 static const Bitboard kAFile = 0x0101010101010101;
+static const Bitboard kBFile = 0x0202020202020202;
 static const Bitboard kHFile = 0x8080808080808080;
 static const Bitboard kRank1 = 0xFF00;
 static const Bitboard kRank4 = 0x00000000FF000000;

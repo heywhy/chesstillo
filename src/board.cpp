@@ -54,8 +54,7 @@ void Board::ApplyMove(Move move) {
   if (turn_ != move.color || !IsValidMove(move))
     return;
 
-  Bitboard sqs_occupied_by_opp =
-      move.color == WHITE ? sqs_occupied_by_b_ : sqs_occupied_by_w_;
+  Bitboard sqs_occupied_by_opp = SquaresOccupiedByOpp(move.color);
 
   Bitboard *piece =
       move.color == WHITE ? &w_pieces_[move.piece] : &b_pieces_[move.piece];
@@ -77,8 +76,6 @@ void Board::ApplyMove(Move move) {
 
   moves.push_front(move);
 
-  turn_ = move.color == WHITE ? BLACK : WHITE;
-
   if (move.piece == PAWN || move.IsCapture()) {
     halfmove_clock_ = 0;
   } else {
@@ -90,6 +87,10 @@ void Board::ApplyMove(Move move) {
 
   ComputeOccupiedSqs();
   ComputeAttackedSqs();
+
+  if (SquaresOccupiedByOpp(move.color)) {
+    turn_ = move.color == WHITE ? BLACK : WHITE;
+  }
 }
 
 bool Board::IsValidMove(Move const &move) {
@@ -105,6 +106,9 @@ bool Board::IsValidMove(Move const &move) {
   if (move.piece == PAWN)
     return IsValidPawnMove(*this, piece & move.from, move, attacking_sqs);
 
+  if (move.piece == KNIGHT)
+    return IsValidKnightMove(*this, piece & move.from, move, attacking_sqs);
+
   return false;
 }
 
@@ -116,6 +120,12 @@ void Board::ComputeAttackedSqs() {
   b_attacking_sqs_[PAWN] =
       (MOVE_SOUTH_EAST(b_pieces_[PAWN]) ^ MOVE_SOUTH_WEST(b_pieces_[PAWN])) |
       (MOVE_SOUTH_EAST(b_pieces_[PAWN]) & MOVE_SOUTH_WEST(b_pieces_[PAWN]));
+
+  w_attacking_sqs_[KNIGHT] = KNIGHT_ATTACKS(w_pieces_[KNIGHT]);
+  b_attacking_sqs_[KNIGHT] = KNIGHT_ATTACKS(b_pieces_[KNIGHT]);
+
+  w_attacking_sqs_[KING] = KING_ATTACKS(w_pieces_[KING]);
+  b_attacking_sqs_[KING] = KING_ATTACKS(b_pieces_[KING]);
 }
 
 void Board::Print() {}

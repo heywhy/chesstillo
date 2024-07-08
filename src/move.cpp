@@ -1,6 +1,7 @@
 #include "move.hpp"
 #include "constants.hpp"
 #include "types.hpp"
+#include <mach/mach_init.h>
 
 Bitboard GenPawnMoves(Color color, Bitboard position, Bitboard occupied_sqs,
                       Bitboard attacked_sqs_);
@@ -18,9 +19,13 @@ bool IsValidPawnMove(Board &board, Bitboard const piece, Move const &move,
   return targets & move.to;
 }
 
+bool IsValidKnightMove(Board &, Bitboard const, Move const &move,
+                       Bitboard const &attacking_sqs) {
+  return attacking_sqs & move.to;
+}
+
 Bitboard GenPawnMoves(Color color, Bitboard piece, Bitboard occupied_sqs,
                       Bitboard attacked_sqs_) {
-  Bitboard targets;
   Bitboard single_push;
   Bitboard empty_sqs = ~occupied_sqs;
 

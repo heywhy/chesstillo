@@ -72,3 +72,21 @@ TEST_F(BoardTestSuite, FailToCaptureOwnPawn) {
   ASSERT_EQ(PositionToFen(board),
             "rnbqkbnr/pp1p1ppp/4p3/2p5/4P3/3P4/PPP2PPP/RNBQKBNR w KQkq - 0 3");
 }
+
+TEST_F(BoardTestSuite, MoveKnight) {
+  ApplyFen(board, "8/8/4n3/8/3N4/8/8/8 w - - 0 1");
+
+  board.ApplyMove(
+      {BitboardForSquare('d', 4), BitboardForSquare('e', 6), WHITE, KNIGHT});
+
+  ASSERT_EQ(PositionToFen(board), "8/8/4N3/8/8/8/8/8 w - - 0 1");
+}
+
+TEST_F(BoardTestSuite, IgnoreInvalidKnightMove) {
+  ApplyFen(board, "8/8/8/8/3N4/8/8/8 w - - 0 1");
+
+  board.ApplyMove(
+      {BitboardForSquare('d', 4), BitboardForSquare('e', 5), WHITE, KNIGHT});
+
+  ASSERT_EQ(PositionToFen(board), "8/8/8/8/3N4/8/8/8 w - - 0 1");
+}
