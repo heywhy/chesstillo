@@ -145,3 +145,55 @@ TEST_F(BoardTestSuite, IgnoreBishopMoveIfBlocked) {
 
   ASSERT_EQ(PositionToFen(board), "8/8/8/4P3/8/2R1B3/8/8 w - - 0 2");
 }
+
+TEST_F(BoardTestSuite, MoveRook) {
+  ApplyFen(board, "8/2r2n2/8/8/3R4/8/8/5R2 w - - 0 1");
+
+  Move white(BitboardForSquare('f', 1), BitboardForSquare('f', 7), WHITE, ROOK);
+  Move black(BitboardForSquare('c', 7), BitboardForSquare('f', 7), BLACK, ROOK);
+
+  board.ApplyMove(white);
+  board.ApplyMove(black);
+
+  ASSERT_EQ(PositionToFen(board), "8/5r2/8/8/3R4/8/8/8 w - - 0 2");
+}
+
+TEST_F(BoardTestSuite, IgnoreInvalidRookMove) {
+  char const *fen = "8/8/8/8/4R3/8/8/8 w - - 0 1";
+
+  ApplyFen(board, fen);
+
+  Bitboard piece = BitboardForSquare('e', 4);
+
+  Move moves[] = {
+      Move(piece, BitboardForSquare('d', 3), WHITE, ROOK),
+      Move(piece, BitboardForSquare('d', 5), WHITE, ROOK),
+      Move(piece, BitboardForSquare('f', 5), WHITE, ROOK),
+      Move(piece, BitboardForSquare('f', 3), WHITE, ROOK),
+  };
+
+  for (int i = 0; i < 4; i++) {
+    board.ApplyMove(moves[i]);
+  }
+
+  ASSERT_EQ(PositionToFen(board), fen);
+}
+
+TEST_F(BoardTestSuite, IgnoreRookMoveIfBlocked) {
+  ApplyFen(board, "8/8/5n2/4P3/1qBR2r1/8/8/8 w - - 0 1");
+
+  Bitboard piece = BitboardForSquare('d', 4);
+
+  Move moves[] = {
+      Move(piece, BitboardForSquare('b', 4), WHITE, ROOK),
+      Move(piece, BitboardForSquare('g', 4), WHITE, ROOK),
+      Move(BitboardForSquare('f', 6), BitboardForSquare('g', 4), BLACK, KNIGHT),
+      Move(BitboardForSquare('c', 4), BitboardForSquare('e', 6), WHITE, BISHOP),
+  };
+
+  for (int i = 0; i < 5; i++) {
+    board.ApplyMove(moves[i]);
+  }
+
+  ASSERT_EQ(PositionToFen(board), "8/8/4B3/4P3/1q4n1/8/8/8 b - - 1 2");
+}

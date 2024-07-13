@@ -76,8 +76,9 @@ private:
                                 Move const &move,
                                 Bitboard const &attacking_sqs);
   friend bool IsValidBishopMove(Board &board, Bitboard const piece,
-                                Move const &move,
-                                Bitboard const &attacking_sqs);
+                                Move const &move);
+  friend bool IsValidRookMove(Board &board, Bitboard const piece,
+                                Move const &move);
 
   void ComputeAttackedSqs();
   bool IsValidMove(Move const &move);

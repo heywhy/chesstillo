@@ -19,9 +19,14 @@ void SetFlags(Move *move, ...) {
 
 Bitboard BishopAttacks(Bitboard piece) {
   int square = SquareFromBitboard(piece);
-  Bitboard attacked_sqs = DiagonalMask(square) | AntiDiagonalMask(square);
 
-  return ExcludeSquareBit(attacked_sqs, square);
+  return DiagonalMask(square) ^ AntiDiagonalMask(square);
+}
+
+Bitboard RookAttacks(Bitboard piece) {
+  int square = SquareFromBitboard(piece);
+
+  return RankMask(square) ^ FileMask(square);
 }
 
 Bitboard GenPawnMoves(Color color, Bitboard position, Bitboard occupied_sqs,
@@ -65,9 +70,18 @@ Bitboard SquaresInBetween(Bitboard from, Bitboard to) {
   return line & btwn;
 }
 
-bool IsValidBishopMove(Board &board, const Bitboard piece, const Move &move,
-                       const Bitboard &attacking_sqs) {
+bool IsValidBishopMove(Board &board, const Bitboard piece, const Move &move) {
   Bitboard targets = BishopAttacks(piece & move.from);
+  Bitboard squares_btwn = SquaresInBetween(move.from, move.to);
+
+  if (squares_btwn & board.occupied_sqs_)
+    return false;
+
+  return targets & move.to;
+}
+
+bool IsValidRookMove(Board &board, const Bitboard piece, const Move &move) {
+  Bitboard targets = RookAttacks(piece & move.from);
   Bitboard squares_btwn = SquaresInBetween(move.from, move.to);
 
   if (squares_btwn & board.occupied_sqs_)
@@ -112,8 +126,4 @@ Bitboard AntiDiagonalMask(int square) {
 
   return diagonal >= 0 ? kH1A8Diagonal >> diagonal * 8
                        : kH1A8Diagonal << -diagonal * 8;
-}
-
-Bitboard ExcludeSquareBit(Bitboard bb, int square) {
-  return (static_cast<Bitboard>(1) << square) ^ bb;
 }

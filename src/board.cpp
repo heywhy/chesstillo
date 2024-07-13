@@ -116,7 +116,10 @@ bool Board::IsValidMove(Move const &move) {
     return IsValidKnightMove(*this, piece & move.from, move, attacking_sqs);
 
   if (move.piece == BISHOP)
-    return IsValidBishopMove(*this, piece & move.from, move, attacking_sqs);
+    return IsValidBishopMove(*this, piece & move.from, move);
+
+  if (move.piece == ROOK)
+    return IsValidRookMove(*this, piece & move.from, move);
 
   return false;
 }
