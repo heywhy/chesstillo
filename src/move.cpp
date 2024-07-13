@@ -77,28 +77,26 @@ Bitboard SquaresInBetween(Bitboard from, Bitboard to) {
   return line & btwn;
 }
 
-bool IsValidBishopMove(Board &board, const Bitboard piece, const Move &move) {
-  Bitboard targets = BishopAttacks(piece & move.from);
-  Bitboard squares_btwn = SquaresInBetween(move.from, move.to);
+bool IsValidSlidingMove(Board &board, const Bitboard piece, const Move &move) {
+  Bitboard targets;
 
-  if (squares_btwn & board.occupied_sqs_)
+  switch (move.piece) {
+  case BISHOP:
+    targets = BishopAttacks(piece);
+    break;
+
+  case QUEEN:
+    targets = QueenAttacks(piece);
+    break;
+
+  case ROOK:
+    targets = RookAttacks(piece);
+    break;
+
+  default:
     return false;
+  }
 
-  return targets & move.to;
-}
-
-bool IsValidRookMove(Board &board, const Bitboard piece, const Move &move) {
-  Bitboard targets = RookAttacks(piece & move.from);
-  Bitboard squares_btwn = SquaresInBetween(move.from, move.to);
-
-  if (squares_btwn & board.occupied_sqs_)
-    return false;
-
-  return targets & move.to;
-}
-
-bool IsValidQueenMove(Board &board, const Bitboard piece, const Move &move) {
-  Bitboard targets = QueenAttacks(piece & move.from);
   Bitboard squares_btwn = SquaresInBetween(move.from, move.to);
 
   if (squares_btwn & board.occupied_sqs_)

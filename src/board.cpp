@@ -106,25 +106,26 @@ bool Board::IsValidMove(Move const &move) {
   Bitboard attacking_sqs = move.color == WHITE ? w_attacking_sqs_[move.piece]
                                                : b_attacking_sqs_[move.piece];
 
-  if (!(piece & move.from))
+  piece &= move.from;
+
+  if (!piece)
     return false;
 
-  if (move.piece == PAWN)
-    return IsValidPawnMove(*this, piece & move.from, move, attacking_sqs);
+  switch (move.piece) {
+  case PAWN:
+    return IsValidPawnMove(*this, piece, move, attacking_sqs);
 
-  if (move.piece == KNIGHT)
-    return IsValidKnightMove(*this, piece & move.from, move, attacking_sqs);
+  case KNIGHT:
+    return IsValidKnightMove(*this, piece, move, attacking_sqs);
 
-  if (move.piece == BISHOP)
-    return IsValidBishopMove(*this, piece & move.from, move);
+  case BISHOP:
+  case QUEEN:
+  case ROOK:
+    return IsValidSlidingMove(*this, piece, move);
 
-  if (move.piece == ROOK)
-    return IsValidRookMove(*this, piece & move.from, move);
-
-  if (move.piece == QUEEN)
-    return IsValidQueenMove(*this, piece & move.from, move);
-
-  return false;
+  default:
+    return false;
+  }
 }
 
 void Board::ComputeAttackedSqs() {
