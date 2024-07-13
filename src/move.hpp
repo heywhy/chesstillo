@@ -33,8 +33,23 @@
 #define KING_ATTACKS(bitboard) \
         MOVE_NORTH(bitboard) | MOVE_EAST(bitboard) | MOVE_SOUTH(bitboard) | MOVE_WEST(bitboard)
 
+Bitboard RankMask(int square);
+Bitboard FileMask(int square);
+Bitboard DiagonalMask(int square);
+Bitboard AntiDiagonalMask(int square);
+Bitboard ExcludeSquareBit(Bitboard bitboard, int square);
+
+Bitboard BishopAttacks(Bitboard bitboard);
+Bitboard RookAttacks(Bitboard bitboard);
+Bitboard QueenAttacks(Bitboard bitboard);
+
+void SetFlags(Move *move, ...);
+
 bool IsValidPawnMove(Board &board, Bitboard const piece, Move const &move);
 
 bool IsValidKnightMove(Board &board, Bitboard const piece, Move const &move,
+                       Bitboard const &attacking_sqs);
+
+bool IsValidBishopMove(Board &board, Bitboard const piece, Move const &move,
                        Bitboard const &attacking_sqs);
 #endif

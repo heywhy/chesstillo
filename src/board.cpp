@@ -2,6 +2,13 @@
 #include "move.hpp"
 
 static const char kFiles[] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'};
+static const int kFilesLength = sizeof(kFiles) / sizeof(char);
+
+int ToFile(char file) {
+  const char *element = std::find(&kFiles[0], kFiles + kFilesLength, file);
+
+  return element - kFiles;
+}
 
 Bitboard BitboardForSquare(int file, int rank) {
   // int square = 8 * file + rank;
@@ -9,6 +16,12 @@ Bitboard BitboardForSquare(int file, int rank) {
   int square = 8 * rank + file;
 
   return 1ULL << square;
+}
+
+int SquareFromBitboard(Bitboard bb) {
+  Coord coord = CoordFromBitboard(bb);
+
+  return coord.IsValid() ? 8 * (coord.rank - 1) + ToFile(coord.file) : -1;
 }
 
 Coord CoordFromBitboard(Bitboard square) {
@@ -24,12 +37,7 @@ Coord CoordFromBitboard(Bitboard square) {
 }
 
 Bitboard BitboardForSquare(char file, int rank) {
-  int n = sizeof(kFiles) / sizeof(char);
-
-  const char *element = std::find(&kFiles[0], kFiles + n, file);
-  int index = element - kFiles;
-
-  return BitboardForSquare(index, rank - 1);
+  return BitboardForSquare(ToFile(file), rank - 1);
 }
 
 void Board::Reset() {
@@ -54,17 +62,15 @@ void Board::ApplyMove(Move move) {
   if (turn_ != move.color || !IsValidMove(move))
     return;
 
-  Bitboard sqs_occupied_by_opp = SquaresOccupiedByOpp(move.color);
-
   Bitboard *piece =
       move.color == WHITE ? &w_pieces_[move.piece] : &b_pieces_[move.piece];
 
   *piece ^= move.from ^ move.to;
 
-  if (sqs_occupied_by_opp & move.to) {
+  if (SquaresOccupiedByOpp(move.color) & move.to) {
     Bitboard *pieces = move.color == WHITE ? b_pieces_ : w_pieces_;
 
-    move.flags |= 1U << 1;
+    SetFlags(&move, CAPTURE);
 
     for (int i = 0; i < 6; i++) {
       if (pieces[i] & move.to) {
@@ -108,6 +114,9 @@ bool Board::IsValidMove(Move const &move) {
 
   if (move.piece == KNIGHT)
     return IsValidKnightMove(*this, piece & move.from, move, attacking_sqs);
+
+  if (move.piece == BISHOP)
+    return IsValidBishopMove(*this, piece & move.from, move, attacking_sqs);
 
   return false;
 }

@@ -16,11 +16,14 @@ enum Castling { K_WHITE, Q_WHITE, K_BLACK, Q_BLACK };
 struct Coord {
   char file;
   int rank;
+
+  bool IsValid() { return file != '\0' && rank >= 1 && rank <= 8; }
 };
 
 Bitboard BitboardForSquare(int file, int rank);
 Bitboard BitboardForSquare(char file, int rank);
 Coord CoordFromBitboard(Bitboard square);
+int SquareFromBitboard(Bitboard bb);
 
 /**
  * TODO:
@@ -72,11 +75,14 @@ private:
   friend bool IsValidKnightMove(Board &board, Bitboard const piece,
                                 Move const &move,
                                 Bitboard const &attacking_sqs);
+  friend bool IsValidBishopMove(Board &board, Bitboard const piece,
+                                Move const &move,
+                                Bitboard const &attacking_sqs);
 
   void ComputeAttackedSqs();
   bool IsValidMove(Move const &move);
 
-  inline Bitboard SquaresOccupiedByOpp(Color &color) {
+  inline Bitboard SquaresOccupiedByOpp(Color color) {
     return color == WHITE ? sqs_occupied_by_b_ : sqs_occupied_by_w_;
   }
 

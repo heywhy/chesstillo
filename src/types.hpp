@@ -4,6 +4,9 @@
 
 #define TYPES_HPP
 
+#define CAPTURE 1
+#define PROMOTION 2
+
 typedef std::uint64_t Bitboard;
 
 enum Color { WHITE, BLACK };
@@ -23,8 +26,8 @@ struct Move {
   Move(Bitboard from, Bitboard to, Color color, Piece piece, std::uint8_t flags)
       : from(from), to(to), color(color), piece(piece), flags(flags) {}
 
-  bool IsCapture() { return flags & (1U << 1); }
-  bool IsPromotion() { return flags & (1U << 2); }
+  bool IsCapture() { return flags & (1U << CAPTURE); }
+  bool IsPromotion() { return flags & (1U << PROMOTION); }
 };
 
 #endif
