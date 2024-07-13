@@ -123,6 +123,9 @@ bool Board::IsValidMove(Move const &move) {
   case ROOK:
     return IsValidSlidingMove(*this, piece, move);
 
+  case KING:
+    return attacking_sqs & move.to;
+
   default:
     return false;
   }

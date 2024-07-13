@@ -31,7 +31,9 @@
          MOVE_SOUTH_WEST_WEST(bitboard) | MOVE_SOUTH_SOUTH_WEST(bitboard)
 
 #define KING_ATTACKS(bitboard) \
-        MOVE_NORTH(bitboard) | MOVE_EAST(bitboard) | MOVE_SOUTH(bitboard) | MOVE_WEST(bitboard)
+        MOVE_NORTH(bitboard) | MOVE_EAST(bitboard) | MOVE_SOUTH(bitboard) | \
+        MOVE_WEST(bitboard) | MOVE_NORTH_EAST(bitboard) | MOVE_NORTH_WEST(bitboard) | \
+        MOVE_SOUTH_EAST(bitboard) | MOVE_SOUTH_WEST(bitboard)
 
 Bitboard RankMask(int square);
 Bitboard FileMask(int square);

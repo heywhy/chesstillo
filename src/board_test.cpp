@@ -228,3 +228,14 @@ TEST_F(BoardTestSuite, IgnoreQueenMoveIfBlocked) {
 
   ASSERT_EQ(PositionToFen(board), START_FEN);
 }
+
+TEST_F(BoardTestSuite, MoveKingAround) {
+  ApplyFen(board, "8/8/8/8/3K4/8/8/8 w - - 0 1");
+
+  Bitboard piece = BitboardForSquare('d', 4);
+
+  board.ApplyMove({piece, BitboardForSquare('f', 6), WHITE, KING});
+  board.ApplyMove({piece, BitboardForSquare('e', 5), WHITE, KING});
+
+  ASSERT_EQ(PositionToFen(board), "8/8/8/4K3/8/8/8/8 w - - 1 1");
+}
