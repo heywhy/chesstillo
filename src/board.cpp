@@ -121,6 +121,9 @@ bool Board::IsValidMove(Move const &move) {
   if (move.piece == ROOK)
     return IsValidRookMove(*this, piece & move.from, move);
 
+  if (move.piece == QUEEN)
+    return IsValidQueenMove(*this, piece & move.from, move);
+
   return false;
 }
 

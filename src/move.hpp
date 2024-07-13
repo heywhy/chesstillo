@@ -51,4 +51,5 @@ bool IsValidKnightMove(Board &board, Bitboard const piece, Move const &move,
 
 bool IsValidBishopMove(Board &board, Bitboard const piece, Move const &move);
 bool IsValidRookMove(Board &board, Bitboard const piece, Move const &move);
+bool IsValidQueenMove(Board &board, Bitboard const piece, Move const &move);
 #endif

@@ -197,3 +197,34 @@ TEST_F(BoardTestSuite, IgnoreRookMoveIfBlocked) {
 
   ASSERT_EQ(PositionToFen(board), "8/8/4B3/4P3/1q4n1/8/8/8 b - - 1 2");
 }
+
+TEST_F(BoardTestSuite, MoveQueen) {
+  ApplyFen(board, "8/8/4r3/1n1N2q1/2Q5/8/8/8 w - - 0 1");
+
+  Bitboard piece = BitboardForSquare('c', 4);
+
+  Move moves[] = {
+      Move(piece, BitboardForSquare('e', 6), WHITE, QUEEN),
+      Move(piece, BitboardForSquare('b', 5), WHITE, QUEEN),
+      Move(BitboardForSquare('e', 6), BitboardForSquare('e', 5), BLACK, ROOK),
+      Move(BitboardForSquare('b', 5), BitboardForSquare('f', 1), WHITE, QUEEN),
+      Move(BitboardForSquare('e', 5), BitboardForSquare('d', 5), BLACK, ROOK),
+      Move(BitboardForSquare('f', 1), BitboardForSquare('e', 2), WHITE, QUEEN),
+      Move(BitboardForSquare('g', 5), BitboardForSquare('h', 6), BLACK, QUEEN),
+      Move(BitboardForSquare('e', 2), BitboardForSquare('e', 8), WHITE, QUEEN),
+      Move(BitboardForSquare('h', 6), BitboardForSquare('a', 6), BLACK, QUEEN),
+  };
+
+  for (int i = 0; i < 9; i++) {
+    board.ApplyMove(moves[i]);
+  }
+
+  ASSERT_EQ(PositionToFen(board), "4Q3/8/q7/3r4/8/8/8/8 w - - 4 5");
+}
+
+TEST_F(BoardTestSuite, IgnoreQueenMoveIfBlocked) {
+  board.ApplyMove(
+      {BitboardForSquare('d', 1), BitboardForSquare('g', 4), WHITE, QUEEN});
+
+  ASSERT_EQ(PositionToFen(board), START_FEN);
+}

@@ -79,6 +79,8 @@ private:
                                 Move const &move);
   friend bool IsValidRookMove(Board &board, Bitboard const piece,
                                 Move const &move);
+  friend bool IsValidQueenMove(Board &board, Bitboard const piece,
+                                Move const &move);
 
   void ComputeAttackedSqs();
   bool IsValidMove(Move const &move);

@@ -29,6 +29,13 @@ Bitboard RookAttacks(Bitboard piece) {
   return RankMask(square) ^ FileMask(square);
 }
 
+Bitboard QueenAttacks(Bitboard piece) {
+  int square = SquareFromBitboard(piece);
+
+  return (FileMask(square) | RankMask(square)) ^
+         (DiagonalMask(square) | AntiDiagonalMask(square));
+}
+
 Bitboard GenPawnMoves(Color color, Bitboard position, Bitboard occupied_sqs,
                       Bitboard attacked_sqs_);
 
@@ -82,6 +89,16 @@ bool IsValidBishopMove(Board &board, const Bitboard piece, const Move &move) {
 
 bool IsValidRookMove(Board &board, const Bitboard piece, const Move &move) {
   Bitboard targets = RookAttacks(piece & move.from);
+  Bitboard squares_btwn = SquaresInBetween(move.from, move.to);
+
+  if (squares_btwn & board.occupied_sqs_)
+    return false;
+
+  return targets & move.to;
+}
+
+bool IsValidQueenMove(Board &board, const Bitboard piece, const Move &move) {
+  Bitboard targets = QueenAttacks(piece & move.from);
   Bitboard squares_btwn = SquaresInBetween(move.from, move.to);
 
   if (squares_btwn & board.occupied_sqs_)
