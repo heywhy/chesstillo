@@ -44,7 +44,7 @@ public:
   }
 
   bool CanCastle(Castling direction) {
-    return castling_rights_ & (1 << direction);
+    return castling_rights_ & (static_cast<std::uint8_t>(1) << direction);
   }
 
   Bitboard EnPassantSquare() { return en_passant_sq_; }

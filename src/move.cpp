@@ -1,4 +1,5 @@
 #include <cstdarg>
+#include <cstdint>
 
 #include "constants.hpp"
 #include "move.hpp"
@@ -11,7 +12,7 @@ void SetFlags(Move *move, ...) {
   va_start(args, move);
 
   while ((flag = va_arg(args, unsigned int))) {
-    move->flags |= 1U << flag;
+    move->flags |= static_cast<std::uint8_t>(1) << flag;
   }
 
   va_end(args);

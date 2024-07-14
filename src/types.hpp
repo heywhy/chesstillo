@@ -26,8 +26,10 @@ struct Move {
   Move(Bitboard from, Bitboard to, Color color, Piece piece, std::uint8_t flags)
       : from(from), to(to), color(color), piece(piece), flags(flags) {}
 
-  bool IsCapture() { return flags & (1U << CAPTURE); }
-  bool IsPromotion() { return flags & (1U << PROMOTION); }
+  bool IsCapture() { return flags & (static_cast<std::uint8_t>(1) << CAPTURE); }
+  bool IsPromotion() {
+    return flags & (static_cast<std::uint8_t>(1) << PROMOTION);
+  }
 };
 
 #endif

@@ -15,7 +15,7 @@ Bitboard BitboardForSquare(int file, int rank) {
   // int square = 8 * (rank - 1) + file;
   int square = 8 * rank + file;
 
-  return 1ULL << square;
+  return static_cast<Bitboard>(1) << square;
 }
 
 int SquareFromBitboard(Bitboard bb) {

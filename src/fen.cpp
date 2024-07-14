@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <string>
 
 #include "board.hpp"
@@ -38,13 +39,13 @@ void ApplyFen(Board &board, const char *fen) {
     case 'q':
       piece = &board.b_pieces_[QUEEN];
       if (spaces == 2)
-        board.castling_rights_ |= 1 << Q_BLACK;
+        board.castling_rights_ |= static_cast<std::uint8_t>(1) << Q_BLACK;
       break;
 
     case 'k':
       piece = &board.b_pieces_[KING];
       if (spaces == 2)
-        board.castling_rights_ |= 1 << K_BLACK;
+        board.castling_rights_ |= static_cast<std::uint8_t>(1) << K_BLACK;
       break;
 
     case 'p':
@@ -66,14 +67,14 @@ void ApplyFen(Board &board, const char *fen) {
     case 'Q':
       piece = &board.w_pieces_[QUEEN];
       if (spaces == 2)
-        board.castling_rights_ |= 1 << Q_WHITE;
+        board.castling_rights_ |= static_cast<std::uint8_t>(1) << Q_WHITE;
       break;
 
     case 'K':
       piece = &board.w_pieces_[KING];
 
       if (spaces == 2)
-        board.castling_rights_ |= 1 << K_WHITE;
+        board.castling_rights_ |= static_cast<std::uint8_t>(1) << K_WHITE;
       break;
 
     case 'P':
