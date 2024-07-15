@@ -115,15 +115,13 @@ bool Board::IsValidMove(Move const &move) {
   case PAWN:
     return IsValidPawnMove(*this, piece, move, attacking_sqs);
 
-  case KNIGHT:
-    return IsValidKnightMove(*this, piece, move, attacking_sqs);
-
   case BISHOP:
   case QUEEN:
   case ROOK:
     return IsValidSlidingMove(*this, piece, move);
 
   case KING:
+  case KNIGHT:
     return attacking_sqs & move.to;
 
   default:

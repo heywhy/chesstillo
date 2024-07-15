@@ -72,9 +72,6 @@ private:
   friend std::string PositionToFen(Board &board);
   friend bool IsValidPawnMove(Board &board, Bitboard const piece,
                               Move const &move, Bitboard const &attacking_sqs);
-  friend bool IsValidKnightMove(Board &board, Bitboard const piece,
-                                Move const &move,
-                                Bitboard const &attacking_sqs);
   friend bool IsValidSlidingMove(Board &board, Bitboard const bb,
                                  Move const &move);
 

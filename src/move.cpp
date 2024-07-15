@@ -53,11 +53,6 @@ bool IsValidPawnMove(Board &board, Bitboard const piece, Move const &move,
   return targets & move.to;
 }
 
-bool IsValidKnightMove(Board &, Bitboard const, Move const &move,
-                       Bitboard const &attacking_sqs) {
-  return attacking_sqs & move.to;
-}
-
 Bitboard SquaresInBetween(Bitboard from, Bitboard to) {
   static Bitboard const M = -1;
   Bitboard btwn, line, rank, file;

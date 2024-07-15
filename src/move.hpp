@@ -48,8 +48,5 @@ void SetFlags(Move *move, ...);
 
 bool IsValidPawnMove(Board &board, Bitboard const piece, Move const &move);
 
-bool IsValidKnightMove(Board &board, Bitboard const piece, Move const &move,
-                       Bitboard const &attacking_sqs);
-
 bool IsValidSlidingMove(Board &board, Bitboard const piece, Move const &move);
 #endif
