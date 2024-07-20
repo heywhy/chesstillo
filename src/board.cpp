@@ -42,13 +42,8 @@ Bitboard BitboardForSquare(char file, int rank) {
 
 void Board::Reset() {
   for (int i = 0; i < 6; i++) {
-    w_pieces_[i] = EMPTY;
-    w_attacking_sqs_[i] = EMPTY;
-  }
-
-  for (int i = 0; i < 6; i++) {
-    b_pieces_[i] = EMPTY;
-    b_attacking_sqs_[i] = EMPTY;
+    b_pieces_[i] = b_attacking_sqs_[i] = EMPTY;
+    w_pieces_[i] = w_attacking_sqs_[i] = EMPTY;
   }
 
   turn_ = WHITE;
