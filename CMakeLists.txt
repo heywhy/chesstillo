@@ -15,7 +15,7 @@ include(FetchContent)
 FetchContent_Declare(
   googletest
   GIT_REPOSITORY git@github.com:google/googletest.git
-  GIT_TAG 34ad51b3dc4f922d8ab622491dd44fc2c39afee9
+  GIT_TAG v1.15.0
   GIT_SHALLOW true
 )
 
