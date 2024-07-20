@@ -5,11 +5,11 @@
 TEST(FenTest, ApplyFen) {
   Board board;
 
-  ASSERT_EQ(~board.EmptySquares(), EMPTY);
+  ASSERT_EQ(~board.EmptySquares(), kEmpty);
 
   ApplyFen(board, START_FEN);
 
-  ASSERT_NE(~board.EmptySquares(), EMPTY);
+  ASSERT_NE(~board.EmptySquares(), kEmpty);
 }
 
 TEST(FenTest, MaintainCastlingRights) {

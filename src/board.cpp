@@ -42,13 +42,17 @@ Bitboard BitboardForSquare(char file, int rank) {
 
 void Board::Reset() {
   for (int i = 0; i < 6; i++) {
-    b_pieces_[i] = b_attacking_sqs_[i] = EMPTY;
-    w_pieces_[i] = w_attacking_sqs_[i] = EMPTY;
+    b_pieces_[i] = b_attacking_sqs_[i] = kEmpty;
+    w_pieces_[i] = w_attacking_sqs_[i] = kEmpty;
   }
 
   turn_ = WHITE;
   castling_rights_ = 0;
-  en_passant_sq_ = EMPTY;
+  en_passant_sq_ = kEmpty;
+
+  occupied_sqs_ = kEmpty;
+  sqs_occupied_by_b_ = kEmpty;
+  sqs_occupied_by_w_ = kEmpty;
 }
 
 bool Board::Endgame() { return false; }

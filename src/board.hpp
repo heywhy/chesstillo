@@ -8,8 +8,8 @@
 
 #define BOARD_HPP
 
-const Bitboard EMPTY = 0;
-const Bitboard UNIVERSE = -1;
+const Bitboard kEmpty = 0;
+const Bitboard kUniverse = -1;
 
 enum Castling { K_WHITE, Q_WHITE, K_BLACK, Q_BLACK };
 
@@ -61,8 +61,8 @@ private:
   Bitboard w_attacking_sqs_[6];
   Bitboard b_attacking_sqs_[6];
 
-  Bitboard occupied_sqs_ = EMPTY;
-  Bitboard en_passant_sq_ = EMPTY;
+  Bitboard occupied_sqs_ = kEmpty;
+  Bitboard en_passant_sq_ = kEmpty;
   Bitboard sqs_occupied_by_w_;
   Bitboard sqs_occupied_by_b_;
 
@@ -83,8 +83,8 @@ private:
   }
 
   void ComputeOccupiedSqs() {
-    sqs_occupied_by_w_ = EMPTY;
-    sqs_occupied_by_b_ = EMPTY;
+    sqs_occupied_by_w_ = kEmpty;
+    sqs_occupied_by_b_ = kEmpty;
 
     for (int i = 0; i < 6; i++) {
       sqs_occupied_by_w_ |= w_pieces_[i];
