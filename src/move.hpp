@@ -1,6 +1,7 @@
-#include "board.hpp"
+#include <chesstillo/board.hpp>
+#include <chesstillo/types.hpp>
+
 #include "constants.hpp"
-#include "types.hpp"
 
 #ifndef MOVE_HPP
 

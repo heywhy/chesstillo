@@ -1,6 +1,6 @@
+#include <chesstillo/board.hpp>
 #include <gtest/gtest.h>
 
-#include "board.hpp"
 #include "fen.hpp"
 #include "move.hpp"
 

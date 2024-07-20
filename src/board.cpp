@@ -1,4 +1,5 @@
-#include "board.hpp"
+#include <chesstillo/board.hpp>
+
 #include "move.hpp"
 
 static const char kFiles[] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'};

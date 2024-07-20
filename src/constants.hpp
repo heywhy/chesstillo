@@ -1,4 +1,4 @@
-#include "types.hpp"
+#include <chesstillo/types.hpp>
 
 #ifndef CONSTANTS_HPP
 

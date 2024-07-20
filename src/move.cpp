@@ -1,9 +1,9 @@
+#include <chesstillo/types.hpp>
 #include <cstdarg>
 #include <cstdint>
 
 #include "constants.hpp"
 #include "move.hpp"
-#include "types.hpp"
 
 void SetFlags(Move *move, ...) {
   std::va_list args;

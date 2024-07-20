@@ -1,6 +1,5 @@
+#include <chesstillo/board.hpp>
 #include <string>
-
-#include "board.hpp"
 
 #ifndef FEN_HPP
 
