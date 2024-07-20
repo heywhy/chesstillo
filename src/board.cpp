@@ -143,6 +143,10 @@ void Board::ComputeAttackedSqs() {
 
   w_attacking_sqs_[KING] = KING_ATTACKS(w_pieces_[KING]);
   b_attacking_sqs_[KING] = KING_ATTACKS(b_pieces_[KING]);
+
+  w_attacking_sqs_[BISHOP] = b_attacking_sqs_[BISHOP] = kEmpty;
+  w_attacking_sqs_[ROOK] = b_attacking_sqs_[ROOK] = kEmpty;
+  w_attacking_sqs_[QUEEN] = b_attacking_sqs_[QUEEN] = kEmpty;
 }
 
 void Board::Print() {}

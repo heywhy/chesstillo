@@ -1,8 +1,7 @@
+#include <chesstillo/fen.hpp>
 #include <chesstillo/game.hpp>
 #include <iostream>
 #include <string>
-
-#include "fen.hpp"
 
 Game::Game() { ApplyFen(board_, START_FEN); };
 

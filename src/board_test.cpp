@@ -1,7 +1,7 @@
 #include <chesstillo/board.hpp>
+#include <chesstillo/fen.hpp>
 #include <gtest/gtest.h>
 
-#include "fen.hpp"
 #include "move.hpp"
 
 class BoardTestSuite : public ::testing::Test {

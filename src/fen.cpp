@@ -1,8 +1,7 @@
 #include <chesstillo/board.hpp>
+#include <chesstillo/fen.hpp>
 #include <cstdint>
 #include <string>
-
-#include "fen.hpp"
 
 int ToInt(char num) { return num - '0'; }
 

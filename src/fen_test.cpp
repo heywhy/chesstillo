@@ -1,6 +1,5 @@
+#include <chesstillo/fen.hpp>
 #include <gtest/gtest.h>
-
-#include "fen.hpp"
 
 TEST(FenTest, ApplyFen) {
   Board board;
