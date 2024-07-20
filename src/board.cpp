@@ -149,4 +149,47 @@ void Board::ComputeAttackedSqs() {
   w_attacking_sqs_[QUEEN] = b_attacking_sqs_[QUEEN] = kEmpty;
 }
 
-void Board::Print() {}
+char Board::PieceAtSquare(Bitboard square) {
+  Color color;
+  Piece piece;
+  char c = '\0';
+
+  for (int i = 0; i < 6; i++) {
+    if (w_pieces_[i] & square) {
+      color = WHITE;
+      piece = static_cast<Piece>(i);
+      break;
+    }
+
+    if (b_pieces_[i] & square) {
+      color = BLACK;
+      piece = static_cast<Piece>(i);
+      break;
+    }
+  }
+
+  switch (piece) {
+  case ROOK:
+    c = 'r';
+    break;
+  case KNIGHT:
+    c = 'n';
+    break;
+  case BISHOP:
+    c = 'b';
+    break;
+  case QUEEN:
+    c = 'q';
+    break;
+  case KING:
+    c = 'k';
+    break;
+  case PAWN:
+    c = 'p';
+    break;
+  default:
+    return c;
+  }
+
+  return color == BLACK ? c : toupper(c);
+}

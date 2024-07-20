@@ -37,6 +37,7 @@ public:
   bool Endgame();
   void ApplyMove(Move move);
   void Print();
+  char PieceAtSquare(Bitboard square);
   Bitboard EmptySquares() { return ~occupied_sqs_; }
 
   Bitboard Position(Piece piece, Color color) {
@@ -92,49 +93,6 @@ private:
     }
 
     occupied_sqs_ = sqs_occupied_by_w_ | sqs_occupied_by_b_;
-  }
-
-  char PieceAtSquare(Bitboard square) {
-    char c;
-    Color color;
-    Piece piece;
-
-    for (int i = 0; i < 6; i++) {
-      if (w_pieces_[i] & square) {
-        color = WHITE;
-        piece = static_cast<Piece>(i);
-        break;
-      }
-
-      if (b_pieces_[i] & square) {
-        color = BLACK;
-        piece = static_cast<Piece>(i);
-        break;
-      }
-    }
-
-    switch (piece) {
-    case ROOK:
-      c = 'r';
-      break;
-    case KNIGHT:
-      c = 'n';
-      break;
-    case BISHOP:
-      c = 'b';
-      break;
-    case QUEEN:
-      c = 'q';
-      break;
-    case KING:
-      c = 'k';
-      break;
-    case PAWN:
-      c = 'p';
-      break;
-    }
-
-    return color == BLACK ? c : toupper(c);
   }
 };
 

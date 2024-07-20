@@ -6,7 +6,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-add_library(chestillo src/board.cpp src/fen.cpp src/move.cpp src/game.cpp)
+set(FTXUI_QUIET ON)
+
+add_library(chestillo SHARED src/board.cpp src/fen.cpp src/move.cpp src/game.cpp)
 target_include_directories(chestillo PRIVATE include)
 target_compile_options(chestillo PRIVATE -Wunused-variable)
 target_link_options(chestillo PRIVATE -O3)
@@ -20,6 +22,13 @@ target_link_options(chestillo_gui PRIVATE -O3)
 include(FetchContent)
 
 FetchContent_Declare(
+  ftxui
+  GIT_REPOSITORY git@github.com:ArthurSonzogni/ftxui.git
+  GIT_TAG 307e4eb4b3e0f245b85312e0bd028d748f94b740
+  GIT_SHALLOW true
+)
+
+FetchContent_Declare(
   googletest
   GIT_REPOSITORY git@github.com:google/googletest.git
   GIT_TAG v1.15.0
@@ -29,7 +38,15 @@ FetchContent_Declare(
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
+FetchContent_MakeAvailable(ftxui)
 FetchContent_MakeAvailable(googletest)
+
+target_link_libraries(
+  chestillo_gui
+  PRIVATE ftxui::screen
+  PRIVATE ftxui::dom
+  PRIVATE ftxui::component
+)
 
 enable_testing()
 
