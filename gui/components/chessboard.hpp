@@ -1,65 +1,32 @@
-#include "ftxui/dom/elements.hpp"
+#ifndef GUI_CHESSBOARD_HPP
+
+#define GUI_CHESSBOARD_HPP
+
 #include <chesstillo/board.hpp>
-#include <ftxui/component/component.hpp>
 #include <ftxui/component/component_base.hpp>
-#include <ftxui/dom/elements.hpp>
-#include <ftxui/dom/flexbox_config.hpp>
 #include <ftxui/dom/node.hpp>
-#include <ftxui/screen/color.hpp>
-#include <string>
+#include <memory>
 
-Bitboard const kSquare = static_cast<Bitboard>(1);
+#include "components/square.hpp"
 
-class ChessBoard : public ftxui::ComponentBase {
+class Chessboard : public ftxui::ComponentBase, public OnSelectSquare {
 public:
-  ChessBoard(Board board) : board_(board) {}
+  Chessboard(std::shared_ptr<Board> board);
 
-  ftxui::Element Render() {
-    ftxui::FlexboxConfig config;
+  ~Chessboard() { delete selected_; }
 
-    config.Set(ftxui::FlexboxConfig::Direction::Column);
-    config.Set(ftxui::FlexboxConfig::AlignContent::Center);
-    config.Set(ftxui::FlexboxConfig::JustifyContent::Center);
+  ftxui::Element Render() override;
+  bool OnEvent(ftxui::Event event) override;
+  void OnSelect(Square *) override;
 
-    ftxui::Elements board;
+  void FillBoard();
 
-    for (int i = 7; i >= 0; i--) {
-      ftxui::Elements row;
-
-      for (int j = 0; j < 8; j++) {
-        char piece = board_.PieceAtSquare(BitboardForSquare(j, i));
-
-        ftxui::Elements e;
-
-        if (piece != '\0') {
-          std::string p(1, piece);
-
-          e.push_back({ftxui::text(p)});
-        }
-
-        ftxui::Element square = ftxui::dbox(e | ftxui::center) |
-                                ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 4) |
-                                ftxui::size(ftxui::HEIGHT, ftxui::EQUAL, 2);
-
-        if ((i + j) % 2 == 0) {
-          square |= ftxui::bgcolor(ftxui::Color::Black) |
-                    ftxui::color(ftxui::Color::White);
-        } else {
-          square |= ftxui::bgcolor(ftxui::Color::White) |
-                    ftxui::color(ftxui::Color::Black);
-        }
-
-        row.push_back(square);
-      }
-
-      board.push_back(ftxui::hbox(row));
-    }
-
-    ftxui::Element box = ftxui::vbox(board);
-
-    return ftxui::flexbox({box}, config) | ftxui::border;
-  }
+  Square **selected_;
 
 private:
-  Board board_;
+  ftxui::Box box_;
+  ftxui::Element el_;
+  std::shared_ptr<Board> board_;
 };
+
+#endif

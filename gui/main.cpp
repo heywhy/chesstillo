@@ -1,18 +1,16 @@
-#include <chesstillo/board.hpp>
-#include <chesstillo/fen.hpp>
+#include <ftxui/component/component.hpp>
 #include <ftxui/component/screen_interactive.hpp>
 
-#include "components/chessboard.hpp"
+#include "screens/home.hpp"
+#include "utils.hpp"
 
 int main() {
-  Board board;
-
-  ApplyFen(board, START_FEN);
-
+  ftxui::Component component = ftxui::Make<Home>();
   ftxui::ScreenInteractive screen = ftxui::ScreenInteractive::Fullscreen();
 
-  screen.TrackMouse();
-  screen.Loop(ftxui::Make<ChessBoard>(std::move(board)));
+  HookQuitEvent(component);
+
+  screen.Loop(component);
 
   return 0;
 }
