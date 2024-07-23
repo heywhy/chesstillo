@@ -1,8 +1,8 @@
+#include <chesstillo/constants.hpp>
 #include <chesstillo/types.hpp>
 #include <cstdarg>
 #include <cstdint>
 
-#include "constants.hpp"
 #include "move.hpp"
 
 void SetFlags(Move *move, ...) {

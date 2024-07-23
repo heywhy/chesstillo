@@ -1,11 +1,9 @@
-#include <chesstillo/board.hpp>
-#include <chesstillo/types.hpp>
-
-#include "constants.hpp"
-
 #ifndef MOVE_HPP
-
 #define MOVE_HPP
+
+#include <chesstillo/board.hpp>
+#include <chesstillo/constants.hpp>
+#include <chesstillo/types.hpp>
 
 #define MOVE_NORTH(bitboard) bitboard << 8
 #define MOVE_SOUTH(bitboard) bitboard >> 8
@@ -20,10 +18,10 @@
 #define MOVE_NORTH_EAST_EAST(bitboard) (bitboard << 10) & ~(kAFile | kBFile)
 #define MOVE_SOUTH_EAST_EAST(bitboard) (bitboard >> 6) & ~(kAFile | kBFile)
 #define MOVE_SOUTH_SOUTH_EAST(bitboard) (bitboard >> 15) & ~kAFile
-#define MOVE_NORTH_NORTH_WEST(bitboard) (bitboard << 15) & ~kAFile
-#define MOVE_NORTH_WEST_WEST(bitboard) (bitboard << 6) & ~kAFile
-#define MOVE_SOUTH_WEST_WEST(bitboard) (bitboard >> 10) & ~kAFile
-#define MOVE_SOUTH_SOUTH_WEST(bitboard) (bitboard >> 17) & ~kAFile
+#define MOVE_NORTH_NORTH_WEST(bitboard) (bitboard << 15) & ~kHFile
+#define MOVE_NORTH_WEST_WEST(bitboard) (bitboard << 6) & ~(kGFile | kHFile)
+#define MOVE_SOUTH_WEST_WEST(bitboard) (bitboard >> 10) & ~(kGFile | kHFile)
+#define MOVE_SOUTH_SOUTH_WEST(bitboard) (bitboard >> 17) & ~kHFile
 
 #define KNIGHT_ATTACKS(bitboard) \
          MOVE_NORTH_NORTH_EAST(bitboard) | MOVE_NORTH_EAST_EAST(bitboard) | \
