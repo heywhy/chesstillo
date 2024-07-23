@@ -52,9 +52,12 @@ enable_testing()
 
 file(GLOB TEST_SRC LIST_DIRECTORIES false src/*_test.cpp)
 
-add_executable(chestillo_test src/board.cpp src/fen.cpp src/move.cpp ${TEST_SRC})
+add_executable(chestillo_test ${TEST_SRC})
 target_include_directories(chestillo_test PRIVATE include)
-target_link_libraries(chestillo_test GTest::gtest_main)
+target_link_libraries(chestillo_test 
+  PRIVATE chestillo
+  PRIVATE GTest::gtest_main
+)
 
 include(GoogleTest)
 

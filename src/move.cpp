@@ -75,6 +75,8 @@ Bitboard SquaresInBetween(Bitboard from, Bitboard to) {
 
 bool IsValidSlidingMove(Board &board, const Bitboard piece, const Move &move) {
   Bitboard targets;
+  Bitboard occupied_sqs =
+      move.color == WHITE ? board.sqs_occupied_by_w_ : board.sqs_occupied_by_b_;
 
   switch (move.piece) {
   case BISHOP:
@@ -98,7 +100,9 @@ bool IsValidSlidingMove(Board &board, const Bitboard piece, const Move &move) {
   if (squares_btwn & board.occupied_sqs_)
     return false;
 
-  return targets & move.to;
+  // 1. cancel out all occupied squares
+  // 2. and filter only squares in targets
+  return (targets ^ occupied_sqs) & targets & move.to;
 }
 
 Bitboard GenPawnMoves(Color color, Bitboard piece, Bitboard occupied_sqs,

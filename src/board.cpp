@@ -110,6 +110,9 @@ bool Board::IsValidMove(Move const &move) {
   Bitboard piece =
       move.color == WHITE ? w_pieces_[move.piece] : b_pieces_[move.piece];
 
+  Bitboard occupied_sqs =
+      move.color == WHITE ? sqs_occupied_by_w_ : sqs_occupied_by_b_;
+
   Bitboard attacking_sqs = move.color == WHITE ? w_attacking_sqs_[move.piece]
                                                : b_attacking_sqs_[move.piece];
 
@@ -129,7 +132,8 @@ bool Board::IsValidMove(Move const &move) {
 
   case KING:
   case KNIGHT:
-    return attacking_sqs & move.to;
+    // use the same logic used by sliding pieces to filter own square
+    return (attacking_sqs ^ occupied_sqs) & attacking_sqs & move.to;
 
   default:
     return false;

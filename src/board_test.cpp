@@ -239,3 +239,26 @@ TEST_F(BoardTestSuite, MoveKingAround) {
 
   ASSERT_EQ(PositionToFen(board), "8/8/8/4K3/8/8/8/8 w - - 1 1");
 }
+
+TEST_F(BoardTestSuite, PiecesCantCaptureOwnsPieces) {
+  board.ApplyMove(
+      {BitboardForSquare('e', 1), BitboardForSquare('f', 2), WHITE, KING});
+  board.ApplyMove(
+      {BitboardForSquare('e', 1), BitboardForSquare('d', 2), WHITE, KING});
+  board.ApplyMove(
+      {BitboardForSquare('e', 1), BitboardForSquare('d', 2), WHITE, KING});
+
+  board.ApplyMove(
+      {BitboardForSquare('d', 1), BitboardForSquare('c', 2), WHITE, QUEEN});
+  board.ApplyMove(
+      {BitboardForSquare('d', 1), BitboardForSquare('d', 2), WHITE, QUEEN});
+  board.ApplyMove(
+      {BitboardForSquare('d', 1), BitboardForSquare('e', 2), WHITE, QUEEN});
+
+  board.ApplyMove(
+      {BitboardForSquare('b', 1), BitboardForSquare('d', 2), WHITE, KNIGHT});
+  board.ApplyMove(
+      {BitboardForSquare('g', 1), BitboardForSquare('e', 2), WHITE, KNIGHT});
+
+  ASSERT_EQ(PositionToFen(board), START_FEN);
+}
