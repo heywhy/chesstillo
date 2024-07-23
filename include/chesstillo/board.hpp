@@ -16,13 +16,11 @@ enum Castling { K_WHITE, Q_WHITE, K_BLACK, Q_BLACK };
 struct Coord {
   char file;
   int rank;
-
-  bool IsValid() { return file != '\0' && rank >= 1 && rank <= 8; }
 };
 
 Bitboard BitboardForSquare(int file, int rank);
 Bitboard BitboardForSquare(char file, int rank);
-Coord CoordFromBitboard(Bitboard square);
+bool CoordFromBitboard(Bitboard square, Coord *coord);
 int SquareFromBitboard(Bitboard bb);
 
 /**
@@ -48,11 +46,14 @@ public:
     return castling_rights_ & (static_cast<std::uint8_t>(1) << direction);
   }
 
+  Color GetTurn() { return turn_; }
+  std::list<Move> GetMoves() { return moves_; }
   Bitboard EnPassantSquare() { return en_passant_sq_; }
 
 private:
   int halfmove_clock_;
   Color turn_ = WHITE;
+  std::list<Move> moves_;
   long fullmove_counter_ = 1;
   std::uint8_t castling_rights_;
 
@@ -66,8 +67,6 @@ private:
   Bitboard en_passant_sq_ = kEmpty;
   Bitboard sqs_occupied_by_w_;
   Bitboard sqs_occupied_by_b_;
-
-  std::list<Move> moves;
 
   friend void ApplyFen(Board &board, const char *fen);
   friend std::string PositionToFen(Board &board);

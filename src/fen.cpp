@@ -198,8 +198,9 @@ std::string PositionToFen(Board &board) {
     fen += '-';
   }
 
-  if (board.EnPassantSquare()) {
-    Coord coord = CoordFromBitboard(board.EnPassantSquare());
+  Coord coord;
+
+  if (CoordFromBitboard(board.EnPassantSquare(), &coord)) {
     char rank = '0' + coord.rank;
 
     fen += {' ', coord.file, rank, ' '};

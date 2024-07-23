@@ -1,4 +1,5 @@
 #include <chesstillo/board.hpp>
+#include <utility>
 
 #include "move.hpp"
 
@@ -20,21 +21,27 @@ Bitboard BitboardForSquare(int file, int rank) {
 }
 
 int SquareFromBitboard(Bitboard bb) {
-  Coord coord = CoordFromBitboard(bb);
+  Coord coord;
 
-  return coord.IsValid() ? 8 * (coord.rank - 1) + ToFile(coord.file) : -1;
+  if (CoordFromBitboard(bb, &coord)) {
+    return 8 * (coord.rank - 1) + ToFile(coord.file);
+  }
+
+  return -1;
 }
 
-Coord CoordFromBitboard(Bitboard square) {
+bool CoordFromBitboard(Bitboard square, Coord *coord) {
   if (square) {
     int index = std::popcount((square & -square) - 1);
     int file = index % 8;
     int rank = index / 8;
 
-    return {kFiles[file], rank + 1};
+    *coord = {kFiles[file], rank + 1};
+
+    return true;
   }
 
-  return {'\0', -1};
+  return false;
 }
 
 Bitboard BitboardForSquare(char file, int rank) {
@@ -80,8 +87,6 @@ void Board::ApplyMove(Move move) {
     }
   }
 
-  moves.push_front(move);
-
   if (move.piece == PAWN || move.IsCapture()) {
     halfmove_clock_ = 0;
   } else {
@@ -97,6 +102,8 @@ void Board::ApplyMove(Move move) {
   if (SquaresOccupiedByOpp(move.color)) {
     turn_ = move.color == WHITE ? BLACK : WHITE;
   }
+
+  moves_.push_front(std::move(move));
 }
 
 bool Board::IsValidMove(Move const &move) {
