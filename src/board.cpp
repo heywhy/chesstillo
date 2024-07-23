@@ -17,7 +17,7 @@ Bitboard BitboardForSquare(int file, int rank) {
   // int square = 8 * (rank - 1) + file;
   int square = 8 * rank + file;
 
-  return static_cast<Bitboard>(1) << square;
+  return BITBOARD_FOR_SQUARE(square);
 }
 
 int SquareFromBitboard(Bitboard bb) {
@@ -160,10 +160,9 @@ void Board::ComputeAttackedSqs() {
   w_attacking_sqs_[QUEEN] = b_attacking_sqs_[QUEEN] = kEmpty;
 }
 
-char Board::PieceAtSquare(Bitboard square) {
+bool Board::PieceAtSquare(Bitboard square, char *c) {
   Color color;
   Piece piece;
-  char c = '\0';
 
   for (int i = 0; i < 6; i++) {
     if (w_pieces_[i] & square) {
@@ -179,28 +178,47 @@ char Board::PieceAtSquare(Bitboard square) {
     }
   }
 
-  switch (piece) {
-  case ROOK:
-    c = 'r';
-    break;
-  case KNIGHT:
-    c = 'n';
-    break;
-  case BISHOP:
-    c = 'b';
-    break;
-  case QUEEN:
-    c = 'q';
-    break;
-  case KING:
-    c = 'k';
-    break;
-  case PAWN:
-    c = 'p';
-    break;
-  default:
-    return c;
+  return PieceToChar(piece, color, c);
+}
+
+bool Board::PieceAtSquare(Bitboard square, Piece *piece) {
+  char c;
+
+  if (!PieceAtSquare(square, &c)) {
+    return false;
   }
 
-  return color == BLACK ? c : toupper(c);
+  switch (c) {
+  case 'r':
+  case 'R':
+    *piece = ROOK;
+    break;
+
+  case 'n':
+  case 'N':
+    *piece = KNIGHT;
+    break;
+
+  case 'b':
+  case 'B':
+    *piece = BISHOP;
+    break;
+
+  case 'k':
+  case 'K':
+    *piece = KING;
+    break;
+
+  case 'q':
+  case 'Q':
+    *piece = QUEEN;
+    break;
+
+  case 'p':
+  case 'P':
+    *piece = PAWN;
+    break;
+  }
+
+  return true;
 }

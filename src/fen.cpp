@@ -160,7 +160,11 @@ std::string PositionToFen(Board &board) {
           spaces = 0;
         }
 
-        fen += board.PieceAtSquare(square);
+        char piece;
+
+        if (board.PieceAtSquare(square, &piece)) {
+          fen += piece;
+        }
       } else {
         spaces++;
       }

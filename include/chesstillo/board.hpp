@@ -8,6 +8,8 @@
 
 #define BOARD_HPP
 
+#define BITBOARD_FOR_SQUARE(index) static_cast<Bitboard>(1) << index
+
 const Bitboard kEmpty = 0;
 const Bitboard kUniverse = -1;
 
@@ -35,7 +37,8 @@ public:
   bool Endgame();
   void ApplyMove(Move move);
   void Print();
-  char PieceAtSquare(Bitboard square);
+  bool PieceAtSquare(Bitboard square, char *);
+  bool PieceAtSquare(Bitboard square, Piece *);
   Bitboard EmptySquares() { return ~occupied_sqs_; }
 
   Bitboard Position(Piece piece, Color color) {
