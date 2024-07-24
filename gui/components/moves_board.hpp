@@ -29,18 +29,21 @@ public:
       ftxui::Elements texts;
       std::string move_number = std::to_string(index) + ". ";
 
-      texts.push_back(ftxui::text(move_number));
+      texts.push_back(ftxui::text(move_number) | ftxui::center |
+                      ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 5));
 
       char text[5];
 
       if (MoveToString(*it, text)) {
-        texts.push_back(ftxui::text(text) | ftxui::flex_grow);
+        texts.push_back(ftxui::text(text) |
+                        ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 10));
 
         it++;
       }
 
       if (it != moves.rend() && MoveToString(*it, text)) {
-        texts.push_back(ftxui::text(text) | ftxui::flex_grow);
+        texts.push_back(ftxui::text(text) |
+                        ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 10));
 
         it++;
       }
