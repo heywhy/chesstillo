@@ -1,34 +1,23 @@
 #ifndef GUI_SQUARE_HPP
-
 #define GUI_SQUARE_HPP
 
-#include <cstdint>
+#include <chesstillo/board.hpp>
+#include <chesstillo/constants.hpp>
+#include <chesstillo/types.hpp>
 #include <ftxui/component/component_base.hpp>
 #include <ftxui/component/event.hpp>
-#include <ftxui/component/mouse.hpp>
-#include <ftxui/dom/elements.hpp>
-#include <ftxui/dom/node.hpp>
-#include <ftxui/screen/box.hpp>
-#include <string>
 
-class Square;
-
-class OnSelectSquare {
-public:
-  virtual void OnSelect(Square *square) = 0;
-};
+#include "utils.hpp"
 
 class Square : public ftxui::ComponentBase {
 public:
-  Square(OnSelectSquare *observer, Square **selected, std::uint8_t file,
-         std::uint8_t rank)
-      : observer_(observer), file_(file), rank_(rank), piece_('\0'),
-        selected_(selected) {}
+  Square(OnSelectSquare *observer, std::uint8_t index, std::int8_t *selected)
+      : observer_(observer), index_(index), piece_('\0'), selected_(selected) {}
 
-  std::uint8_t GetFile() const { return file_; }
-  std::uint8_t GetRank() const { return rank_; }
   void SetPiece(char piece) { piece_ = piece; }
   bool IsEmpty() { return piece_ == '\0'; }
+
+  Bitboard ToBitboard() { return BITBOARD_FOR_SQUARE(index_); }
 
   ftxui::Element Render() override {
     ftxui::Elements elements;
@@ -44,10 +33,10 @@ public:
     square |= ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 4) |
               ftxui::size(ftxui::HEIGHT, ftxui::EQUAL, 2) | ftxui::center;
 
-    if (!IsSelected() && (rank_ + file_) % 2 == 0) {
+    if (*selected_ != index_ && ToBitboard() & kDarkSquares) {
       square |= ftxui::bgcolor(ftxui::Color::Black) |
                 ftxui::color(ftxui::Color::White);
-    } else if (!IsSelected()) {
+    } else if (*selected_ != index_) {
       square |= ftxui::bgcolor(ftxui::Color::White) |
                 ftxui::color(ftxui::Color::Black);
     } else {
@@ -64,7 +53,7 @@ public:
       if (mouse.motion == ftxui::Mouse::Motion::Pressed &&
           mouse.button == ftxui::Mouse::Button::Left &&
           box_.Contain(mouse.x, mouse.y)) {
-        observer_->OnSelect(this);
+        observer_->OnSelect(index_);
 
         return true;
       }
@@ -76,11 +65,9 @@ public:
 private:
   char piece_;
   ftxui::Box box_;
-  Square **selected_;
-  std::uint8_t file_;
-  std::uint8_t rank_;
+  std::uint8_t index_;
+  std::int8_t *selected_;
   OnSelectSquare *observer_;
-
-  bool IsSelected() { return *selected_ == this; }
 };
+
 #endif

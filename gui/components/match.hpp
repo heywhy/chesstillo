@@ -12,14 +12,17 @@
 #include <memory>
 
 #include "components/chessboard.hpp"
+#include "components/moves_board.hpp"
 
 class Match : public ftxui::ComponentBase {
 public:
   Match() : Match(std::make_shared<Board>()) {}
 
   Match(std::shared_ptr<Board> board)
-      : board_(board), chessboard_(ftxui::Make<Chessboard>(board)) {
+      : board_(board), chessboard_(ftxui::Make<Chessboard>(board)),
+        moves_board_(ftxui::Make<MovesBoard>(board)) {
     Add(chessboard_);
+    Add(moves_board_);
 
     ApplyFen(*board_, START_FEN);
     GetChessboard()->FillBoard();
@@ -38,7 +41,10 @@ public:
                              ftxui::text("[q] Quit")};
 
     ftxui::Element box =
-        ftxui::hbox({chessboard_->Render()}) | ftxui::hcenter |
+        ftxui::hbox({chessboard_->Render(), ftxui::separatorEmpty(),
+                     ftxui::separatorEmpty(),
+                     moves_board_->Render() | ftxui::center}) |
+        ftxui::center |
         ftxui::size(ftxui::WIDTH, ftxui::EQUAL, dimensions.dimx / 2) |
         ftxui::size(ftxui::HEIGHT, ftxui::EQUAL, dimensions.dimy / 2);
 
@@ -61,6 +67,7 @@ public:
 
 private:
   ftxui::Component chessboard_;
+  ftxui::Component moves_board_;
   std::shared_ptr<Board> board_;
 
   Chessboard *GetChessboard() {
