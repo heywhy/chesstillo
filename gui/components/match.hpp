@@ -13,6 +13,7 @@
 
 #include "components/chessboard.hpp"
 #include "components/moves_board.hpp"
+#include "components/scroll_view.hpp"
 
 class Match : public ftxui::ComponentBase {
 public:
@@ -20,9 +21,11 @@ public:
 
   Match(std::shared_ptr<Board> board)
       : board_(board), chessboard_(ftxui::Make<Chessboard>(board)),
-        moves_board_(ftxui::Make<MovesBoard>(board)) {
+        moves_board_(ftxui::Make<MovesBoard>(board)),
+        scroll_view_(ftxui::Make<ScrollView>(moves_board_)) {
     Add(chessboard_);
-    Add(moves_board_);
+    Add(scroll_view_);
+    // Add(moves_board_);
 
     ApplyFen(*board_, START_FEN);
     GetChessboard()->FillBoard();
@@ -36,14 +39,24 @@ public:
     config.Set(ftxui::FlexboxConfig::AlignContent::Center);
     config.Set(ftxui::FlexboxConfig::JustifyContent::Center);
 
+    std::string turn(board_->GetTurn() == WHITE ? "white" : "black");
     ftxui::Elements menus = {ftxui::text("[a] Analyze"), ftxui::separator(),
                              ftxui::text("[r] Restart"), ftxui::separator(),
                              ftxui::text("[q] Quit")};
 
     ftxui::Element box =
-        ftxui::hbox({chessboard_->Render(), ftxui::separatorEmpty(),
-                     ftxui::separatorEmpty(),
-                     moves_board_->Render() | ftxui::center}) |
+        ftxui::hbox(
+            {chessboard_->Render(), ftxui::separatorEmpty(),
+             ftxui::separatorEmpty(),
+             ftxui::vbox(
+                 {ftxui::hbox({ftxui::text("Moves") | ftxui::bold,
+                               ftxui::filler(), ftxui::text(turn + "'s turn")}),
+                  ftxui::separator(),
+
+                  scroll_view_->Render()}) |
+                 ftxui::center
+
+            }) |
         ftxui::center |
         ftxui::size(ftxui::WIDTH, ftxui::EQUAL, dimensions.dimx / 2) |
         ftxui::size(ftxui::HEIGHT, ftxui::EQUAL, dimensions.dimy / 2);
@@ -68,6 +81,7 @@ public:
 private:
   ftxui::Component chessboard_;
   ftxui::Component moves_board_;
+  ftxui::Component scroll_view_;
   std::shared_ptr<Board> board_;
 
   Chessboard *GetChessboard() {

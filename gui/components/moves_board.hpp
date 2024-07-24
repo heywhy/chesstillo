@@ -19,7 +19,6 @@ public:
     ftxui::Elements elements;
 
     std::list<Move> moves = board_->GetMoves();
-    std::string turn(board_->GetTurn() == WHITE ? "white" : "black");
 
     elements.reserve(moves.size() / 2);
 
@@ -53,13 +52,8 @@ public:
       ++index;
     }
 
-    return ftxui::vbox(
-               {ftxui::hbox({ftxui::text("Moves") | ftxui::bold,
-                             ftxui::filler(), ftxui::text(turn + "'s turn")}),
-                ftxui::separator(),
-                ftxui::vbox(elements) | ftxui::vscroll_indicator |
-                    ftxui::frame}) |
-           ftxui::size(ftxui::HEIGHT, ftxui::EQUAL, 17) |
+    return ftxui::vbox(elements) |
+           ftxui::size(ftxui::HEIGHT, ftxui::EQUAL, 15) |
            ftxui::size(ftxui::WIDTH, ftxui::GREATER_THAN, 30);
   }
 
