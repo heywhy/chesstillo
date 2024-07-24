@@ -16,7 +16,7 @@ target_link_options(chestillo PRIVATE -O3)
 add_executable(chestillo_gui gui/utils.cpp gui/main.cpp)
 target_include_directories(chestillo_gui PRIVATE include gui)
 target_link_libraries(chestillo_gui PRIVATE chestillo)
-target_compile_options(chestillo_gui PRIVATE -Wunused-variable)
+target_compile_options(chestillo_gui PRIVATE -Wall -Wextra)
 target_link_options(chestillo_gui PRIVATE -O3)
 
 include(FetchContent)

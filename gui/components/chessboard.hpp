@@ -104,8 +104,8 @@ public:
 
 private:
   ftxui::Box box_;
-  std::int8_t selected_;
   std::shared_ptr<Board> board_;
+  std::int8_t selected_;
 };
 
 #endif

@@ -142,14 +142,14 @@ public:
   bool Focusable() const override { return true; }
 
 private:
+  ftxui::Box box_;
+  Direction direction_;
+
   int scroll_width_;
   int scroll_height_;
 
   int size_width_;
   int size_height_;
-
-  ftxui::Box box_;
-  Direction direction_;
 };
 
 #endif

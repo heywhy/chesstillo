@@ -20,12 +20,11 @@ public:
   Match() : Match(std::make_shared<Board>()) {}
 
   Match(std::shared_ptr<Board> board)
-      : board_(board), chessboard_(ftxui::Make<Chessboard>(board)),
-        moves_board_(ftxui::Make<MovesBoard>(board)),
+      : board_(board), chessboard_(ftxui::Make<Chessboard>(board_)),
+        moves_board_(ftxui::Make<MovesBoard>(board_)),
         scroll_view_(ftxui::Make<ScrollView>(moves_board_)) {
     Add(chessboard_);
     Add(scroll_view_);
-    // Add(moves_board_);
 
     ApplyFen(*board_, START_FEN);
     GetChessboard()->FillBoard();
@@ -79,10 +78,10 @@ public:
   }
 
 private:
+  std::shared_ptr<Board> board_;
   ftxui::Component chessboard_;
   ftxui::Component moves_board_;
   ftxui::Component scroll_view_;
-  std::shared_ptr<Board> board_;
 
   Chessboard *GetChessboard() {
     return dynamic_cast<Chessboard *>(chessboard_.get());

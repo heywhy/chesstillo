@@ -12,7 +12,7 @@
 class Square : public ftxui::ComponentBase {
 public:
   Square(OnSelectSquare *observer, std::uint8_t index, std::int8_t *selected)
-      : observer_(observer), index_(index), piece_('\0'), selected_(selected) {}
+      : observer_(observer), index_(index), selected_(selected), piece_('\0') {}
 
   void SetPiece(char piece) { piece_ = piece; }
   bool IsEmpty() { return piece_ == '\0'; }
@@ -63,11 +63,11 @@ public:
   }
 
 private:
-  char piece_;
   ftxui::Box box_;
+  OnSelectSquare *observer_;
   std::uint8_t index_;
   std::int8_t *selected_;
-  OnSelectSquare *observer_;
+  char piece_;
 };
 
 #endif
