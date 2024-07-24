@@ -61,6 +61,8 @@ void Board::Reset() {
   occupied_sqs_ = kEmpty;
   sqs_occupied_by_b_ = kEmpty;
   sqs_occupied_by_w_ = kEmpty;
+
+  moves_.clear();
 }
 
 bool Board::Endgame() { return false; }
