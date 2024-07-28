@@ -9,6 +9,7 @@
 #include <ftxui/dom/node.hpp>
 
 #include "components/match.hpp"
+#include "theme.hpp"
 #include "utils.hpp"
 
 class Home : public ftxui::ComponentBase {
@@ -42,7 +43,7 @@ public:
 
 private:
   void OnNewGame() {
-    ftxui::Component component = ftxui::Make<Match>();
+    ftxui::Component component = ftxui::Make<Match>(&Theme::Default);
     ftxui::ScreenInteractive screen = ftxui::ScreenInteractive::Fullscreen();
 
     HookQuitEvent(component);

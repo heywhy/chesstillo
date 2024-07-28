@@ -17,10 +17,10 @@
 
 class Match : public ftxui::ComponentBase {
 public:
-  Match() : Match(std::make_shared<Board>()) {}
+  Match(const Theme *theme) : Match(theme, std::make_shared<Board>()) {}
 
-  Match(std::shared_ptr<Board> board)
-      : board_(board), chessboard_(ftxui::Make<Chessboard>(board_)),
+  Match(const Theme *theme, std::shared_ptr<Board> board)
+      : board_(board), chessboard_(ftxui::Make<Chessboard>(theme, board_)),
         moves_board_(ftxui::Make<MovesBoard>(board_)),
         scroll_view_(ftxui::Make<ScrollView>(moves_board_)) {
     Add(chessboard_);

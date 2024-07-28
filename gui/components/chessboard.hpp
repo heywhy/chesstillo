@@ -13,9 +13,10 @@
 
 class Chessboard : public ftxui::ComponentBase, public OnSelectSquare {
 public:
-  Chessboard(std::shared_ptr<Board> board) : board_(board), selected_(-1) {
+  Chessboard(const Theme *theme, std::shared_ptr<Board> board)
+      : board_(board), selected_(-1) {
     for (int i = 0; i < 64; i++) {
-      Add(ftxui::Make<Square>(this, i, &selected_));
+      Add(ftxui::Make<Square>(theme, this, i, &selected_));
     }
   }
 

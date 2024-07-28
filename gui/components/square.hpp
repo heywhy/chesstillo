@@ -11,73 +11,67 @@
 #include <tuple>
 
 #include "fonts.hpp"
+#include "theme.hpp"
 #include "utils.hpp"
 
 class Square : public ftxui::ComponentBase {
 public:
-  Square(OnSelectSquare *observer, std::uint8_t index, std::int8_t *selected)
-      : observer_(observer), index_(index), selected_(selected), piece_('\0'),
-        bitboard(BITBOARD_FOR_SQUARE(index_)) {
-    color_ = bitboard & kDarkSquares
-                 ? ftxui::Color(ftxui::Color::Palette256::DarkGoldenrod)
-                 : ftxui::Color::White;
-  }
+  Square(const Theme *theme, OnSelectSquare *observer, std::uint8_t index,
+         std::int8_t *selected)
+      : theme_(theme), observer_(observer), index_(index), selected_(selected),
+        piece_('\0'), bitboard(BITBOARD_FOR_SQUARE(index_)) {}
 
   void SetPiece(char piece) { piece_ = piece; }
   bool IsEmpty() { return piece_ == '\0'; }
 
   bool Font(std::tuple<std::string, ftxui::Color> *result) {
-    // TODO: These values should be picked from a selected board theme.
-    ftxui::Color black = ftxui::Color::Black;
-    ftxui::Color white = ftxui::Color::Grey93;
-
     switch (piece_) {
     case 'r':
-      *result = {kRook, black};
+      *result = {kRook, theme_->b_piece};
       break;
 
     case 'R':
-      *result = {kRook, white};
+      *result = {kRook, theme_->w_piece};
       break;
 
     case 'n':
-      *result = {kKnight, black};
+      *result = {kKnight, theme_->b_piece};
       break;
 
     case 'N':
-      *result = {kKnight, white};
+      *result = {kKnight, theme_->w_piece};
       break;
 
     case 'b':
-      *result = {kBishop, black};
+      *result = {kBishop, theme_->b_piece};
       break;
 
     case 'B':
-      *result = {kBishop, white};
+      *result = {kBishop, theme_->w_piece};
       break;
 
     case 'k':
-      *result = {kKing, black};
+      *result = {kKing, theme_->b_piece};
       break;
 
     case 'K':
-      *result = {kKing, white};
+      *result = {kKing, theme_->w_piece};
       break;
 
     case 'q':
-      *result = {kQueen, black};
+      *result = {kQueen, theme_->b_piece};
       break;
 
     case 'Q':
-      *result = {kQueen, white};
+      *result = {kQueen, theme_->w_piece};
       break;
 
     case 'p':
-      *result = {kPawn, black};
+      *result = {kPawn, theme_->b_piece};
       break;
 
     case 'P':
-      *result = {kPawn, white};
+      *result = {kPawn, theme_->w_piece};
       break;
 
     default:
@@ -104,9 +98,12 @@ public:
               ftxui::size(ftxui::HEIGHT, ftxui::EQUAL, 3);
 
     if (*selected_ != index_) {
-      square |= ftxui::bgcolor(color_);
+      ftxui::Color color =
+          bitboard & kDarkSquares ? theme_->dark_square : theme_->light_square;
+
+      square |= ftxui::bgcolor(color);
     } else {
-      square |= ftxui::bgcolor(ftxui::Color::Green4);
+      square |= ftxui::bgcolor(theme_->selected_square);
     }
 
     return square | ftxui::reflect(box_);
@@ -130,11 +127,11 @@ public:
 
 private:
   ftxui::Box box_;
+  const Theme *theme_;
   OnSelectSquare *observer_;
   std::uint8_t index_;
   std::int8_t *selected_;
   char piece_;
-  ftxui::Color color_;
 
 public:
   Bitboard const bitboard;
