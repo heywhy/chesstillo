@@ -76,6 +76,7 @@ public:
       return;
     }
 
+    // FIXME: Only current player pieces are selectable.
     Piece piece;
 
     if (board_->PieceAtSquare(selected->bitboard, &piece)) {
