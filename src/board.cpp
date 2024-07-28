@@ -3,8 +3,7 @@
 #include <vector>
 
 #include <chesstillo/board.hpp>
-
-#include "move.hpp"
+#include <chesstillo/move.hpp>
 
 static const char kFiles[] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'};
 static const int kFilesLength = sizeof(kFiles) / sizeof(char);
