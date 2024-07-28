@@ -2,8 +2,6 @@
 #include <chesstillo/fen.hpp>
 #include <gtest/gtest.h>
 
-#include "move.hpp"
-
 class BoardTestSuite : public ::testing::Test {
 protected:
   Board board;

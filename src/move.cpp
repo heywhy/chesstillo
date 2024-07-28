@@ -1,9 +1,14 @@
 #include <chesstillo/constants.hpp>
 #include <chesstillo/types.hpp>
 #include <cstdarg>
+#include <cstddef>
 #include <cstdint>
+#include <vector>
 
+#include "chesstillo/utility.hpp"
 #include "move.hpp"
+
+#define MAX_MOVES_BUFFER_SIZE 256
 
 void SetFlags(Move *move, ...) {
   std::va_list args;
@@ -37,20 +42,54 @@ Bitboard QueenAttacks(Bitboard piece) {
          (DiagonalMask(square) | AntiDiagonalMask(square));
 }
 
-Bitboard GenPawnMoves(Color color, Bitboard position, Bitboard occupied_sqs,
-                      Bitboard attacked_sqs_);
+std::vector<Move> GenerateMoves(Board &board, Piece piece) {
+  std::vector<Move> moves;
 
-bool IsValidPawnMove(Board &board, Bitboard const piece, Move const &move,
-                     Bitboard const &attacking_sqs) {
-  Bitboard occupied_by_opp =
-      move.color == WHITE ? board.sqs_occupied_by_b_ : board.sqs_occupied_by_w_;
+  Bitboard &bb =
+      board.turn_ == WHITE ? board.w_pieces_[piece] : board.b_pieces_[piece];
 
-  Bitboard attacked_sqs = attacking_sqs & occupied_by_opp;
+  Bitboard squares[MAX_MOVES_BUFFER_SIZE];
+  Bitboard targets[MAX_MOVES_BUFFER_SIZE];
 
-  Bitboard targets =
-      GenPawnMoves(move.color, piece, board.occupied_sqs_, attacked_sqs);
+  std::size_t size = Split(bb, squares);
 
-  return targets & move.to;
+  for (std::size_t i = 0; i < size; i++) {
+    Bitboard square = squares[i];
+    std::size_t size = GenerateMoves(board, piece, square, targets);
+
+    for (std::size_t j = 0; j < size; j++) {
+      moves.emplace_back(squares[i], targets[j], board.turn_, piece);
+    }
+  }
+
+  return moves;
+}
+
+std::size_t GenerateMoves(Board &board, Piece piece, Bitboard square,
+                          Bitboard *const out) {
+  std::size_t size = 0;
+
+  switch (piece) {
+  case PAWN:
+    size = GeneratePawnMoves(board, square, out);
+    break;
+
+  case KNIGHT:
+    size = GenerateKnightMoves(board, square, out);
+    break;
+
+  case KING:
+    size = GenerateKingMoves(board, square, out);
+    break;
+
+  case BISHOP:
+  case ROOK:
+  case QUEEN:
+    size = GenerateSlidingPieceMoves(board, piece, square, out);
+    break;
+  }
+
+  return size;
 }
 
 Bitboard SquaresInBetween(Bitboard from, Bitboard to) {
@@ -73,56 +112,90 @@ Bitboard SquaresInBetween(Bitboard from, Bitboard to) {
   return line & btwn;
 }
 
-bool IsValidSlidingMove(Board &board, const Bitboard piece, const Move &move) {
+std::size_t GeneratePawnMoves(Board &board, Bitboard square,
+                              Bitboard *const out) {
   Bitboard targets;
-  Bitboard occupied_sqs =
-      move.color == WHITE ? board.sqs_occupied_by_w_ : board.sqs_occupied_by_b_;
+  Bitboard single_push;
+  Bitboard empty_sqs = ~board.occupied_sqs_;
+  Bitboard attacked_sqs = board.turn_ == WHITE ? board.sqs_occupied_by_b_
+                                               : board.sqs_occupied_by_w_;
 
-  switch (move.piece) {
+  if (board.turn_ == WHITE) {
+    single_push = MOVE_NORTH(square) & empty_sqs;
+
+    targets = single_push | (MOVE_NORTH(single_push) & empty_sqs & kRank4) |
+              (MOVE_NORTH_EAST(square) & attacked_sqs) |
+              (MOVE_NORTH_WEST(square) & attacked_sqs);
+  } else {
+    single_push = MOVE_SOUTH(square) & empty_sqs;
+
+    targets = single_push | (MOVE_SOUTH(single_push) & empty_sqs & kRank5) |
+              (MOVE_SOUTH_EAST(square) & attacked_sqs) |
+              (MOVE_SOUTH_WEST(square) & attacked_sqs);
+  }
+
+  return Split(targets, out);
+}
+
+std::size_t GenerateKnightMoves(Board &board, Bitboard square,
+                                Bitboard *const out) {
+  Bitboard targets = KNIGHT_ATTACKS(square);
+  Bitboard occupied_sqs = board.turn_ == WHITE ? board.sqs_occupied_by_w_
+                                               : board.sqs_occupied_by_b_;
+
+  return Split((targets ^ occupied_sqs) & targets, out);
+}
+
+std::size_t GenerateSlidingPieceMoves(Board &board, Piece piece,
+                                      Bitboard square, Bitboard *const out) {
+  Bitboard targets;
+  Bitboard occupied_sqs = board.turn_ == WHITE ? board.sqs_occupied_by_w_
+                                               : board.sqs_occupied_by_b_;
+
+  switch (piece) {
   case BISHOP:
-    targets = BishopAttacks(piece);
+    targets = BishopAttacks(square);
     break;
 
   case QUEEN:
-    targets = QueenAttacks(piece);
+    targets = QueenAttacks(square);
     break;
 
   case ROOK:
-    targets = RookAttacks(piece);
+    targets = RookAttacks(square);
     break;
 
   default:
-    return false;
+    return 0;
   }
 
-  Bitboard squares_btwn = SquaresInBetween(move.from, move.to);
+  Bitboard allowed = kEmpty;
+  Bitboard tmp[MAX_MOVES_BUFFER_SIZE];
+  std::size_t size = Split(targets, tmp);
 
-  if (squares_btwn & board.occupied_sqs_)
-    return false;
+  for (std::size_t i = 0; i < size; i++) {
+    Bitboard destination = tmp[i];
+    Bitboard squares_btwn = SquaresInBetween(square, destination);
+
+    if (squares_btwn & board.occupied_sqs_) {
+      continue;
+    }
+
+    allowed |= destination;
+  }
 
   // 1. cancel out all occupied squares
   // 2. and filter only squares in targets
-  return (targets ^ occupied_sqs) & targets & move.to;
+  return Split((allowed ^ occupied_sqs) & allowed, out);
 }
 
-Bitboard GenPawnMoves(Color color, Bitboard piece, Bitboard occupied_sqs,
-                      Bitboard attacked_sqs_) {
-  Bitboard single_push;
-  Bitboard empty_sqs = ~occupied_sqs;
+std::size_t GenerateKingMoves(Board &board, Bitboard square,
+                              Bitboard *const out) {
+  Bitboard targets = KING_ATTACKS(square);
+  Bitboard occupied_sqs = board.turn_ == WHITE ? board.sqs_occupied_by_w_
+                                               : board.sqs_occupied_by_b_;
 
-  if (color == WHITE) {
-    single_push = MOVE_NORTH(piece) & empty_sqs;
-
-    return single_push | (MOVE_NORTH(single_push) & empty_sqs & kRank4) |
-           (MOVE_NORTH_EAST(piece) & attacked_sqs_) |
-           (MOVE_NORTH_WEST(piece) & attacked_sqs_);
-  }
-
-  single_push = MOVE_SOUTH(piece) & empty_sqs;
-
-  return single_push | (MOVE_SOUTH(single_push) & empty_sqs & kRank5) |
-         (MOVE_SOUTH_EAST(piece) & attacked_sqs_) |
-         (MOVE_SOUTH_WEST(piece) & attacked_sqs_);
+  return Split((targets ^ occupied_sqs) & targets, out);
 }
 
 Bitboard RankMask(int square) { return kRank1 << (square & 56); }

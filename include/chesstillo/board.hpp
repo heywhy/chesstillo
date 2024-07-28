@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <list>
 #include <string>
+#include <vector>
 
 #include "types.hpp"
 
@@ -73,10 +74,21 @@ private:
 
   friend void ApplyFen(Board &board, const char *fen);
   friend std::string PositionToFen(Board &board);
-  friend bool IsValidPawnMove(Board &board, Bitboard const piece,
-                              Move const &move, Bitboard const &attacking_sqs);
-  friend bool IsValidSlidingMove(Board &board, Bitboard const bb,
-                                 Move const &move);
+  friend std::vector<Move> GenerateMoves(Board &board);
+  friend std::vector<Move> GenerateMoves(Board &board, Piece piece);
+  friend std::size_t GenerateMoves(Board &board, Piece piece, Bitboard square,
+                                   Bitboard *const out);
+
+  friend std::size_t GeneratePawnMoves(Board &board, Bitboard square,
+                                       Bitboard *const out);
+  friend std::size_t GenerateKnightMoves(Board &board, Bitboard square,
+                                         Bitboard *const out);
+  friend std::size_t GenerateSlidingPieceMoves(Board &board, Piece piece,
+                                               Bitboard square,
+                                               Bitboard *const out);
+
+  friend std::size_t GenerateKingMoves(Board &board, Bitboard square,
+                                       Bitboard *const out);
 
   void ComputeAttackedSqs();
   bool IsValidMove(Move const &move);

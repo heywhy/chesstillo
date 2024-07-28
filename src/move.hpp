@@ -1,6 +1,8 @@
 #ifndef MOVE_HPP
 #define MOVE_HPP
 
+#include <vector>
+
 #include <chesstillo/board.hpp>
 #include <chesstillo/constants.hpp>
 #include <chesstillo/types.hpp>
@@ -45,7 +47,17 @@ Bitboard QueenAttacks(Bitboard bitboard);
 
 void SetFlags(Move *move, ...);
 
-bool IsValidPawnMove(Board &board, Bitboard const piece, Move const &move);
+std::vector<Move> GenerateMoves(Board &board);
+std::vector<Move> GenerateMoves(Board &board, Piece piece);
+std::size_t GenerateMoves(Board &board, Piece piece, Bitboard square,
+                          Bitboard *const out);
 
-bool IsValidSlidingMove(Board &board, Bitboard const piece, Move const &move);
+std::size_t GeneratePawnMoves(Board &board, Bitboard square,
+                              Bitboard *const out);
+std::size_t GenerateKnightMoves(Board &board, Bitboard square,
+                                Bitboard *const out);
+std::size_t GenerateSlidingPieceMoves(Board &board, Piece piece,
+                                      Bitboard square, Bitboard *const out);
+std::size_t GenerateKingMoves(Board &board, Bitboard square,
+                              Bitboard *const out);
 #endif

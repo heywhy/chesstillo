@@ -1,7 +1,9 @@
+#include <cstddef>
 #include <cstring>
 
 #include "chesstillo/board.hpp"
 #include "chesstillo/types.hpp"
+#include "chesstillo/utility.hpp"
 
 bool PieceToChar(Piece piece, Color color, char *c) {
   switch (piece) {
@@ -67,4 +69,20 @@ bool MoveToString(Move const &move, char *text) {
   std::strcpy(text, buffer);
 
   return true;
+}
+
+std::size_t Split(Bitboard bb, Bitboard *const out) {
+  std::size_t size = 0;
+
+  Bitboard lsb = bb & -bb;
+  Bitboard rest = bb ^ lsb;
+
+  while (lsb) {
+    out[size++] = lsb;
+
+    lsb = rest & -rest;
+    rest ^= lsb;
+  }
+
+  return size;
 }

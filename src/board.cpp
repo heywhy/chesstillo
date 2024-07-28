@@ -1,5 +1,8 @@
-#include <chesstillo/board.hpp>
+#include <algorithm>
 #include <utility>
+#include <vector>
+
+#include <chesstillo/board.hpp>
 
 #include "move.hpp"
 
@@ -109,37 +112,13 @@ void Board::ApplyMove(Move move) {
 }
 
 bool Board::IsValidMove(Move const &move) {
-  Bitboard piece =
-      move.color == WHITE ? w_pieces_[move.piece] : b_pieces_[move.piece];
+  std::vector<Move> moves = GenerateMoves(*this, move.piece);
 
-  Bitboard occupied_sqs =
-      move.color == WHITE ? sqs_occupied_by_w_ : sqs_occupied_by_b_;
+  auto it = std::find_if(moves.begin(), moves.end(), [&](Move &generated) {
+    return generated.from == move.from & move.to == generated.to;
+  });
 
-  Bitboard attacking_sqs = move.color == WHITE ? w_attacking_sqs_[move.piece]
-                                               : b_attacking_sqs_[move.piece];
-
-  piece &= move.from;
-
-  if (!piece)
-    return false;
-
-  switch (move.piece) {
-  case PAWN:
-    return IsValidPawnMove(*this, piece, move, attacking_sqs);
-
-  case BISHOP:
-  case QUEEN:
-  case ROOK:
-    return IsValidSlidingMove(*this, piece, move);
-
-  case KING:
-  case KNIGHT:
-    // use the same logic used by sliding pieces to filter own square
-    return (attacking_sqs ^ occupied_sqs) & attacking_sqs & move.to;
-
-  default:
-    return false;
-  }
+  return it != std::end(moves);
 }
 
 void Board::ComputeAttackedSqs() {
