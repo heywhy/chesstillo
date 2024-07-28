@@ -77,9 +77,8 @@ public:
 
     Piece piece;
 
-    if (board_->PieceAtSquare(selected->ToBitboard(), &piece)) {
-      Move move(selected->ToBitboard(), square->ToBitboard(), board_->GetTurn(),
-                piece);
+    if (board_->PieceAtSquare(selected->bitboard, &piece)) {
+      Move move(selected->bitboard, square->bitboard, board_->GetTurn(), piece);
 
       board_->ApplyMove(move);
 
@@ -94,7 +93,7 @@ public:
       char piece;
       Square *square = dynamic_cast<Square *>(component.get());
 
-      if (board_->PieceAtSquare(square->ToBitboard(), &piece)) {
+      if (board_->PieceAtSquare(square->bitboard, &piece)) {
         square->SetPiece(piece);
       } else {
         square->SetPiece('\0');

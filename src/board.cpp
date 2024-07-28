@@ -71,10 +71,10 @@ void Board::ApplyMove(Move move) {
   if (turn_ != move.color || !IsValidMove(move))
     return;
 
-  Bitboard *piece =
-      move.color == WHITE ? &w_pieces_[move.piece] : &b_pieces_[move.piece];
+  Bitboard &piece =
+      move.color == WHITE ? w_pieces_[move.piece] : b_pieces_[move.piece];
 
-  *piece ^= move.from ^ move.to;
+  piece ^= move.from ^ move.to;
 
   if (SquaresOccupiedByOpp(move.color) & move.to) {
     Bitboard *pieces = move.color == WHITE ? b_pieces_ : w_pieces_;

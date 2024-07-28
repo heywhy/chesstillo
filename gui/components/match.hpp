@@ -56,9 +56,10 @@ public:
                  ftxui::center
 
             }) |
-        ftxui::center |
-        ftxui::size(ftxui::WIDTH, ftxui::EQUAL, dimensions.dimx / 2) |
-        ftxui::size(ftxui::HEIGHT, ftxui::EQUAL, dimensions.dimy / 2);
+        ftxui::center;
+
+    box |= ftxui::size(ftxui::WIDTH, ftxui::EQUAL, dimensions.dimx / 2) |
+           ftxui::size(ftxui::HEIGHT, ftxui::EQUAL, dimensions.dimy / 2);
 
     ftxui::Element content = ftxui::flexbox({box}, config);
 

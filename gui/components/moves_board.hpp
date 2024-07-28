@@ -56,7 +56,7 @@ public:
     }
 
     return ftxui::vbox(elements) |
-           ftxui::size(ftxui::HEIGHT, ftxui::EQUAL, 15) |
+           ftxui::size(ftxui::HEIGHT, ftxui::EQUAL, 22) |
            ftxui::size(ftxui::WIDTH, ftxui::GREATER_THAN, 30);
   }
 
