@@ -37,14 +37,13 @@ public:
   void Reset();
   bool Endgame();
   void ApplyMove(Move move);
+  void UndoMove(Move move);
   void Print();
   bool PieceAtSquare(Bitboard square, char *);
   bool PieceAtSquare(Bitboard square, Piece *);
   Bitboard EmptySquares() { return ~occupied_sqs_; }
 
-  Bitboard Position(Piece piece, Color color) {
-    return color == WHITE ? w_pieces_[piece] : b_pieces_[piece];
-  }
+  Bitboard Position(Piece piece, Color color) { return pieces_[color][piece]; }
 
   bool CanCastle(Castling direction) {
     return castling_rights_ & (static_cast<std::uint8_t>(1) << direction);
@@ -62,15 +61,12 @@ private:
   std::uint8_t castling_rights_;
 
   // pawn, rook, knight, bishop, queen, king
-  Bitboard w_pieces_[6];
-  Bitboard b_pieces_[6];
-  Bitboard w_attacking_sqs_[6];
-  Bitboard b_attacking_sqs_[6];
+  Bitboard pieces_[2][6];
+  Bitboard attacking_sqs_[2][6];
+  Bitboard sqs_occupied_by_[2];
 
   Bitboard occupied_sqs_ = kEmpty;
   Bitboard en_passant_sq_ = kEmpty;
-  Bitboard sqs_occupied_by_w_;
-  Bitboard sqs_occupied_by_b_;
 
   friend void ApplyFen(Board &board, const char *fen);
   friend std::string PositionToFen(Board &board);
@@ -93,20 +89,16 @@ private:
   void ComputeAttackedSqs();
   bool IsValidMove(Move const &move);
 
-  inline Bitboard SquaresOccupiedByOpp(Color color) {
-    return color == WHITE ? sqs_occupied_by_b_ : sqs_occupied_by_w_;
-  }
-
   void ComputeOccupiedSqs() {
-    sqs_occupied_by_w_ = kEmpty;
-    sqs_occupied_by_b_ = kEmpty;
+    sqs_occupied_by_[WHITE] = kEmpty;
+    sqs_occupied_by_[BLACK] = kEmpty;
 
     for (int i = 0; i < 6; i++) {
-      sqs_occupied_by_w_ |= w_pieces_[i];
-      sqs_occupied_by_b_ |= b_pieces_[i];
+      sqs_occupied_by_[WHITE] |= pieces_[WHITE][i];
+      sqs_occupied_by_[BLACK] |= pieces_[BLACK][i];
     }
 
-    occupied_sqs_ = sqs_occupied_by_w_ | sqs_occupied_by_b_;
+    occupied_sqs_ = sqs_occupied_by_[WHITE] | sqs_occupied_by_[BLACK];
   }
 };
 

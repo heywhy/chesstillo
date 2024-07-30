@@ -4,6 +4,7 @@
 
 #include <chesstillo/board.hpp>
 #include <chesstillo/move.hpp>
+#include <chesstillo/types.hpp>
 
 static const char kFiles[] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'};
 static const int kFilesLength = sizeof(kFiles) / sizeof(char);
@@ -52,8 +53,8 @@ Bitboard BitboardForSquare(char file, int rank) {
 
 void Board::Reset() {
   for (int i = 0; i < 6; i++) {
-    b_pieces_[i] = b_attacking_sqs_[i] = kEmpty;
-    w_pieces_[i] = w_attacking_sqs_[i] = kEmpty;
+    pieces_[WHITE][i] = attacking_sqs_[WHITE][i] = kEmpty;
+    pieces_[BLACK][i] = attacking_sqs_[BLACK][i] = kEmpty;
   }
 
   turn_ = WHITE;
@@ -61,8 +62,8 @@ void Board::Reset() {
   en_passant_sq_ = kEmpty;
 
   occupied_sqs_ = kEmpty;
-  sqs_occupied_by_b_ = kEmpty;
-  sqs_occupied_by_w_ = kEmpty;
+  sqs_occupied_by_[WHITE] = kEmpty;
+  sqs_occupied_by_[BLACK] = kEmpty;
 
   moves_.clear();
 }
@@ -73,18 +74,19 @@ void Board::ApplyMove(Move move) {
   if (turn_ != move.color || !IsValidMove(move))
     return;
 
-  Bitboard &piece =
-      move.color == WHITE ? w_pieces_[move.piece] : b_pieces_[move.piece];
+  Color opp = move.color == WHITE ? BLACK : WHITE;
+  Bitboard &piece = pieces_[move.color][move.piece];
 
   piece ^= move.from ^ move.to;
 
-  if (SquaresOccupiedByOpp(move.color) & move.to) {
-    Bitboard *pieces = move.color == WHITE ? b_pieces_ : w_pieces_;
+  if (sqs_occupied_by_[opp] & move.to) {
+    Bitboard *pieces = pieces_[opp];
 
     SetFlags(&move, CAPTURE);
 
     for (int i = 0; i < 6; i++) {
       if (pieces[i] & move.to) {
+        move.captured = static_cast<Piece>(i);
         pieces[i] ^= move.to;
         break;
       }
@@ -103,11 +105,33 @@ void Board::ApplyMove(Move move) {
   ComputeOccupiedSqs();
   ComputeAttackedSqs();
 
-  if (SquaresOccupiedByOpp(move.color)) {
-    turn_ = move.color == WHITE ? BLACK : WHITE;
+  if (sqs_occupied_by_[opp]) {
+    turn_ = opp;
   }
 
   moves_.push_front(std::move(move));
+}
+
+void Board::UndoMove(Move _) {
+  Move move = moves_.front();
+
+  Bitboard &piece = pieces_[move.color][move.piece];
+
+  piece = (piece ^ move.to) | move.from;
+  turn_ = move.color;
+
+  if (move.IsCapture()) {
+    Bitboard *pieces = pieces_[move.color == WHITE ? BLACK : WHITE];
+
+    pieces[move.captured] |= move.to;
+  }
+
+  if (!moves_.empty()) {
+    moves_.pop_front();
+  }
+
+  ComputeOccupiedSqs();
+  ComputeAttackedSqs();
 }
 
 bool Board::IsValidMove(Move const &move) {
@@ -121,23 +145,25 @@ bool Board::IsValidMove(Move const &move) {
 }
 
 void Board::ComputeAttackedSqs() {
-  w_attacking_sqs_[PAWN] =
-      (MOVE_NORTH_EAST(w_pieces_[PAWN]) ^ MOVE_NORTH_WEST(w_pieces_[PAWN])) |
-      (MOVE_NORTH_EAST(w_pieces_[PAWN]) & MOVE_NORTH_WEST(w_pieces_[PAWN]));
+  for (int color = 0; color < 2; color++) {
+    attacking_sqs_[color][KNIGHT] = KNIGHT_ATTACKS(pieces_[color][KNIGHT]);
 
-  b_attacking_sqs_[PAWN] =
-      (MOVE_SOUTH_EAST(b_pieces_[PAWN]) ^ MOVE_SOUTH_WEST(b_pieces_[PAWN])) |
-      (MOVE_SOUTH_EAST(b_pieces_[PAWN]) & MOVE_SOUTH_WEST(b_pieces_[PAWN]));
+    attacking_sqs_[color][KING] = KING_ATTACKS(pieces_[color][KING]);
 
-  w_attacking_sqs_[KNIGHT] = KNIGHT_ATTACKS(w_pieces_[KNIGHT]);
-  b_attacking_sqs_[KNIGHT] = KNIGHT_ATTACKS(b_pieces_[KNIGHT]);
+    attacking_sqs_[color][BISHOP] = kEmpty;
+    attacking_sqs_[color][ROOK] = kEmpty;
+    attacking_sqs_[color][QUEEN] = kEmpty;
+  }
 
-  w_attacking_sqs_[KING] = KING_ATTACKS(w_pieces_[KING]);
-  b_attacking_sqs_[KING] = KING_ATTACKS(b_pieces_[KING]);
+  attacking_sqs_[WHITE][PAWN] = (MOVE_NORTH_EAST(pieces_[WHITE][PAWN]) ^
+                                 MOVE_NORTH_WEST(pieces_[WHITE][PAWN])) |
+                                (MOVE_NORTH_EAST(pieces_[WHITE][PAWN]) &
+                                 MOVE_NORTH_WEST(pieces_[WHITE][PAWN]));
 
-  w_attacking_sqs_[BISHOP] = b_attacking_sqs_[BISHOP] = kEmpty;
-  w_attacking_sqs_[ROOK] = b_attacking_sqs_[ROOK] = kEmpty;
-  w_attacking_sqs_[QUEEN] = b_attacking_sqs_[QUEEN] = kEmpty;
+  attacking_sqs_[BLACK][PAWN] = (MOVE_SOUTH_EAST(pieces_[BLACK][PAWN]) ^
+                                 MOVE_SOUTH_WEST(pieces_[BLACK][PAWN])) |
+                                (MOVE_SOUTH_EAST(pieces_[BLACK][PAWN]) &
+                                 MOVE_SOUTH_WEST(pieces_[BLACK][PAWN]));
 }
 
 bool Board::PieceAtSquare(Bitboard square, char *c) {
@@ -145,16 +171,12 @@ bool Board::PieceAtSquare(Bitboard square, char *c) {
   Piece piece;
 
   for (int i = 0; i < 6; i++) {
-    if (w_pieces_[i] & square) {
-      color = WHITE;
-      piece = static_cast<Piece>(i);
-      break;
-    }
-
-    if (b_pieces_[i] & square) {
-      color = BLACK;
-      piece = static_cast<Piece>(i);
-      break;
+    for (int j = 0; j < 2; j++) {
+      if (pieces_[j][i] & square) {
+        color = static_cast<Color>(j);
+        piece = static_cast<Piece>(i);
+        break;
+      }
     }
   }
 

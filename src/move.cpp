@@ -1,6 +1,7 @@
 #include <cstdarg>
 #include <cstddef>
 #include <cstdint>
+#include <iterator>
 #include <vector>
 
 #include <chesstillo/constants.hpp>
@@ -42,11 +43,22 @@ Bitboard QueenAttacks(Bitboard piece) {
          (DiagonalMask(square) | AntiDiagonalMask(square));
 }
 
-std::vector<Move> GenerateMoves(Board &board, Piece piece) {
+std::vector<Move> GenerateMoves(Board &board) {
   std::vector<Move> moves;
 
-  Bitboard &bb =
-      board.turn_ == WHITE ? board.w_pieces_[piece] : board.b_pieces_[piece];
+  for (int i = 0; i < 6; i++) {
+    std::vector<Move> result = GenerateMoves(board, static_cast<Piece>(i));
+
+    moves.insert(moves.end(), std::make_move_iterator(result.begin()),
+                 std::make_move_iterator(result.end()));
+  }
+
+  return moves;
+}
+
+std::vector<Move> GenerateMoves(Board &board, Piece piece) {
+  std::vector<Move> moves;
+  Bitboard &bb = board.pieces_[board.turn_][piece];
 
   Bitboard squares[MAX_MOVES_BUFFER_SIZE];
   Bitboard targets[MAX_MOVES_BUFFER_SIZE];
@@ -117,8 +129,8 @@ std::size_t GeneratePawnMoves(Board &board, Bitboard square,
   Bitboard targets;
   Bitboard single_push;
   Bitboard empty_sqs = ~board.occupied_sqs_;
-  Bitboard attacked_sqs = board.turn_ == WHITE ? board.sqs_occupied_by_b_
-                                               : board.sqs_occupied_by_w_;
+  Color opp = board.turn_ == WHITE ? BLACK : WHITE;
+  Bitboard attacked_sqs = board.sqs_occupied_by_[opp];
 
   if (board.turn_ == WHITE) {
     single_push = MOVE_NORTH(square) & empty_sqs;
@@ -140,8 +152,7 @@ std::size_t GeneratePawnMoves(Board &board, Bitboard square,
 std::size_t GenerateKnightMoves(Board &board, Bitboard square,
                                 Bitboard *const out) {
   Bitboard targets = KNIGHT_ATTACKS(square);
-  Bitboard occupied_sqs = board.turn_ == WHITE ? board.sqs_occupied_by_w_
-                                               : board.sqs_occupied_by_b_;
+  Bitboard occupied_sqs = board.sqs_occupied_by_[board.turn_];
 
   return Split((targets ^ occupied_sqs) & targets, out);
 }
@@ -149,8 +160,7 @@ std::size_t GenerateKnightMoves(Board &board, Bitboard square,
 std::size_t GenerateSlidingPieceMoves(Board &board, Piece piece,
                                       Bitboard square, Bitboard *const out) {
   Bitboard targets;
-  Bitboard occupied_sqs = board.turn_ == WHITE ? board.sqs_occupied_by_w_
-                                               : board.sqs_occupied_by_b_;
+  Bitboard occupied_sqs = board.sqs_occupied_by_[board.turn_];
 
   switch (piece) {
   case BISHOP:
@@ -192,8 +202,7 @@ std::size_t GenerateSlidingPieceMoves(Board &board, Piece piece,
 std::size_t GenerateKingMoves(Board &board, Bitboard square,
                               Bitboard *const out) {
   Bitboard targets = KING_ATTACKS(square);
-  Bitboard occupied_sqs = board.turn_ == WHITE ? board.sqs_occupied_by_w_
-                                               : board.sqs_occupied_by_b_;
+  Bitboard occupied_sqs = board.sqs_occupied_by_[board.turn_];
 
   return Split((targets ^ occupied_sqs) & targets, out);
 }

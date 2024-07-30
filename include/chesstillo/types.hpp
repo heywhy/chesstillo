@@ -16,6 +16,7 @@ enum Piece { ROOK, KNIGHT, BISHOP, KING, QUEEN, PAWN };
 struct Move {
   Bitboard from;
   Bitboard to;
+  Piece captured;
   Color color;
   Piece piece;
   std::uint8_t flags;

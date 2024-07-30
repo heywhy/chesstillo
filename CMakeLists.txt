@@ -19,6 +19,12 @@ target_link_libraries(chestillo_gui PRIVATE chestillo)
 target_compile_options(chestillo_gui PRIVATE -Wall -Wextra)
 target_link_options(chestillo_gui PRIVATE -O3)
 
+add_executable(chestillo_perft perft/main.cpp)
+target_include_directories(chestillo_perft PRIVATE include)
+target_link_libraries(chestillo_perft PRIVATE chestillo)
+target_compile_options(chestillo_perft PRIVATE -Wall -Wextra)
+target_link_options(chestillo_perft PRIVATE -O3)
+
 include(FetchContent)
 
 FetchContent_Declare(

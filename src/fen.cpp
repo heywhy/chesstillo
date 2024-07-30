@@ -1,5 +1,6 @@
 #include <chesstillo/board.hpp>
 #include <chesstillo/fen.hpp>
+#include <chesstillo/types.hpp>
 #include <cstdint>
 #include <string>
 
@@ -22,62 +23,62 @@ void ApplyFen(Board &board, const char *fen) {
 
     switch (*fen) {
     case 'r':
-      piece = &board.b_pieces_[ROOK];
+      piece = &board.pieces_[BLACK][ROOK];
       break;
 
     case 'n':
-      piece = &board.b_pieces_[KNIGHT];
+      piece = &board.pieces_[BLACK][KNIGHT];
       break;
 
     case 'b':
-      piece = &board.b_pieces_[BISHOP];
+      piece = &board.pieces_[BLACK][BISHOP];
       board.turn_ = BLACK;
       en_passant_file = *fen;
       break;
 
     case 'q':
-      piece = &board.b_pieces_[QUEEN];
+      piece = &board.pieces_[BLACK][QUEEN];
       if (spaces == 2)
         board.castling_rights_ |= static_cast<std::uint8_t>(1) << Q_BLACK;
       break;
 
     case 'k':
-      piece = &board.b_pieces_[KING];
+      piece = &board.pieces_[BLACK][KING];
       if (spaces == 2)
         board.castling_rights_ |= static_cast<std::uint8_t>(1) << K_BLACK;
       break;
 
     case 'p':
-      piece = &board.b_pieces_[PAWN];
+      piece = &board.pieces_[BLACK][PAWN];
       break;
 
     case 'R':
-      piece = &board.w_pieces_[ROOK];
+      piece = &board.pieces_[WHITE][ROOK];
       break;
 
     case 'N':
-      piece = &board.w_pieces_[KNIGHT];
+      piece = &board.pieces_[WHITE][KNIGHT];
       break;
 
     case 'B':
-      piece = &board.w_pieces_[BISHOP];
+      piece = &board.pieces_[WHITE][BISHOP];
       break;
 
     case 'Q':
-      piece = &board.w_pieces_[QUEEN];
+      piece = &board.pieces_[WHITE][QUEEN];
       if (spaces == 2)
         board.castling_rights_ |= static_cast<std::uint8_t>(1) << Q_WHITE;
       break;
 
     case 'K':
-      piece = &board.w_pieces_[KING];
+      piece = &board.pieces_[WHITE][KING];
 
       if (spaces == 2)
         board.castling_rights_ |= static_cast<std::uint8_t>(1) << K_WHITE;
       break;
 
     case 'P':
-      piece = &board.w_pieces_[PAWN];
+      piece = &board.pieces_[WHITE][PAWN];
       break;
 
     case 'a':
