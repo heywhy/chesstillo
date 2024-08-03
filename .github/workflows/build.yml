@@ -48,6 +48,8 @@ jobs:
 
       - name: Setup Cpp
         uses: aminya/setup-cpp@v1
+        env:
+          PIP_CONFIG_FILE: .github/workflows/pip.conf
         with:
           compiler: ${{ matrix.compiler }}
           vcvarsall: ${{ contains(matrix.os, 'windows')}}
