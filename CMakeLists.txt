@@ -8,21 +8,25 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(FTXUI_QUIET ON)
 
+if(NOT MSVC)
+  set(COMPILE_OPTIONS -Wall -Wextra)
+endif()
+
 add_library(chestillo SHARED src/utility.cpp src/board.cpp src/fen.cpp src/fill.cpp src/move_gen.cpp src/game.cpp)
 target_include_directories(chestillo PRIVATE include)
-target_compile_options(chestillo PRIVATE -Wunused-variable)
+target_compile_options(chestillo PRIVATE ${COMPILE_OPTIONS})
 target_link_options(chestillo PRIVATE -O3)
 
 add_executable(chestillo_gui gui/theme.cpp gui/utils.cpp gui/main.cpp)
 target_include_directories(chestillo_gui PRIVATE include gui)
 target_link_libraries(chestillo_gui PRIVATE chestillo)
-target_compile_options(chestillo_gui PRIVATE -Wall -Wextra)
+target_compile_options(chestillo_gui PRIVATE ${COMPILE_OPTIONS})
 target_link_options(chestillo_gui PRIVATE -O3)
 
 add_executable(chestillo_perft perft/main.cpp)
 target_include_directories(chestillo_perft PRIVATE include)
 target_link_libraries(chestillo_perft PRIVATE chestillo)
-target_compile_options(chestillo_perft PRIVATE -Wall -Wextra)
+target_compile_options(chestillo_perft PRIVATE ${COMPILE_OPTIONS})
 target_link_options(chestillo_perft PRIVATE -O3)
 
 include(FetchContent)
