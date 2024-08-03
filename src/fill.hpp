@@ -1,7 +1,7 @@
 #ifndef FILL_HPP
 #define FILL_HPP
 
-#include <chesstillo/move.hpp>
+#include <chesstillo/move_gen.hpp>
 #include <chesstillo/types.hpp>
 
 #define FILE_ATTACKS(bb, empty)                                                \

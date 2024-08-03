@@ -3,7 +3,7 @@
 #include <vector>
 
 #include <chesstillo/board.hpp>
-#include <chesstillo/move.hpp>
+#include <chesstillo/move_gen.hpp>
 #include <chesstillo/types.hpp>
 
 #include "fill.hpp"

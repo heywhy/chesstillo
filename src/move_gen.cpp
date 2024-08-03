@@ -4,7 +4,7 @@
 #include <vector>
 
 #include <chesstillo/constants.hpp>
-#include <chesstillo/move.hpp>
+#include <chesstillo/move_gen.hpp>
 #include <chesstillo/types.hpp>
 #include <chesstillo/utility.hpp>
 

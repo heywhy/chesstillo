@@ -8,7 +8,7 @@
 
 #include <chesstillo/board.hpp>
 #include <chesstillo/fen.hpp>
-#include <chesstillo/move.hpp>
+#include <chesstillo/move_gen.hpp>
 #include <chesstillo/types.hpp>
 
 struct Stat {

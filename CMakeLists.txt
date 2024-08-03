@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(FTXUI_QUIET ON)
 
-add_library(chestillo SHARED src/utility.cpp src/board.cpp src/fen.cpp src/fill.cpp src/move.cpp src/game.cpp)
+add_library(chestillo SHARED src/utility.cpp src/board.cpp src/fen.cpp src/fill.cpp src/move_gen.cpp src/game.cpp)
 target_include_directories(chestillo PRIVATE include)
 target_compile_options(chestillo PRIVATE -Wunused-variable)
 target_link_options(chestillo PRIVATE -O3)
