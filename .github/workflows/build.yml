@@ -58,6 +58,7 @@ jobs:
           cppcheck: false
           gcovr: 7.0
           opencppcoverage: true
+          python: 3.11
 
       # make sure coverage is only enabled for Debug builds, since it sets -O0
       # to make sure coverage has meaningful results
