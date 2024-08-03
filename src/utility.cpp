@@ -69,6 +69,10 @@ bool MoveToString(Move const &move, char *text) {
     buffer[i++] = '+';
   }
 
+  if (move.Is(CHECKMATE)) {
+    buffer[i - 1] = '#';
+  }
+
   buffer[i++] = '\0';
 
   std::strcpy(text, buffer);
