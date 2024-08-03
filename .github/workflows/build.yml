@@ -15,7 +15,7 @@ jobs:
       uses: threeal/cmake-action@main
 
   test:
-    needs: [build-project]
+    needs: [build]
     runs-on: ubuntu-latest
     steps:
     - run: ./build/chestillo_test
