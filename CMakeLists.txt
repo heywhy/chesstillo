@@ -29,14 +29,14 @@ include(FetchContent)
 
 FetchContent_Declare(
   ftxui
-  GIT_REPOSITORY git@github.com:ArthurSonzogni/ftxui.git
+  GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui.git
   GIT_TAG 307e4eb4b3e0f245b85312e0bd028d748f94b740
   GIT_SHALLOW true
 )
 
 FetchContent_Declare(
   googletest
-  GIT_REPOSITORY git@github.com:google/googletest.git
+  GIT_REPOSITORY https://github.com/google/googletest.git
   GIT_TAG v1.15.0
   GIT_SHALLOW true
 )
