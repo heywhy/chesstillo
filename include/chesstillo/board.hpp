@@ -37,7 +37,7 @@ public:
   void Reset();
   bool Endgame();
   void ApplyMove(Move move);
-  void UndoMove(Move move);
+  void UndoMove(Move &move);
   void Print();
   bool PieceAtSquare(Bitboard square, char *);
   bool PieceAtSquare(Bitboard square, Piece *);
@@ -50,7 +50,7 @@ public:
   }
 
   Color GetTurn() { return turn_; }
-  std::list<Move> GetMoves() { return moves_; }
+  std::list<Move> &GetMoves() { return moves_; }
   Bitboard EnPassantSquare() { return en_passant_sq_; }
 
 private:
@@ -63,6 +63,7 @@ private:
   // pawn, rook, knight, bishop, queen, king
   Bitboard pieces_[2][6];
   Bitboard attacking_sqs_[2][6];
+  Bitboard sqs_attacked_by_[2];
   Bitboard sqs_occupied_by_[2];
 
   Bitboard occupied_sqs_ = kEmpty;
@@ -71,6 +72,7 @@ private:
   friend void ApplyFen(Board &board, const char *fen);
   friend std::string PositionToFen(Board &board);
   friend std::vector<Move> GenerateMoves(Board &board);
+  friend std::vector<Move> GenerateOutOfCheckMoves(Board &board);
   friend std::vector<Move> GenerateMoves(Board &board, Piece piece);
   friend std::size_t GenerateMoves(Board &board, Piece piece, Bitboard square,
                                    Bitboard *const out);
@@ -87,6 +89,7 @@ private:
                                        Bitboard *const out);
 
   void ComputeAttackedSqs();
+  void MakeMove(Move &move);
   bool IsValidMove(Move const &move);
 
   void ComputeOccupiedSqs() {

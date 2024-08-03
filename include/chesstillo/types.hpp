@@ -4,8 +4,10 @@
 #include <cctype>
 #include <cstdint>
 
+#define CHECK 0
 #define CAPTURE 1
-#define PROMOTION 2
+#define CHECKMATE 2
+#define PROMOTION 3
 
 typedef std::uint64_t Bitboard;
 
@@ -13,27 +15,31 @@ enum Color { WHITE, BLACK };
 
 enum Piece { ROOK, KNIGHT, BISHOP, KING, QUEEN, PAWN };
 
+// TODO: Maybe find a way to avoid move copying
 struct Move {
   Bitboard from;
   Bitboard to;
   Piece captured;
   Color color;
   Piece piece;
-  std::uint8_t flags;
+  unsigned int flags = 0;
 
   Move(Bitboard from, Bitboard to, Color color, Piece piece)
       : Move(from, to, color, piece, 0) {}
 
-  Move(Bitboard from, Bitboard to, Color color, Piece piece, std::uint8_t flags)
+  Move(Bitboard from, Bitboard to, Color color, Piece piece, unsigned int flags)
       : from(from), to(to), color(color), piece(piece), flags(flags) {}
 
-  bool IsCapture() const {
-    return flags & (static_cast<std::uint8_t>(1) << CAPTURE);
+  void Set(unsigned int flag) { flags |= 1U << flag; }
+
+  bool Is(unsigned int flag) const { return flags & (1U << flag); }
+
+  bool operator==(Move &move) const {
+    return from == move.from && to == move.to && piece == move.piece &&
+           color == move.color;
   }
 
-  bool IsPromotion() {
-    return flags & (static_cast<std::uint8_t>(1) << PROMOTION);
-  }
+  bool operator!=(Move &move) const { return !(*this == move); }
 };
 
 bool MoveToString(Move const &move, char *text);

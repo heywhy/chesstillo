@@ -1,5 +1,6 @@
 #include <chesstillo/board.hpp>
 #include <chesstillo/fen.hpp>
+#include <chesstillo/types.hpp>
 #include <gtest/gtest.h>
 
 class BoardTestSuite : public ::testing::Test {
@@ -259,4 +260,23 @@ TEST_F(BoardTestSuite, PiecesCantCaptureOwnsPieces) {
       {BitboardForSquare('g', 1), BitboardForSquare('e', 2), WHITE, KNIGHT});
 
   ASSERT_EQ(PositionToFen(board), START_FEN);
+}
+
+TEST_F(BoardTestSuite, FixInvalidCheck) {
+  ApplyFen(board,
+           "rn2kbnr/pppq1ppp/8/4p3/4p3/2N2N2/PPPP1PPP/R1BQK2R w KQkq - 0 1");
+
+  board.ApplyMove(
+      {BitboardForSquare('c', 3), BitboardForSquare('e', 4), WHITE, KNIGHT});
+
+  ASSERT_EQ(PositionToFen(board),
+            "rn2kbnr/pppq1ppp/8/4p3/4N3/5N2/PPPP1PPP/R1BQK2R b KQkq - 0 1");
+
+  ASSERT_EQ(board.GetMoves().size(), 1);
+
+  Move last_move = board.GetMoves().front();
+
+  ASSERT_EQ(last_move.color, WHITE);
+  ASSERT_EQ(last_move.piece, KNIGHT);
+  ASSERT_FALSE(last_move.Is(CHECK));
 }

@@ -1,9 +1,9 @@
 #include <cstddef>
 #include <cstring>
 
-#include "chesstillo/board.hpp"
-#include "chesstillo/types.hpp"
-#include "chesstillo/utility.hpp"
+#include <chesstillo/board.hpp>
+#include <chesstillo/types.hpp>
+#include <chesstillo/utility.hpp>
 
 bool PieceToChar(Piece piece, Color color, char *c) {
   switch (piece) {
@@ -45,17 +45,17 @@ bool MoveToString(Move const &move, char *text) {
 
   int i = 0;
   char piece;
-  char buffer[5];
+  char buffer[6];
 
   if (move.piece != PAWN && PieceToChar(move.piece, move.color, &piece)) {
     buffer[i++] = piece;
 
-    if (move.IsCapture()) {
+    if (move.Is(CAPTURE)) {
       buffer[i++] = 'x';
     }
 
     buffer[i++] = to.file;
-  } else if (move.IsCapture()) {
+  } else if (move.Is(CAPTURE)) {
     buffer[i++] = from.file;
     buffer[i++] = 'x';
     buffer[i++] = to.file;
@@ -64,6 +64,11 @@ bool MoveToString(Move const &move, char *text) {
   }
 
   buffer[i++] = 48 + to.rank;
+
+  if (move.Is(CHECK)) {
+    buffer[i++] = '+';
+  }
+
   buffer[i++] = '\0';
 
   std::strcpy(text, buffer);

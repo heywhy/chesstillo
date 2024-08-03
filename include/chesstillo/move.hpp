@@ -25,29 +25,26 @@
 #define MOVE_SOUTH_WEST_WEST(bitboard) (bitboard >> 10) & ~(kGFile | kHFile)
 #define MOVE_SOUTH_SOUTH_WEST(bitboard) (bitboard >> 17) & ~kHFile
 
-#define KNIGHT_ATTACKS(bitboard) \
-         MOVE_NORTH_NORTH_EAST(bitboard) | MOVE_NORTH_EAST_EAST(bitboard) | \
-         MOVE_SOUTH_EAST_EAST(bitboard) | MOVE_SOUTH_SOUTH_EAST(bitboard) | \
-         MOVE_NORTH_NORTH_WEST(bitboard) | MOVE_NORTH_WEST_WEST(bitboard) | \
-         MOVE_SOUTH_WEST_WEST(bitboard) | MOVE_SOUTH_SOUTH_WEST(bitboard)
+#define KNIGHT_ATTACKS(bitboard)                                               \
+  MOVE_NORTH_NORTH_EAST(bitboard) | MOVE_NORTH_EAST_EAST(bitboard) |           \
+      MOVE_SOUTH_EAST_EAST(bitboard) | MOVE_SOUTH_SOUTH_EAST(bitboard) |       \
+      MOVE_NORTH_NORTH_WEST(bitboard) | MOVE_NORTH_WEST_WEST(bitboard) |       \
+      MOVE_SOUTH_WEST_WEST(bitboard) | MOVE_SOUTH_SOUTH_WEST(bitboard)
 
-#define KING_ATTACKS(bitboard) \
-        MOVE_NORTH(bitboard) | MOVE_EAST(bitboard) | MOVE_SOUTH(bitboard) | \
-        MOVE_WEST(bitboard) | MOVE_NORTH_EAST(bitboard) | MOVE_NORTH_WEST(bitboard) | \
-        MOVE_SOUTH_EAST(bitboard) | MOVE_SOUTH_WEST(bitboard)
+#define KING_ATTACKS(bitboard)                                                 \
+  MOVE_NORTH(bitboard) | MOVE_EAST(bitboard) | MOVE_SOUTH(bitboard) |          \
+      MOVE_WEST(bitboard) | MOVE_NORTH_EAST(bitboard) |                        \
+      MOVE_NORTH_WEST(bitboard) | MOVE_SOUTH_EAST(bitboard) |                  \
+      MOVE_SOUTH_WEST(bitboard)
 
 Bitboard RankMask(int square);
 Bitboard FileMask(int square);
 Bitboard DiagonalMask(int square);
 Bitboard AntiDiagonalMask(int square);
-
-Bitboard BishopAttacks(Bitboard bitboard);
-Bitboard RookAttacks(Bitboard bitboard);
-Bitboard QueenAttacks(Bitboard bitboard);
-
-void SetFlags(Move *move, ...);
+Bitboard SquaresInBetween(Bitboard from, Bitboard to);
 
 std::vector<Move> GenerateMoves(Board &board);
+std::vector<Move> GenerateOutOfCheckMoves(Board &board);
 std::vector<Move> GenerateMoves(Board &board, Piece piece);
 std::size_t GenerateMoves(Board &board, Piece piece, Bitboard square,
                           Bitboard *const out);
