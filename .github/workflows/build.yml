@@ -51,11 +51,11 @@ jobs:
         with:
           compiler: ${{ matrix.compiler }}
           vcvarsall: ${{ contains(matrix.os, 'windows' )}}
-          cmake: true
+          cmake: 3.29.3
           ninja: true
           clangtidy: false
           cppcheck: false
-          gcovr: "5.0"
+          gcovr: 7.0
           opencppcoverage: true
 
       # make sure coverage is only enabled for Debug builds, since it sets -O0
@@ -104,6 +104,7 @@ jobs:
       - name: Publish to codecov
         uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           flags: ${{ runner.os }}
           name: ${{ runner.os }}-coverage
           files: ./build/coverage.xml
