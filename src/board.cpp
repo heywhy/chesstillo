@@ -201,23 +201,23 @@ void Board::ComputeAttackedSqs() {
         attacking_sqs_[color][ROOK] ^ sqs_occupied_by_[color];
 
     attacking_sqs_[color][QUEEN] =
-        (ROOK_ATTACKS(pieces_[color][QUEEN], ~occupied_sqs_) |
-         BISHOP_ATTACKS(pieces_[color][QUEEN], ~occupied_sqs_));
+        (ROOK_ATTACKS(pieces_[color][QUEEN], ~occupied_sqs_)) |
+        (BISHOP_ATTACKS(pieces_[color][QUEEN], ~occupied_sqs_));
 
     attacking_sqs_[color][QUEEN] &=
         attacking_sqs_[color][QUEEN] ^ sqs_occupied_by_[color];
   }
 
-  attacking_sqs_[WHITE][PAWN] = (MOVE_NORTH_EAST(pieces_[WHITE][PAWN]) ^
-                                 MOVE_NORTH_WEST(pieces_[WHITE][PAWN])) |
+  attacking_sqs_[WHITE][PAWN] = ((MOVE_NORTH_EAST(pieces_[WHITE][PAWN])) ^
+                                 (MOVE_NORTH_WEST(pieces_[WHITE][PAWN]))) |
                                 (MOVE_NORTH_EAST(pieces_[WHITE][PAWN]) &
                                  MOVE_NORTH_WEST(pieces_[WHITE][PAWN]));
 
   attacking_sqs_[WHITE][PAWN] &=
       attacking_sqs_[WHITE][PAWN] ^ sqs_occupied_by_[WHITE];
 
-  attacking_sqs_[BLACK][PAWN] = (MOVE_SOUTH_EAST(pieces_[BLACK][PAWN]) ^
-                                 MOVE_SOUTH_WEST(pieces_[BLACK][PAWN])) |
+  attacking_sqs_[BLACK][PAWN] = ((MOVE_SOUTH_EAST(pieces_[BLACK][PAWN])) ^
+                                 (MOVE_SOUTH_WEST(pieces_[BLACK][PAWN]))) |
                                 (MOVE_SOUTH_EAST(pieces_[BLACK][PAWN]) &
                                  MOVE_SOUTH_WEST(pieces_[BLACK][PAWN]));
 

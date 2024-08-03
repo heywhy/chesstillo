@@ -125,7 +125,7 @@ std::vector<Move> GenerateOutOfCheckMoves(Board &board) {
   Bitboard targets[8];
   std::size_t size = GenerateKingMoves(board, king_sq, targets);
 
-  for (int i = 0; i < size; i++) {
+  for (std::size_t i = 0; i < size; i++) {
     // INFO: Instead of creating a copy of the board maybe an attack & defend
     // map can be used?!
     Board copy = board;
