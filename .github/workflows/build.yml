@@ -1,0 +1,21 @@
+name: Build
+
+on:
+  push:
+
+jobs:
+  build:
+    name: Build Project
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Configure and Build Project
+      uses: threeal/cmake-action@main
+
+  test:
+    needs: [build-project]
+    runs-on: ubuntu-latest
+    steps:
+    - run: ./build/chestillo_test
