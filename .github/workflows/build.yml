@@ -1,21 +1,109 @@
 name: Build
 
 on:
+  create:
+    tags:
+      -v*
   push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
-    - name: Configure and build project
-      uses: threeal/cmake-action@main
-
   test:
-    needs: [build]
-    runs-on: ubuntu-latest
+    name: Tests
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux GCC
+            os: ubuntu-latest
+            compiler: gcc
+            gcov_executable: gcov
+
+          - name: Linux Clang
+            os: ubuntu-latest
+            compiler: llvm
+            gcov_executable: llvm-cov gcov
+
+          - name: MacOS clang
+            os: macos-latest
+            compiler: llvm
+            gcov_executable: llvm-cov gcov
+
+          - name: Windows MSVC
+            os: windows-latest
+            compiler: cl
+
+    runs-on: ${{ matrix.os }}
     steps:
-    - name: Run tests
-      run: ./build/chestillo_test
+      - name: Get number of CPU cores
+        uses: SimenB/github-actions-cpu-cores@v1
+        id: cpu-cores
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Cpp
+        uses: aminya/setup-cpp@v2
+        with:
+          compiler: ${{ matrix.compiler }}
+          vcvarsall: ${{ contains(matrix.os, 'windows' )}}
+          cmake: true
+          ninja: true
+          clangtidy: false
+          cppcheck: false
+          gcovr: "5.0"
+          opencppcoverage: true
+
+      # make sure coverage is only enabled for Debug builds, since it sets -O0
+      # to make sure coverage has meaningful results
+      - name: Configure CMake
+        run: >
+          cmake -S .
+          -B ./build
+          -DCMAKE_BUILD_TYPE:STRING=Debug
+          -DCMAKE_BUILD_PARALLEL_LEVEL=${{ steps.cpu-cores.outputs.count }}
+
+      - name: Build
+        run: cmake --build ./build
+
+      - name: Unix - Test and coverage
+        if: runner.os != 'Windows'
+        working-directory: ./build
+        run: >
+          ctest -C Debug --rerun-failed --output-on-failure;
+          gcovr
+          -j ${{env.nproc}}
+          --delete
+          --root ../
+          --exclude ".*google.*"
+          --exclude ".*test.*"
+          --exclude-unreachable-branches
+          --exclude-throw-branches
+          --sort-uncovered
+          --print-summary
+          --xml-pretty
+          --xml
+          coverage.xml
+          .
+          --gcov-executable '${{ matrix.gcov_executable }}';
+
+      - name: Windows - Test and coverage
+        if: runner.os == 'Windows'
+        working-directory: ./build
+        run: >
+          OpenCppCoverage.exe
+          --export_type cobertura:coverage.xml
+          --cover_children
+          --
+          ctest -C Debug --rerun-failed --output-on-failure;
+
+      - name: Publish to codecov
+        uses: codecov/codecov-action@v3
+        with:
+          flags: ${{ runner.os }}
+          name: ${{ runner.os }}-coverage
+          files: ./build/coverage.xml
