@@ -48,14 +48,14 @@ jobs:
 
       - name: Install rosetta for MacOS
         if: ${{ contains(matrix.os, 'macos') }}
-        run: softwareupdate --install-rosetta --agree-to-license
+        run: softwareupdate --install --install-rosetta --agree-to-license
 
       - name: Setup Cpp
         uses: aminya/setup-cpp@v1
         env:
           PIP_CONFIG_FILE: .github/workflows/pip.conf
         with:
-          compiler: ${{ matrix.compiler }}
+          compiler: ${{ !contains(matrix.os, 'macos') && matrix.compiler }}
           vcvarsall: ${{ contains(matrix.os, 'windows')}}
           msvc: ${{ contains(matrix.os, 'windows') && '2022' }}
           cmake: 3.30.2
@@ -65,12 +65,12 @@ jobs:
           gcovr: 7.0
           opencppcoverage: true
 
-      - name: Install LLVM MacOS
-        if: ${{ contains(matrix.os, 'macos') }}
-        run: |
-          brew install ${{ matrix.compiler }};
-          echo "CC=clang" >> $GITHUB_ENV;
-          echo "CXX=clang++" >> $GITHUB_ENV;
+      # - name: Install LLVM MacOS
+      #   if: ${{ contains(matrix.os, 'macos') }}
+      #   run: |
+      #     brew install ${{ matrix.compiler }};
+      #     echo "CC=clang" >> $GITHUB_ENV;
+      #     echo "CXX=clang++" >> $GITHUB_ENV;
 
       # make sure coverage is only enabled for Debug builds, since it sets -O0
       # to make sure coverage has meaningful results
