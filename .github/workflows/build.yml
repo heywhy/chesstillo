@@ -48,7 +48,7 @@ jobs:
 
       - name: Install rosetta for MacOS
         if: ${{ contains(matrix.os, 'macos') }}
-        run: softwareupdate --install-rosetta
+        run: softwareupdate --install-rosetta --agree-to-license
 
       - name: Setup Cpp
         uses: aminya/setup-cpp@v1
