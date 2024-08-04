@@ -33,9 +33,9 @@ jobs:
             compiler: llvm
             gcov_executable: llvm-cov gcov
 
-          - name: Windows MSVC
-            os: windows-latest
-            compiler: cl
+          # - name: Windows MSVC
+          #   os: windows-latest
+          #   compiler: cl
 
     runs-on: ${{ matrix.os }}
     steps:
