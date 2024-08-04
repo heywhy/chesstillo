@@ -11,7 +11,7 @@ set(FTXUI_QUIET ON)
 if(NOT MSVC)
   set(COMPILE_OPTIONS -Wall -Wextra)
 else()
-  set(COMPILE_OPTIONS /arch:AVX)
+  set(COMPILE_OPTIONS /std:c++20)
 endif()
 
 add_library(chestillo SHARED src/utility.cpp src/board.cpp src/fen.cpp src/fill.cpp src/move_gen.cpp src/game.cpp)

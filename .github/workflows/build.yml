@@ -46,7 +46,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install rosetta for MacOS
+      - name: Install commandline tools for MacOS
         if: ${{ contains(matrix.os, 'macos') }}
         run: softwareupdate --install --install-rosetta --agree-to-license
 
@@ -64,13 +64,6 @@ jobs:
           cppcheck: false
           gcovr: 7.0
           opencppcoverage: true
-
-      # - name: Install LLVM MacOS
-      #   if: ${{ contains(matrix.os, 'macos') }}
-      #   run: |
-      #     brew install ${{ matrix.compiler }};
-      #     echo "CC=clang" >> $GITHUB_ENV;
-      #     echo "CXX=clang++" >> $GITHUB_ENV;
 
       # make sure coverage is only enabled for Debug builds, since it sets -O0
       # to make sure coverage has meaningful results
