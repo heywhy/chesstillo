@@ -8,6 +8,7 @@
 #define CAPTURE 1
 #define CHECKMATE 2
 #define PROMOTION 3
+#define EN_PASSANT 4
 
 typedef std::uint64_t Bitboard;
 
@@ -19,6 +20,7 @@ enum Piece { ROOK, KNIGHT, BISHOP, KING, QUEEN, PAWN };
 struct Move {
   Bitboard from;
   Bitboard to;
+  Bitboard ep_target;
   Piece captured;
   Color color;
   Piece piece;
@@ -38,8 +40,6 @@ struct Move {
     return from == move.from && to == move.to && piece == move.piece &&
            color == move.color;
   }
-
-  bool operator!=(Move &move) const { return !(*this == move); }
 };
 
 bool MoveToString(Move const &move, char *text);

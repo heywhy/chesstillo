@@ -267,7 +267,7 @@ std::size_t GeneratePawnMoves(Board &board, Bitboard square,
               (MOVE_SOUTH_WEST(square) & attacked_sqs);
   }
 
-  return Split(targets, out);
+  return Split(targets | board.en_passant_sq_, out);
 }
 
 std::size_t GenerateKnightMoves(Board &board, Bitboard square,

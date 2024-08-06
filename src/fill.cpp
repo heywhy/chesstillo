@@ -88,3 +88,19 @@ Bitboard SouthEastOccluded(Bitboard bb, Bitboard pro) {
 
   return bb;
 }
+
+Bitboard NorthFill(Bitboard bb) {
+  bb |= (bb << 8);
+  bb |= (bb << 16);
+  bb |= (bb << 32);
+
+  return bb;
+}
+
+Bitboard SouthFill(Bitboard bb) {
+  bb |= (bb >> 8);
+  bb |= (bb >> 16);
+  bb |= (bb >> 32);
+
+  return bb;
+}

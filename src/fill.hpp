@@ -37,4 +37,7 @@ Bitboard NorthEastOccluded(Bitboard bb, Bitboard pro);
 Bitboard NorthWestOccluded(Bitboard bb, Bitboard pro);
 Bitboard SouthWestOccluded(Bitboard bb, Bitboard pro);
 Bitboard SouthEastOccluded(Bitboard bb, Bitboard pro);
+
+Bitboard NorthFill(Bitboard bb);
+Bitboard SouthFill(Bitboard bb);
 #endif

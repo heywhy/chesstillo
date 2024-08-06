@@ -190,7 +190,7 @@ TEST_F(BoardTestSuite, IgnoreRookMoveIfBlocked) {
       Move(BitboardForSquare('c', 4), BitboardForSquare('e', 6), WHITE, BISHOP),
   };
 
-  for (int i = 0; i < 5; i++) {
+  for (int i = 0; i < 4; i++) {
     board.ApplyMove(moves[i]);
   }
 
@@ -279,4 +279,26 @@ TEST_F(BoardTestSuite, FixInvalidCheck) {
   ASSERT_EQ(last_move.color, WHITE);
   ASSERT_EQ(last_move.piece, KNIGHT);
   ASSERT_FALSE(last_move.Is(CHECK));
+}
+
+TEST_F(BoardTestSuite, EnPassantCapture) {
+  ApplyFen(board, "rnbqkbnr/pppp1ppp/8/8/3pP3/8/PPP2PPP/RNBQKBNR w KQkq - 0 1");
+
+  Move white{BitboardForSquare('c', 2), BitboardForSquare('c', 4), WHITE, PAWN};
+  Move black{BitboardForSquare('d', 4), BitboardForSquare('c', 3), BLACK, PAWN};
+
+  board.ApplyMove(white);
+
+  ASSERT_EQ(PositionToFen(board),
+            "rnbqkbnr/pppp1ppp/8/8/2PpP3/8/PP3PPP/RNBQKBNR b KQkq c3 0 1");
+
+  board.ApplyMove(black);
+
+  ASSERT_EQ(PositionToFen(board),
+            "rnbqkbnr/pppp1ppp/8/8/4P3/2p5/PP3PPP/RNBQKBNR w KQkq - 0 2");
+
+  board.UndoMove(black);
+
+  ASSERT_EQ(PositionToFen(board),
+            "rnbqkbnr/pppp1ppp/8/8/2PpP3/8/PP3PPP/RNBQKBNR b KQkq c3 0 1");
 }

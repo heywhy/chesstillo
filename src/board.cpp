@@ -3,6 +3,7 @@
 #include <vector>
 
 #include <chesstillo/board.hpp>
+#include <chesstillo/constants.hpp>
 #include <chesstillo/move_gen.hpp>
 #include <chesstillo/types.hpp>
 
@@ -99,6 +100,14 @@ void Board::MakeMove(Move &move) {
     }
   }
 
+  if (move.to & en_passant_sq_) {
+    move.Set(EN_PASSANT);
+
+    move.captured = PAWN;
+    move.ep_target = EnPassantTarget();
+    pieces_[opp][PAWN] ^= move.ep_target;
+  }
+
   ComputeOccupiedSqs();
   ComputeAttackedSqs();
 
@@ -129,12 +138,16 @@ void Board::MakeMove(Move &move) {
     fullmove_counter_++;
 
   moves_.push_front(std::move(move));
+
+  ComputeEnPassantSquare();
 }
 
 void Board::UndoMove(Move &move) {
   if (move != moves_.front()) {
     return;
   }
+
+  move = moves_.front();
 
   Bitboard &piece = pieces_[move.color][move.piece];
 
@@ -145,6 +158,11 @@ void Board::UndoMove(Move &move) {
     Bitboard *pieces = pieces_[move.color ^ 1];
 
     pieces[move.captured] |= move.to;
+  }
+
+  if (move.Is(EN_PASSANT)) {
+    Bitboard *pieces = pieces_[move.color ^ 1];
+    pieces[move.captured] |= move.ep_target;
   }
 
   if (move.Is(CAPTURE) || move.piece == PAWN) {
@@ -159,6 +177,8 @@ void Board::UndoMove(Move &move) {
   ComputeAttackedSqs();
 
   moves_.pop_front();
+
+  ComputeEnPassantSquare();
 }
 
 bool Board::IsValidMove(Move const &move) {
@@ -231,6 +251,41 @@ void Board::ComputeAttackedSqs() {
     sqs_attacked_by_[WHITE] |= attacking_sqs_[WHITE][piece];
     sqs_attacked_by_[BLACK] |= attacking_sqs_[BLACK][piece];
   }
+}
+
+void Board::ComputeEnPassantSquare() {
+  en_passant_sq_ = kEmpty;
+
+  if (moves_.empty() || moves_.front().piece != PAWN) {
+    return;
+  }
+
+  Move &last_move = moves_.front();
+
+  if (!((last_move.from & kRank2 && last_move.to & kRank4) ||
+        (last_move.from & kRank7 && last_move.to & kRank5))) {
+    return;
+  }
+
+  Bitboard file_fill = last_move.color == WHITE ? SouthFill(last_move.to)
+                                                : NorthFill(last_move.to);
+
+  Bitboard attacked_sqs = attacking_sqs_[last_move.color ^ 1][PAWN];
+  Bitboard square_behind =
+      (file_fill ^ last_move.from ^ occupied_sqs_) & file_fill;
+
+  if (square_behind & attacked_sqs) {
+    en_passant_sq_ = square_behind;
+  }
+}
+
+Bitboard Board::EnPassantTarget() {
+  if (!en_passant_sq_) {
+    return kEmpty;
+  }
+
+  return turn_ == BLACK ? NorthFill(en_passant_sq_) & kRank4
+                        : SouthFill(en_passant_sq_) & kRank5;
 }
 
 bool Board::PieceAtSquare(Bitboard square, char *c) {

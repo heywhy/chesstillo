@@ -89,6 +89,8 @@ private:
                                        Bitboard *const out);
 
   void ComputeAttackedSqs();
+  void ComputeEnPassantSquare();
+  Bitboard EnPassantTarget();
   void MakeMove(Move &move);
   bool IsValidMove(Move const &move);
 
