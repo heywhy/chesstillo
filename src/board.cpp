@@ -101,6 +101,7 @@ void Board::MakeMove(Move &move) {
   }
 
   if (move.to & en_passant_sq_) {
+    move.Set(CAPTURE);
     move.Set(EN_PASSANT);
 
     move.captured = PAWN;
@@ -154,7 +155,7 @@ void Board::UndoMove(Move &move) {
   piece = (piece ^ move.to) | move.from;
   turn_ = move.color;
 
-  if (move.Is(CAPTURE)) {
+  if (move.Is(CAPTURE) && !move.Is(EN_PASSANT)) {
     Bitboard *pieces = pieces_[move.color ^ 1];
 
     pieces[move.captured] |= move.to;

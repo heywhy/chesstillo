@@ -258,16 +258,20 @@ std::size_t GeneratePawnMoves(Board &board, Bitboard square,
 
     targets = single_push | (MOVE_NORTH(single_push) & empty_sqs & kRank4) |
               (MOVE_NORTH_EAST(square) & attacked_sqs) |
-              (MOVE_NORTH_WEST(square) & attacked_sqs);
+              (MOVE_NORTH_WEST(square) & attacked_sqs) |
+              (MOVE_NORTH_EAST(square) & board.en_passant_sq_) |
+              (MOVE_NORTH_WEST(square) & board.en_passant_sq_);
   } else {
     single_push = MOVE_SOUTH(square) & empty_sqs;
 
     targets = single_push | (MOVE_SOUTH(single_push) & empty_sqs & kRank5) |
               (MOVE_SOUTH_EAST(square) & attacked_sqs) |
-              (MOVE_SOUTH_WEST(square) & attacked_sqs);
+              (MOVE_SOUTH_WEST(square) & attacked_sqs) |
+              (MOVE_SOUTH_EAST(square) & board.en_passant_sq_) |
+              (MOVE_SOUTH_WEST(square) & board.en_passant_sq_);
   }
 
-  return Split(targets | board.en_passant_sq_, out);
+  return Split(targets, out);
 }
 
 std::size_t GenerateKnightMoves(Board &board, Bitboard square,
