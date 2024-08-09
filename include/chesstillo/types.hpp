@@ -9,6 +9,7 @@
 #define CHECKMATE 2
 #define PROMOTION 3
 #define EN_PASSANT 4
+#define DISCOVERY 5
 
 typedef std::uint64_t Bitboard;
 

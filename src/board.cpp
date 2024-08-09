@@ -118,6 +118,10 @@ void Board::MakeMove(Move &move) {
 
     move.Set(CHECK);
 
+    if (!(attacking_sqs_[move.color][move.piece] & pieces_[opp][KING])) {
+      move.Set(DISCOVERY);
+    }
+
     if (GenerateOutOfCheckMoves(*this).empty()) {
       move.Set(CHECKMATE);
     }
@@ -125,9 +129,7 @@ void Board::MakeMove(Move &move) {
     turn_ = move.color;
   }
 
-  if (sqs_occupied_by_[opp] && !move.Is(CHECKMATE)) {
-    turn_ = opp;
-  }
+  turn_ = opp;
 
   if (move.piece == PAWN || move.Is(CAPTURE)) {
     halfmove_clock_ = 0;

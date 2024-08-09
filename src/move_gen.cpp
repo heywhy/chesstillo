@@ -1,5 +1,6 @@
 #include <cstdarg>
 #include <cstddef>
+#include <iostream>
 #include <iterator>
 #include <vector>
 
@@ -50,7 +51,11 @@ std::vector<Move> GenerateOutOfCheckMoves(Board &board) {
 
     Bitboard opp_pieces = board.pieces_[opp][piece];
 
-    if ((piece == KNIGHT || piece == BISHOP) && !(opp_pieces & king_sq_color)) {
+    if (piece == BISHOP && !(opp_pieces & king_sq_color)) {
+      continue;
+    }
+
+    if (piece == KNIGHT && !(opp_pieces & ~king_sq_color)) {
       continue;
     }
 
@@ -59,8 +64,12 @@ std::vector<Move> GenerateOutOfCheckMoves(Board &board) {
      * square color, so we take advantage of this fact to filter only pieces on
      * same square color.
      */
-    if (piece == KNIGHT || piece == BISHOP) {
+    if (piece == BISHOP) {
       opp_pieces &= king_sq_color;
+    }
+
+    if (piece == KNIGHT) {
+      opp_pieces &= ~king_sq_color;
     }
 
     Bitboard sqs_btwn_king_and_attacker = kEmpty;
@@ -112,8 +121,24 @@ std::vector<Move> GenerateOutOfCheckMoves(Board &board) {
         for (std::size_t j = 0; j < moves_num; j++) {
           Bitboard destination = tmp_moves[j];
 
+          // std::cout << "to square " << SquareFromBitboard(destination)
+          //           << std::endl
+          //           << SquareFromBitboard(opp_pieces) << std::endl;
+          // << std::bitset<64>(opp_pieces) << std::endl;
+
           if (destination & opp_pieces ||
               destination & sqs_btwn_king_and_attacker) {
+            // Board copy = board;
+            // Move move(square, destination, board.turn_, piece);
+            //
+            // copy.MakeMove(move);
+            //
+            // if (copy.sqs_attacked_by_[opp] & copy.pieces_[board.turn_][KING])
+            // {
+            //   continue;
+            // }
+            //
+            // moves.push_back(std::move(move));
             moves.emplace_back(square, destination, board.turn_, piece);
           }
         }
