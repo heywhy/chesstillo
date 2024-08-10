@@ -1,6 +1,5 @@
 #include <cstdarg>
 #include <cstddef>
-#include <iostream>
 #include <iterator>
 #include <vector>
 
@@ -127,17 +126,18 @@ std::vector<Move> GenerateOutOfCheckMoves(Board &board) {
           // << std::bitset<64>(opp_pieces) << std::endl;
 
           if (destination & opp_pieces ||
-              destination & sqs_btwn_king_and_attacker) {
-            // Board copy = board;
-            // Move move(square, destination, board.turn_, piece);
-            //
-            // copy.MakeMove(move);
-            //
-            // if (copy.sqs_attacked_by_[opp] & copy.pieces_[board.turn_][KING])
-            // {
-            //   continue;
-            // }
-            //
+              destination & sqs_btwn_king_and_attacker ||
+              (piece == PAWN && destination & board.en_passant_sq_)) {
+            // FIXME: maybe not copying is the fix
+            Board copy = board;
+            Move move(square, destination, board.turn_, piece);
+
+            copy.MakeMove(move);
+
+            if (copy.sqs_attacked_by_[opp] & copy.pieces_[board.turn_][KING]) {
+              continue;
+            }
+
             // moves.push_back(std::move(move));
             moves.emplace_back(square, destination, board.turn_, piece);
           }
@@ -163,7 +163,8 @@ std::vector<Move> GenerateOutOfCheckMoves(Board &board) {
       continue;
     }
 
-    moves.push_back(std::move(move));
+    // moves.push_back(std::move(move));
+    moves.emplace_back(king_sq, destination, board.turn_, KING);
   }
 
   return moves;
@@ -217,7 +218,8 @@ std::vector<Move> GenerateMoves(Board &board, Piece piece) {
         continue;
       }
 
-      moves.push_back(std::move(move));
+      // moves.push_back(std::move(move));
+      moves.emplace_back(squares[i], targets[j], board.turn_, piece);
     }
   }
 

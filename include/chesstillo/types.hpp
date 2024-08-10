@@ -10,6 +10,7 @@
 #define PROMOTION 3
 #define EN_PASSANT 4
 #define DISCOVERY 5
+#define DOUBLE 6
 
 typedef std::uint64_t Bitboard;
 

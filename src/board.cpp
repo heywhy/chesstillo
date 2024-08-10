@@ -73,7 +73,9 @@ void Board::Reset() {
 
 bool Board::Endgame() { return false; }
 
-void Board::ApplyMove(Move move) {
+void Board::ApplyMove(Move &&move) { ApplyMove(move); }
+
+void Board::ApplyMove(Move &move) {
   if (turn_ != move.color || !IsValidMove(move))
     return;
 
@@ -100,7 +102,7 @@ void Board::MakeMove(Move &move) {
     }
   }
 
-  if (move.to & en_passant_sq_) {
+  if (move.piece == PAWN && move.to & en_passant_sq_) {
     move.Set(CAPTURE);
     move.Set(EN_PASSANT);
 
@@ -113,14 +115,14 @@ void Board::MakeMove(Move &move) {
   ComputeAttackedSqs();
 
   if (sqs_attacked_by_[turn_] & pieces_[opp][KING]) {
-    // INFO: Copying the board just to see if the
-    turn_ = opp;
-
     move.Set(CHECK);
 
-    if (!(attacking_sqs_[move.color][move.piece] & pieces_[opp][KING])) {
+    if (!(attacking_sqs_[turn_][move.piece] & pieces_[opp][KING])) {
       move.Set(DISCOVERY);
     }
+
+    // INFO: Copying the board just to see if king is checkmate is not worth it
+    turn_ = opp;
 
     if (GenerateOutOfCheckMoves(*this).empty()) {
       move.Set(CHECKMATE);

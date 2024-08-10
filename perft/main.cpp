@@ -18,6 +18,8 @@ struct Stat {
   std::size_t checkmates = 0;
   std::size_t en_passants = 0;
   std::size_t discovery_checks = 0;
+  std::size_t double_checks = 0;
+  std::size_t promotions = 0;
   std::map<std::string, int> map{};
 
   void operator+=(Stat &stat) {
@@ -27,6 +29,8 @@ struct Stat {
     checkmates += stat.checkmates;
     en_passants += stat.en_passants;
     discovery_checks += stat.discovery_checks;
+    double_checks += stat.double_checks;
+    promotions += stat.promotions;
   }
 };
 
@@ -38,21 +42,35 @@ Stat Perft(Board &board, int depth, bool divide) {
   Stat stat;
   std::vector<Move> moves = GenerateMoves(board);
 
+  char s[5];
+  MoveToString(board.GetMoves().front(), s);
+
+  // if (std::strcmp(s, "c5+") == 0) {
+  //   for (Move &a : moves) {
+  //     MoveToString(a, s);
+  //     std::cout << a.piece << std::endl;
+  //     std::cout << s << std::endl;
+  //   }
+  //
+  //   std::cout << "caught me =" << moves.size() << std::endl;
+  //   std::cout << "caught me =" << board.GetTurn() << std::endl;
+  // }
+
   for (Move &move : moves) {
     board.ApplyMove(move);
 
-    Stat result = Perft(board, depth - 1, divide);
+    Stat result = Perft(board, depth - 1, false);
 
     stat += result;
 
     if (depth - 1 == 0) {
-      Move &last_move = board.GetMoves().front();
-
-      stat.checks += last_move.Is(CHECK);
-      stat.captures += last_move.Is(CAPTURE);
-      stat.checkmates += last_move.Is(CHECKMATE);
-      stat.en_passants += last_move.Is(EN_PASSANT);
-      stat.discovery_checks += last_move.Is(DISCOVERY);
+      stat.checks += move.Is(CHECK);
+      stat.captures += move.Is(CAPTURE);
+      stat.checkmates += move.Is(CHECKMATE);
+      stat.en_passants += move.Is(EN_PASSANT);
+      stat.discovery_checks += move.Is(DISCOVERY);
+      stat.double_checks += move.Is(DOUBLE);
+      stat.promotions += move.Is(PROMOTION);
     }
 
     board.UndoMove(move);
@@ -69,21 +87,18 @@ Stat Perft(Board &board, int depth, bool divide) {
   return stat;
 }
 
-void Run(int depth, bool divide) {
-  Board board;
-
-  ApplyFen(board, START_FEN);
-
+void Run(Board &board, int depth, bool divide) {
   Stat stat = Perft(board, depth, divide);
 
   for (auto [k, v] : stat.map) {
     std::cout << k << " " << v << std::endl;
   }
 
-  std::printf("stats for depth %d is nodes=%lu, captures=%lu, e.p=%lu, "
-              "checks=%lu, discovery checks=%lu, checkmates=%lu\n",
-              depth, stat.nodes, stat.captures, stat.en_passants, stat.checks,
-              stat.discovery_checks, stat.checkmates);
+  std::printf(
+      "stats for depth %d is nodes=%lu, captures=%lu, e.p=%lu, promotions=%lu, "
+      "checks=%lu, discovery checks=%lu, double checks=%lu, checkmates=%lu\n",
+      depth, stat.nodes, stat.captures, stat.en_passants, stat.promotions,
+      stat.checks, stat.discovery_checks, stat.double_checks, stat.checkmates);
 
   if (divide) {
     std::cout << std::endl;
