@@ -85,8 +85,6 @@ Stat Perft(Position &position, int depth, bool divide) {
 
     stat += result;
 
-    position.Undo(move);
-
     if (depth - 1 == 0) {
       stat.checks += CheckMask(position) != kUniverse;
       stat.checks += move.Is(CHECK);
@@ -98,6 +96,8 @@ Stat Perft(Position &position, int depth, bool divide) {
       stat.promotions += move.Is(PROMOTION);
       stat.castles += move.Is(CASTLE);
     }
+
+    position.Undo(move);
 
     if (divide) {
       char s[6];
@@ -172,25 +172,9 @@ int main() {
   PerftFun perft = BulkPerft;
 
   ApplyFen(position, START_FEN);
-  ApplyFen(position,
-           "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq - 0 1");
-  // ApplyFen(board, "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1
-  // 8"); ApplyFen(board, "8/2p5/3p4/KP5r/5R1k/8/4P1P1/8 b - - 0 1");
-  // ApplyFen(board, "8/8/3k4/8/1K6/6Q1/8/8 b - - 0 1"); ApplyFen(board,
-  //          "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -
-  //          ");
-  // ApplyFen(board, "8/2p5/3p4/KP5r/1R2P2k/5p2/6P1/8 w - - 0 1");
 
-  for (int i = 0; i < 7; i++) {
-    // Run(board, perft, i, true);
-  }
-
-  perft = Perft;
-  Run(position, perft, 3 - 0, true);
-  // Run(board, 6 - 2, true);
-
-  // e4 g4 Rb1 Rb2 Rb3
-  // e4 f3, Ka6
+  // perft = Perft;
+  Run(position, perft, 6 - 0, true);
 
   return 0;
 }

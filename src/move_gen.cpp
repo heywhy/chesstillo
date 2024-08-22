@@ -144,19 +144,33 @@ std::vector<Move> GenerateMoves(Position &position) {
   // Bitboard non_promotable_pawns = movable_pawns & ~pre_promotion_rank;
 
   {
-    Bitboard targets =
-        single_push_targets(pushable_pawns) & empty_sqs & check_mask;
+    Bitboard movable_sqs_mask = empty_sqs & check_mask;
+    Bitboard pinned_pawns = pushable_pawns & pin_hv_mask;
+    Bitboard free_pawns = pushable_pawns & ~pin_hv_mask;
 
-    BITLOOP(targets) {
+    Bitboard free_pawns_pts =
+        single_push_targets(free_pawns) & movable_sqs_mask;
+    Bitboard pinned_pawns_pts =
+        single_push_targets(pinned_pawns) & movable_sqs_mask & pin_hv_mask;
+
+    Bitboard single_targets = free_pawns_pts | pinned_pawns_pts;
+
+    BITLOOP(single_targets) {
       int from = LOOP_INDEX + file_shift;
 
       moves.emplace_back(from, LOOP_INDEX, PAWN);
     }
 
     file_shift *= 2;
-    targets = double_push_targets(pushable_pawns, empty_sqs) & check_mask;
 
-    BITLOOP(targets) {
+    Bitboard free_pawns_dts =
+        double_push_targets(free_pawns, empty_sqs) & check_mask;
+    Bitboard pinned_pawns_dts =
+        double_push_targets(pinned_pawns, empty_sqs) & check_mask & pin_hv_mask;
+
+    Bitboard double_targets = free_pawns_dts | pinned_pawns_dts;
+
+    BITLOOP(double_targets) {
       moves.emplace_back(LOOP_INDEX + file_shift, LOOP_INDEX, PAWN);
     }
   }
