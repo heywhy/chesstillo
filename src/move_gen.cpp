@@ -123,7 +123,7 @@ std::vector<Move> GenerateMoves(Position &position) {
     return moves;
   }
 
-  // 2. pawn pushes (single, double)
+  // 2. pawn pushes, pawn captures, en passant, pawn promotions
   Bitboard side_pawns = own_pieces[PAWN];
   Bitboard pushable_pawns = side_pawns & ~pin_diag_mask;
   Bitboard attackable_pawns = side_pawns & ~pin_hv_mask;
@@ -139,10 +139,7 @@ std::vector<Move> GenerateMoves(Position &position) {
                             PawnTargets<BLACK, EAST>, PawnTargets<BLACK, WEST>,
                             8, 7, 9, kRank2);
 
-  // 4. promotions
-  // Bitboard promotable_pawns = movable_pawns & pre_promotion_rank;
-  // Bitboard non_promotable_pawns = movable_pawns & ~pre_promotion_rank;
-
+  // 2.1. pawn pushes
   {
     Bitboard movable_sqs_mask = empty_sqs & check_mask;
     Bitboard pinned_pawns = pushable_pawns & pin_hv_mask;
@@ -175,6 +172,7 @@ std::vector<Move> GenerateMoves(Position &position) {
     }
   }
 
+  // 2.2. pawn captures
   {
     Bitboard capture_mask = enemy_pieces_bb & check_mask;
     Bitboard pinned_pawns = attackable_pawns & pin_diag_mask;
@@ -217,6 +215,7 @@ std::vector<Move> GenerateMoves(Position &position) {
     }
   }
 
+  // 2.3. en passant
   {
     Bitboard ep_target = position.EnPassantTarget();
     Bitboard west_targets = pawn_west_targets(attackable_pawns) &
@@ -248,6 +247,9 @@ std::vector<Move> GenerateMoves(Position &position) {
     }
   }
 
+  // 2.4. pawn promotions
+  // Bitboard promotable_pawns = movable_pawns & pre_promotion_rank;
+  // Bitboard non_promotable_pawns = movable_pawns & ~pre_promotion_rank;
   // Bitboard push_promotion_targets =
   //     single_push_targets(promotable_pawns) & empty_sqs & check_mask;
   //
@@ -311,80 +313,89 @@ std::vector<Move> GenerateMoves(Position &position) {
   // }
 
   // 3. remaining legal moves
-  Bitboard knights = own_pieces[KNIGHT] & ~pin_mask;
+  {
+    Bitboard knights = own_pieces[KNIGHT] & ~pin_mask;
 
-  BITLOOP(knights) {
-    Bitboard targets = kAttackMaps[KNIGHT][LOOP_INDEX] & movable_sqs;
+    BITLOOP(knights) {
+      Bitboard targets = kAttackMaps[KNIGHT][LOOP_INDEX] & movable_sqs;
 
-    AddMovesToList(moves, LOOP_INDEX, targets, KNIGHT, enemy_pieces,
-                   enemy_pieces_bb);
+      AddMovesToList(moves, LOOP_INDEX, targets, KNIGHT, enemy_pieces,
+                     enemy_pieces_bb);
+    }
   }
 
   Bitboard queens = own_pieces[QUEEN];
-  Bitboard bishops = own_pieces[BISHOP] & ~pin_hv_mask;
-  Bitboard free_bishops = bishops & ~pin_diag_mask;
-  Bitboard pinned_bishops = (bishops | queens) & pin_diag_mask;
 
-  BITLOOP(pinned_bishops) {
-    Bitboard bb = BITBOARD_FOR_SQUARE(LOOP_INDEX);
-    Bitboard targets = kSlidingAttacks.Bishop(occupied_sqs, LOOP_INDEX) &
-                       movable_sqs & pin_diag_mask;
+  {
+    Bitboard bishops = own_pieces[BISHOP] & ~pin_hv_mask;
+    Bitboard free_bishops = bishops & ~pin_diag_mask;
+    Bitboard pinned_bishops = (bishops | queens) & pin_diag_mask;
 
-    targets &= ~own_pieces_bb;
+    BITLOOP(pinned_bishops) {
+      Bitboard bb = BITBOARD_FOR_SQUARE(LOOP_INDEX);
+      Bitboard targets = kSlidingAttacks.Bishop(occupied_sqs, LOOP_INDEX) &
+                         movable_sqs & pin_diag_mask;
 
-    Piece t = bb & queens ? QUEEN : BISHOP;
+      targets &= ~own_pieces_bb;
 
-    AddMovesToList(moves, LOOP_INDEX, targets, t, enemy_pieces,
-                   enemy_pieces_bb);
+      Piece t = bb & queens ? QUEEN : BISHOP;
+
+      AddMovesToList(moves, LOOP_INDEX, targets, t, enemy_pieces,
+                     enemy_pieces_bb);
+    }
+
+    BITLOOP(free_bishops) {
+      Bitboard targets =
+          kSlidingAttacks.Bishop(occupied_sqs, LOOP_INDEX) & movable_sqs;
+
+      targets &= ~own_pieces_bb;
+
+      AddMovesToList(moves, LOOP_INDEX, targets, BISHOP, enemy_pieces,
+                     enemy_pieces_bb);
+    }
   }
 
-  BITLOOP(free_bishops) {
-    Bitboard targets =
-        kSlidingAttacks.Bishop(occupied_sqs, LOOP_INDEX) & movable_sqs;
+  {
+    Bitboard rooks = own_pieces[ROOK] & ~pin_diag_mask;
+    Bitboard free_rooks = rooks & ~pin_hv_mask;
+    Bitboard pinned_rooks = (rooks | queens) & pin_hv_mask;
 
-    targets &= ~own_pieces_bb;
+    BITLOOP(pinned_rooks) {
+      Bitboard bb = BITBOARD_FOR_SQUARE(LOOP_INDEX);
+      Bitboard targets = kSlidingAttacks.Rook(occupied_sqs, LOOP_INDEX) &
+                         movable_sqs & pin_hv_mask;
 
-    AddMovesToList(moves, LOOP_INDEX, targets, BISHOP, enemy_pieces,
-                   enemy_pieces_bb);
+      targets &= ~own_pieces_bb;
+
+      Piece t = bb & queens ? QUEEN : ROOK;
+
+      AddMovesToList(moves, LOOP_INDEX, targets, t, enemy_pieces,
+                     enemy_pieces_bb);
+    }
+
+    BITLOOP(free_rooks) {
+      Bitboard targets =
+          kSlidingAttacks.Rook(occupied_sqs, LOOP_INDEX) & movable_sqs;
+
+      targets &= ~own_pieces_bb;
+
+      AddMovesToList(moves, LOOP_INDEX, targets, ROOK, enemy_pieces,
+                     enemy_pieces_bb);
+    }
   }
 
-  Bitboard rooks = own_pieces[ROOK] & ~pin_diag_mask;
-  Bitboard free_rooks = rooks & ~pin_hv_mask;
-  Bitboard pinned_rooks = (rooks | queens) & pin_hv_mask;
+  {
+    Bitboard mqueens = own_pieces[QUEEN] & ~pin_mask;
 
-  BITLOOP(pinned_rooks) {
-    Bitboard bb = BITBOARD_FOR_SQUARE(LOOP_INDEX);
-    Bitboard targets = kSlidingAttacks.Rook(occupied_sqs, LOOP_INDEX) &
-                       movable_sqs & pin_hv_mask;
+    BITLOOP(mqueens) {
+      Bitboard targets =
+          kSlidingAttacks.Queen(occupied_sqs, LOOP_INDEX) & movable_sqs;
 
-    targets &= ~own_pieces_bb;
+      targets &= ~own_pieces_bb;
 
-    Piece t = bb & queens ? QUEEN : ROOK;
-
-    AddMovesToList(moves, LOOP_INDEX, targets, t, enemy_pieces,
-                   enemy_pieces_bb);
-  }
-
-  BITLOOP(free_rooks) {
-    Bitboard targets =
-        kSlidingAttacks.Rook(occupied_sqs, LOOP_INDEX) & movable_sqs;
-
-    targets &= ~own_pieces_bb;
-
-    AddMovesToList(moves, LOOP_INDEX, targets, ROOK, enemy_pieces,
-                   enemy_pieces_bb);
-  }
-
-  Bitboard mqueens = own_pieces[QUEEN] & ~pin_mask;
-
-  BITLOOP(mqueens) {
-    Bitboard targets =
-        kSlidingAttacks.Queen(occupied_sqs, LOOP_INDEX) & movable_sqs;
-
-    targets &= ~own_pieces_bb;
-
-    AddMovesToList(moves, LOOP_INDEX, targets, QUEEN, enemy_pieces,
-                   enemy_pieces_bb);
+      AddMovesToList(moves, LOOP_INDEX, targets, QUEEN, enemy_pieces,
+                     enemy_pieces_bb);
+    }
   }
 
   return moves;
