@@ -1,13 +1,17 @@
-#include <chesstillo/board.hpp>
-#include <chesstillo/fen.hpp>
-#include <chesstillo/types.hpp>
 #include <cstdint>
 #include <string>
 
+#include <chesstillo/board.hpp>
+#include <chesstillo/fen.hpp>
+#include <chesstillo/position.hpp>
+#include <chesstillo/types.hpp>
+
 int ToInt(char num) { return num - '0'; }
 
-void ApplyFen(Board &board, const char *fen) {
+void ApplyFen(Position &position, const char *fen) {
   Bitboard *piece;
+  Bitboard *black_pieces = position.Pieces(BLACK);
+  Bitboard *white_pieces = position.Pieces(WHITE);
 
   int rank = 7;
   int file = 0;
@@ -16,69 +20,69 @@ void ApplyFen(Board &board, const char *fen) {
   int en_passant_rank;
   char en_passant_file;
 
-  board.Reset();
+  position.Reset();
 
   while (*fen) {
-    piece = NULL;
+    piece = nullptr;
 
     switch (*fen) {
     case 'r':
-      piece = &board.pieces_[BLACK][ROOK];
+      piece = &black_pieces[ROOK];
       break;
 
     case 'n':
-      piece = &board.pieces_[BLACK][KNIGHT];
+      piece = &black_pieces[KNIGHT];
       break;
 
     case 'b':
-      piece = &board.pieces_[BLACK][BISHOP];
-      board.turn_ = BLACK;
+      piece = &black_pieces[BISHOP];
+      position.turn_ = BLACK;
       en_passant_file = *fen;
       break;
 
     case 'q':
-      piece = &board.pieces_[BLACK][QUEEN];
+      piece = &black_pieces[QUEEN];
       if (spaces == 2)
-        board.castling_rights_ |= static_cast<std::uint8_t>(1) << Q_BLACK;
+        position.castling_rights_ |= static_cast<std::uint8_t>(1) << Q_BLACK;
       break;
 
     case 'k':
-      piece = &board.pieces_[BLACK][KING];
+      piece = &black_pieces[KING];
       if (spaces == 2)
-        board.castling_rights_ |= static_cast<std::uint8_t>(1) << K_BLACK;
+        position.castling_rights_ |= static_cast<std::uint8_t>(1) << K_BLACK;
       break;
 
     case 'p':
-      piece = &board.pieces_[BLACK][PAWN];
+      piece = &black_pieces[PAWN];
       break;
 
     case 'R':
-      piece = &board.pieces_[WHITE][ROOK];
+      piece = &white_pieces[ROOK];
       break;
 
     case 'N':
-      piece = &board.pieces_[WHITE][KNIGHT];
+      piece = &white_pieces[KNIGHT];
       break;
 
     case 'B':
-      piece = &board.pieces_[WHITE][BISHOP];
+      piece = &white_pieces[BISHOP];
       break;
 
     case 'Q':
-      piece = &board.pieces_[WHITE][QUEEN];
+      piece = &white_pieces[QUEEN];
       if (spaces == 2)
-        board.castling_rights_ |= static_cast<std::uint8_t>(1) << Q_WHITE;
+        position.castling_rights_ |= static_cast<std::uint8_t>(1) << Q_WHITE;
       break;
 
     case 'K':
-      piece = &board.pieces_[WHITE][KING];
+      piece = &white_pieces[KING];
 
       if (spaces == 2)
-        board.castling_rights_ |= static_cast<std::uint8_t>(1) << K_WHITE;
+        position.castling_rights_ |= static_cast<std::uint8_t>(1) << K_WHITE;
       break;
 
     case 'P':
-      piece = &board.pieces_[WHITE][PAWN];
+      piece = &white_pieces[PAWN];
       break;
 
     case 'a':
@@ -115,7 +119,7 @@ void ApplyFen(Board &board, const char *fen) {
       break;
 
     case 'w':
-      board.turn_ = WHITE;
+      position.turn_ = WHITE;
       break;
 
     case ' ':
@@ -127,35 +131,40 @@ void ApplyFen(Board &board, const char *fen) {
     }
 
     if (spaces == 0 && piece) {
-      *piece |= BitboardForSquare(file, rank);
+      unsigned int square = TO_SQUARE(file, rank);
+      *piece |= BITBOARD_FOR_SQUARE(square);
 
       file++;
     } else if (spaces == 3 && (en_passant_rank == 3 || en_passant_rank == 6) &&
                en_passant_file >= 'a' && en_passant_file <= 'h') {
-      board.en_passant_sq_ =
-          BitboardForSquare(en_passant_file, en_passant_rank);
+      unsigned int rank = en_passant_rank - 1;
+      unsigned int file = en_passant_file - 97;
+      unsigned int square = TO_SQUARE(file, rank);
+
+      position.en_passant_sq_ = BITBOARD_FOR_SQUARE(square);
     } else if (spaces == 4) {
-      board.halfmove_clock_ = move_count;
+      position.halfmove_clock_ = move_count;
     } else if (spaces == 5) {
-      board.fullmove_counter_ = move_count;
+      position.fullmove_counter_ = move_count;
     }
 
     fen++;
   }
 
-  board.ComputeOccupiedSqs();
-  board.ComputeAttackedSqs();
+  position.UpdateInternals();
 }
 
-std::string PositionToFen(Board &board) {
+std::string PositionToFen(Position &position) {
   int spaces = 0;
   std::string fen;
+  Bitboard occupied_sqs = position.OccupiedSquares();
 
   for (int rank = 7; rank >= 0; rank--) {
     for (int file = 0; file < 8; file++) {
-      Bitboard square = BitboardForSquare(file, rank);
+      unsigned int square = TO_SQUARE(file, rank);
+      Bitboard bb = BITBOARD_FOR_SQUARE(square);
 
-      if (board.occupied_sqs_ & square) {
+      if (occupied_sqs & bb) {
         if (spaces > 0) {
           fen += ('0' + spaces);
           spaces = 0;
@@ -163,7 +172,7 @@ std::string PositionToFen(Board &board) {
 
         char piece;
 
-        if (board.PieceAtSquare(square, &piece)) {
+        if (position.PieceAtSquare(square, &piece)) {
           fen += piece;
         }
       } else {
@@ -180,22 +189,22 @@ std::string PositionToFen(Board &board) {
       fen += '/';
   }
 
-  if (board.turn_ == WHITE) {
+  if (position.turn_ == WHITE) {
     fen += {' ', 'w', ' '};
   } else {
     fen += {' ', 'b', ' '};
   }
 
-  if (board.CanCastle(K_WHITE)) {
+  if (position.CanCastle(K_WHITE)) {
     fen += 'K';
   }
-  if (board.CanCastle(Q_WHITE)) {
+  if (position.CanCastle(Q_WHITE)) {
     fen += 'Q';
   }
-  if (board.CanCastle(K_BLACK)) {
+  if (position.CanCastle(K_BLACK)) {
     fen += 'k';
   }
-  if (board.CanCastle(Q_BLACK)) {
+  if (position.CanCastle(Q_BLACK)) {
     fen += 'q';
   }
 
@@ -204,8 +213,9 @@ std::string PositionToFen(Board &board) {
   }
 
   Coord coord;
+  unsigned int en_passant_square = BIT_INDEX(position.en_passant_sq_);
 
-  if (CoordFromBitboard(board.EnPassantSquare(), &coord)) {
+  if (CoordForSquare(&coord, en_passant_square)) {
     char rank = '0' + coord.rank;
 
     fen += {' ', coord.file, rank, ' '};
@@ -213,6 +223,6 @@ std::string PositionToFen(Board &board) {
     fen += {' ', '-', ' '};
   }
 
-  return fen += std::to_string(board.halfmove_clock_) + ' ' +
-                std::to_string(board.fullmove_counter_);
+  return fen += std::to_string(position.halfmove_clock_) + ' ' +
+                std::to_string(position.fullmove_counter_);
 }

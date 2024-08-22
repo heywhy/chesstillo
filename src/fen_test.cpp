@@ -1,94 +1,90 @@
 #include <chesstillo/fen.hpp>
+#include <chesstillo/position.hpp>
 #include <gtest/gtest.h>
 
 TEST(FenTest, ApplyFen) {
-  Board board;
+  Position position;
 
-  ASSERT_EQ(~board.EmptySquares(), kEmpty);
+  ASSERT_EQ(position.OccupiedSquares(), kEmpty);
 
-  ApplyFen(board, START_FEN);
+  ApplyFen(position, START_FEN);
 
-  ASSERT_NE(~board.EmptySquares(), kEmpty);
+  ASSERT_NE(position.OccupiedSquares(), kEmpty);
 }
 
 TEST(FenTest, MaintainCastlingRights) {
-  Board board;
+  Position position;
 
-  ApplyFen(board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w Kq - 0 1");
+  ApplyFen(position, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w Kq - 0 1");
 
-  ASSERT_TRUE(board.CanCastle(K_WHITE));
-  ASSERT_TRUE(board.CanCastle(Q_BLACK));
-  ASSERT_FALSE(board.CanCastle(Q_WHITE));
-  ASSERT_FALSE(board.CanCastle(K_BLACK));
+  ASSERT_TRUE(position.CanCastle(K_WHITE));
+  ASSERT_TRUE(position.CanCastle(Q_BLACK));
+  ASSERT_FALSE(position.CanCastle(Q_WHITE));
+  ASSERT_FALSE(position.CanCastle(K_BLACK));
 }
 
 TEST(FenTest, MaintainCastlingRightsIfMissing) {
-  Board board;
+  Position position;
 
-  ApplyFen(board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1");
+  ApplyFen(position, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1");
 
-  ASSERT_FALSE(board.CanCastle(K_WHITE));
-  ASSERT_FALSE(board.CanCastle(Q_BLACK));
-  ASSERT_FALSE(board.CanCastle(Q_WHITE));
-  ASSERT_FALSE(board.CanCastle(K_BLACK));
+  ASSERT_FALSE(position.CanCastle(K_WHITE));
+  ASSERT_FALSE(position.CanCastle(Q_BLACK));
+  ASSERT_FALSE(position.CanCastle(Q_WHITE));
+  ASSERT_FALSE(position.CanCastle(K_BLACK));
 }
 
 TEST(FenTest, ApplyEnPassantSquare) {
-  Board board;
+  Position position;
 
-  ApplyFen(board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - e3 0 1");
+  ApplyFen(position, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - e3 0 1");
 
-  ASSERT_TRUE(board.EnPassantSquare());
+  ASSERT_TRUE(position.EnPassantSquare());
 
-  ApplyFen(board, START_FEN);
+  ApplyFen(position, START_FEN);
 
-  ASSERT_FALSE(board.EnPassantSquare());
+  ASSERT_FALSE(position.EnPassantSquare());
 }
 
 TEST(FenTest, PositionToFen) {
-  Board board;
+  Position position;
 
-  ApplyFen(board, START_FEN);
+  ApplyFen(position, START_FEN);
 
-  ASSERT_EQ(PositionToFen(board), START_FEN);
+  ASSERT_EQ(PositionToFen(position), START_FEN);
 
-  Bitboard e2 = BitboardForSquare('e', 2);
-  Bitboard e4 = BitboardForSquare('e', 4);
-  Move white_move = {e2, e4, WHITE, PAWN};
+  Move white_move(e2, e4, PAWN);
+  Move black_move(c7, c5, PAWN);
 
-  Bitboard c7 = BitboardForSquare('c', 7);
-  Bitboard c5 = BitboardForSquare('c', 5);
-  Move black_move = {c7, c5, BLACK, PAWN};
+  position.Make(white_move);
+  position.Make(black_move);
 
-  board.ApplyMove(white_move);
-  board.ApplyMove(black_move);
-
-  ASSERT_EQ(PositionToFen(board),
+  ASSERT_EQ(PositionToFen(position),
             "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2");
 }
 
 TEST(FenTest, RepresentEnPassantSquareInPositionFen) {
-  Board board;
+  Position position;
   const char *fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - e3 0 1";
 
-  ApplyFen(board, fen);
+  ApplyFen(position, fen);
 
-  ASSERT_EQ(PositionToFen(board), fen);
+  ASSERT_EQ(PositionToFen(position), fen);
 
-  ApplyFen(board, START_FEN);
+  ApplyFen(position, START_FEN);
 
-  ASSERT_EQ(PositionToFen(board), START_FEN);
+  ASSERT_EQ(PositionToFen(position), START_FEN);
 }
 
 TEST(FenTest, ClockMovesInFenAreRespected) {
-  Board board;
+  Position position;
   const char *fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - e3 50 97";
 
-  ApplyFen(board, fen);
+  ApplyFen(position, fen);
 
-  ASSERT_EQ(PositionToFen(board), fen);
+  ASSERT_EQ(PositionToFen(position), fen);
 
-  ApplyFen(board, START_FEN);
+  ApplyFen(position, START_FEN);
 
-  ASSERT_EQ(PositionToFen(board), START_FEN);
+  ASSERT_EQ(PositionToFen(position), START_FEN);
 }

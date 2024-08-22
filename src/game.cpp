@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string>
 
-Game::Game() { ApplyFen(board_, START_FEN); };
+Game::Game() { ApplyFen(position_, START_FEN); };
 
 void Game::Loop() {
   std::string command;

@@ -1,13 +1,13 @@
-#include <chesstillo/board.hpp>
+#ifndef FEN_HPP
+#define FEN_HPP
+
 #include <string>
 
-#ifndef FEN_HPP
-
-#define FEN_HPP
+#include <chesstillo/position.hpp>
 
 #define START_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
-void ApplyFen(Board & board, const char * fen);
-std::string PositionToFen(Board & board);
+void ApplyFen(Position &position, const char *fen);
+std::string PositionToFen(Position &position);
 
 #endif

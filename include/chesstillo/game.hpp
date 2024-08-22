@@ -1,8 +1,7 @@
-#include "board.hpp"
-
 #ifndef GAME_HPP
-
 #define GAME_HPP
+
+#include "position.hpp"
 
 class Game {
 public:
@@ -10,7 +9,7 @@ public:
   void Loop();
 
 private:
-  Board board_;
+  Position position_;
 };
 
 #endif

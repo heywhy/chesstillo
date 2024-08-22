@@ -14,7 +14,18 @@ else()
   set(COMPILE_OPTIONS /std:c++20)
 endif()
 
-add_library(chestillo SHARED src/utility.cpp src/board.cpp src/fen.cpp src/fill.cpp src/move_gen.cpp src/game.cpp)
+add_library(chestillo
+  STATIC
+  src/initializer.cpp
+  src/utility.cpp
+  src/board.cpp
+  src/position.cpp
+  src/fen.cpp
+  src/fill.cpp
+  src/move_gen.cpp
+  src/game.cpp
+)
+
 target_include_directories(chestillo PRIVATE include)
 target_compile_options(chestillo PRIVATE ${COMPILE_OPTIONS})
 target_link_options(chestillo PRIVATE -O3)
@@ -47,11 +58,22 @@ FetchContent_Declare(
   GIT_SHALLOW true
 )
 
+FetchContent_Declare(
+  magic_bits
+  GIT_REPOSITORY https://github.com/goutham/magic-bits.git
+  GIT_TAG 3152d1bf63d7ec2ce3b69dc5b2474db7abd419fa
+  GIT_SHALLOW true
+)
+
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
-FetchContent_MakeAvailable(ftxui)
-FetchContent_MakeAvailable(googletest)
+FetchContent_MakeAvailable(ftxui googletest magic_bits)
+
+add_library(magic_bits INTERFACE)
+target_include_directories(magic_bits INTERFACE ${magic_bits_SOURCE_DIR}/include)
+
+target_link_libraries(chestillo PUBLIC magic_bits)
 
 target_link_libraries(
   chestillo_gui

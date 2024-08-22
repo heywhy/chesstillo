@@ -1,14 +1,18 @@
+#include <bit>
 #include <cstdarg>
 #include <cstddef>
-#include <iterator>
+#include <tuple>
+#include <utility>
 #include <vector>
 
+#include <magic_bits.hpp>
+
+#include <chesstillo/board.hpp>
 #include <chesstillo/constants.hpp>
 #include <chesstillo/move_gen.hpp>
+#include <chesstillo/position.hpp>
 #include <chesstillo/types.hpp>
 #include <chesstillo/utility.hpp>
-
-#include "fill.hpp"
 
 // The max number of squares any piece can travel to is that of the queen
 #define MAX_PIECE_MOVES 27
@@ -17,350 +21,485 @@
 #define MAX_PIECE_NUMBER 10
 #define MAX_MOVES_BUFFER_SIZE 256
 
-Bitboard BishopAttacks(Bitboard piece) {
-  int square = SquareFromBitboard(piece);
+bool PieceAt(Piece *piece, Bitboard *pieces, unsigned int square) {
+  Bitboard bb = BITBOARD_FOR_SQUARE(square);
 
-  return DiagonalMask(square) ^ AntiDiagonalMask(square);
+  if (pieces[PAWN] & bb) {
+    *piece = PAWN;
+    return true;
+  }
+
+  if (pieces[ROOK] & bb) {
+    *piece = ROOK;
+    return true;
+  }
+
+  if (pieces[KNIGHT] & bb) {
+    *piece = KNIGHT;
+    return true;
+  }
+
+  if (pieces[BISHOP] & bb) {
+    *piece = BISHOP;
+    return true;
+  }
+
+  if (pieces[QUEEN] & bb) {
+    *piece = QUEEN;
+    return true;
+  }
+
+  if (pieces[KING] & bb) {
+    *piece = KING;
+    return true;
+  }
+
+  return false;
 }
 
-Bitboard RookAttacks(Bitboard piece) {
-  int square = SquareFromBitboard(piece);
+Bitboard GetCheckers(Bitboard *pieces, Bitboard check_mask) {
+  if (check_mask == kUniverse) {
+    return kEmpty;
+  }
 
-  return RankMask(square) ^ FileMask(square);
+  // need to find the LSB & MSB of the check mask since the function does not
+  // know or need attack direction
+  Bitboard lsb = BITBOARD_FOR_SQUARE(BIT_INDEX(check_mask));
+  Bitboard msb = BITBOARD_FOR_SQUARE(BIT_INDEX_MSB(check_mask));
+
+  Bitboard boundary = lsb | msb;
+  Bitboard rook_queen = pieces[ROOK] | pieces[QUEEN];
+  Bitboard bishop_queen = pieces[BISHOP] | pieces[QUEEN];
+
+  return (pieces[KNIGHT] & boundary) | (bishop_queen & boundary) |
+         (rook_queen & boundary) | (pieces[PAWN] & boundary);
 }
 
-Bitboard QueenAttacks(Bitboard piece) {
-  int square = SquareFromBitboard(piece);
-
-  return (FileMask(square) | RankMask(square)) ^
-         (DiagonalMask(square) | AntiDiagonalMask(square));
-}
-
-std::vector<Move> GenerateOutOfCheckMoves(Board &board) {
+std::vector<Move> GenerateMoves(Position &position) {
   std::vector<Move> moves;
-  Color opp = static_cast<Color>(board.turn_ ^ 1);
-  Bitboard king_sq = board.pieces_[board.turn_][KING];
-  Bitboard king_sq_color =
-      king_sq & kDarkSquares ? kDarkSquares : kLightSquares;
 
-  for (int piece = 0; piece < 6; piece++) {
-    if (piece == KING || !(board.attacking_sqs_[opp][piece] & king_sq)) {
-      continue;
+  moves.reserve(218);
+
+  Color opp = OPP(position.turn_);
+  Bitboard occupied_sqs = position.OccupiedSquares();
+  Bitboard *enemy_pieces = position.Pieces(opp);
+  Bitboard *own_pieces = position.Pieces(position.turn_);
+
+  Bitboard check_mask = CheckMask(position);
+  auto [pin_hv_mask, pin_diag_mask] = PinMask(position);
+  Bitboard pin_mask = pin_hv_mask | pin_diag_mask;
+
+  Bitboard empty_sqs = ~occupied_sqs;
+  Bitboard own_pieces_bb = BOARD_OCCUPANCY(own_pieces);
+  Bitboard enemy_pieces_bb = BOARD_OCCUPANCY(enemy_pieces) ^ enemy_pieces[KING];
+  Bitboard enemy_or_empty_sqs = enemy_pieces_bb | empty_sqs;
+  Bitboard movable_sqs = enemy_or_empty_sqs & check_mask;
+
+  // 1. safe king squares
+  int king_sq = BIT_INDEX(own_pieces[KING]);
+  Bitboard legal_king_moves =
+      kAttackMaps[KING][king_sq] & enemy_or_empty_sqs & ~position.king_ban_;
+
+  Bitboard quiet_moves = legal_king_moves & empty_sqs;
+  Bitboard captures = legal_king_moves & enemy_pieces_bb;
+
+  BITLOOP(captures) {
+    Piece piece;
+    Move move(king_sq, LOOP_INDEX, KING);
+
+    PieceAt(&piece, enemy_pieces, LOOP_INDEX);
+
+    move.captured = piece;
+    move.Set(CAPTURE);
+
+    moves.push_back(std::move(move));
+  }
+
+  BITLOOP(quiet_moves) { moves.emplace_back(king_sq, LOOP_INDEX, KING); }
+
+  Bitboard attackers = GetCheckers(enemy_pieces, check_mask);
+
+  if (std::popcount(attackers) > 1) [[unlikely]] {
+    return moves;
+  }
+
+  // 2. pawn pushes (single, double)
+  Bitboard side_pawns = own_pieces[PAWN];
+  Bitboard pushable_pawns = side_pawns & ~pin_diag_mask;
+  Bitboard attackable_pawns = side_pawns & ~pin_hv_mask;
+
+  auto [single_push_targets, double_push_targets, pawn_east_targets,
+        pawn_west_targets, file_shift, east_shift, west_shift,
+        pre_promotion_rank] =
+      position.turn_ == WHITE
+          ? std::make_tuple(PushPawn<WHITE>, DoublePushPawn<WHITE>,
+                            PawnTargets<WHITE, EAST>, PawnTargets<WHITE, WEST>,
+                            -8, -9, -7, kRank7)
+          : std::make_tuple(PushPawn<BLACK>, DoublePushPawn<BLACK>,
+                            PawnTargets<BLACK, EAST>, PawnTargets<BLACK, WEST>,
+                            8, 7, 9, kRank2);
+
+  // 4. promotions
+  // Bitboard promotable_pawns = movable_pawns & pre_promotion_rank;
+  // Bitboard non_promotable_pawns = movable_pawns & ~pre_promotion_rank;
+
+  {
+    Bitboard targets =
+        single_push_targets(pushable_pawns) & empty_sqs & check_mask;
+
+    BITLOOP(targets) {
+      int from = LOOP_INDEX + file_shift;
+
+      moves.emplace_back(from, LOOP_INDEX, PAWN);
     }
 
-    Bitboard opp_pieces = board.pieces_[opp][piece];
+    file_shift *= 2;
+    targets = double_push_targets(pushable_pawns, empty_sqs) & check_mask;
 
-    if (piece == BISHOP && !(opp_pieces & king_sq_color)) {
-      continue;
-    }
-
-    if (piece == KNIGHT && !(opp_pieces & ~king_sq_color)) {
-      continue;
-    }
-
-    /**
-     * A knight or bishop can only attack a king if they're on the same
-     * square color, so we take advantage of this fact to filter only pieces on
-     * same square color.
-     */
-    if (piece == BISHOP) {
-      opp_pieces &= king_sq_color;
-    }
-
-    if (piece == KNIGHT) {
-      opp_pieces &= ~king_sq_color;
-    }
-
-    Bitboard sqs_btwn_king_and_attacker = kEmpty;
-
-    /**
-     * Here, we grab the squares in between the sliding piece and the
-     * king so that we can generate moves that blocks the attack path in
-     * situations we are unable to capture the attacker.
-     */
-    if (piece == BISHOP || piece == ROOK || piece == QUEEN) {
-      sqs_btwn_king_and_attacker =
-          SquaresInBetween(opp_pieces, king_sq) & ~board.occupied_sqs_;
-    }
-
-    for (int i = 0; i < 6; i++) {
-      if (i == KING) {
-        continue;
-      }
-
-      std::size_t moves_num = 0;
-      Bitboard squares[MAX_PIECE_NUMBER];
-      Bitboard tmp_moves[MAX_PIECE_MOVES];
-      Piece piece = static_cast<Piece>(i);
-      std::size_t count = Split(board.pieces_[board.turn_][piece], squares);
-
-      for (std::size_t i = 0; i < count; i++) {
-        Bitboard square = squares[i];
-
-        switch (piece) {
-        case PAWN:
-          moves_num = GeneratePawnMoves(board, square, tmp_moves);
-          break;
-
-        case KNIGHT:
-          moves_num = GenerateKnightMoves(board, square, tmp_moves);
-          break;
-
-        case BISHOP:
-        case ROOK:
-        case QUEEN:
-          moves_num =
-              GenerateSlidingPieceMoves(board, piece, square, tmp_moves);
-          break;
-
-        default:
-          break;
-        }
-
-        for (std::size_t j = 0; j < moves_num; j++) {
-          Bitboard destination = tmp_moves[j];
-
-          // std::cout << "to square " << SquareFromBitboard(destination)
-          //           << std::endl
-          //           << SquareFromBitboard(opp_pieces) << std::endl;
-          // << std::bitset<64>(opp_pieces) << std::endl;
-
-          if (destination & opp_pieces ||
-              destination & sqs_btwn_king_and_attacker ||
-              (piece == PAWN && destination & board.en_passant_sq_)) {
-            // FIXME: maybe not copying is the fix
-            Board copy = board;
-            Move move(square, destination, board.turn_, piece);
-
-            copy.MakeMove(move);
-
-            if (copy.sqs_attacked_by_[opp] & copy.pieces_[board.turn_][KING]) {
-              continue;
-            }
-
-            // moves.push_back(std::move(move));
-            moves.emplace_back(square, destination, board.turn_, piece);
-          }
-        }
-      }
+    BITLOOP(targets) {
+      moves.emplace_back(LOOP_INDEX + file_shift, LOOP_INDEX, PAWN);
     }
   }
 
-  // A king can only have 8 maximum number of squares per move.
-  Bitboard targets[8];
-  std::size_t size = GenerateKingMoves(board, king_sq, targets);
+  {
+    Bitboard capture_mask = enemy_pieces_bb & check_mask;
+    Bitboard pinned_pawns = attackable_pawns & pin_diag_mask;
+    Bitboard free_pawns = attackable_pawns & ~pin_diag_mask;
 
-  for (std::size_t i = 0; i < size; i++) {
-    // INFO: Instead of creating a copy of the board maybe an attack & defend
-    // map can be used?!
-    Board copy = board;
-    Bitboard destination = targets[i];
-    Move move(king_sq, destination, board.turn_, KING);
+    Bitboard free_pawns_wts = pawn_west_targets(free_pawns) & capture_mask;
+    Bitboard pinned_pawns_wts =
+        pawn_west_targets(pinned_pawns) & capture_mask & pin_diag_mask;
+    Bitboard west_targets = free_pawns_wts | pinned_pawns_wts;
 
-    copy.MakeMove(move);
+    BITLOOP(west_targets) {
+      Piece piece;
+      int from = LOOP_INDEX + west_shift;
+      Move move(from, LOOP_INDEX, PAWN);
 
-    if (destination & copy.sqs_attacked_by_[opp]) {
-      continue;
+      PieceAt(&piece, enemy_pieces, LOOP_INDEX);
+
+      move.captured = piece;
+      move.Set(CAPTURE);
+
+      moves.push_back(std::move(move));
     }
 
-    // moves.push_back(std::move(move));
-    moves.emplace_back(king_sq, destination, board.turn_, KING);
+    Bitboard free_pawns_ets = pawn_east_targets(free_pawns) & capture_mask;
+    Bitboard pinned_pawns_ets =
+        pawn_east_targets(pinned_pawns) & capture_mask & pin_diag_mask;
+    Bitboard east_targets = free_pawns_ets | pinned_pawns_ets;
+
+    BITLOOP(east_targets) {
+      Piece piece;
+      int from = LOOP_INDEX + east_shift;
+      Move move(from, LOOP_INDEX, PAWN);
+
+      PieceAt(&piece, enemy_pieces, LOOP_INDEX);
+
+      move.captured = piece;
+      move.Set(CAPTURE);
+
+      moves.push_back(std::move(move));
+    }
+  }
+
+  {
+    Bitboard ep_target = position.EnPassantTarget();
+    Bitboard west_targets = pawn_west_targets(attackable_pawns) &
+                            position.en_passant_sq_ & check_mask;
+
+    BITLOOP(west_targets) {
+      int from = LOOP_INDEX + west_shift;
+
+      Move move(from, LOOP_INDEX, PAWN);
+
+      move.ep_target = ep_target;
+      move.Set(EN_PASSANT);
+
+      moves.push_back(std::move(move));
+    }
+
+    Bitboard east_targets = pawn_east_targets(attackable_pawns) &
+                            position.en_passant_sq_ & check_mask;
+
+    BITLOOP(east_targets) {
+      int from = LOOP_INDEX + east_shift;
+
+      Move move(from, LOOP_INDEX, PAWN);
+
+      move.ep_target = ep_target;
+      move.Set(EN_PASSANT);
+
+      moves.push_back(std::move(move));
+    }
+  }
+
+  // Bitboard push_promotion_targets =
+  //     single_push_targets(promotable_pawns) & empty_sqs & check_mask;
+  //
+  // BITLOOP(push_promotion_targets) {
+  //   int from = LOOP_INDEX + file_shift;
+  //
+  //   for (Piece piece : {QUEEN, ROOK, BISHOP, KNIGHT}) {
+  //     Move move(from, LOOP_INDEX, PAWN);
+  //
+  //     move.Set(PROMOTION);
+  //     move.promoted = piece;
+  //
+  //     moves.push_back(std::move(move));
+  //   }
+  // }
+  //
+  // Bitboard east_promotion_targets =
+  //     pawn_east_targets(promotable_pawns) & enemy_pieces_bb;
+  //
+  // BITLOOP(east_promotion_targets) {
+  //   Piece enemy_piece;
+  //   Bitboard from = LOOP_INDEX + east_shift;
+  //   Move move(from, LOOP_INDEX, PAWN);
+  //
+  //   PieceAt(&enemy_piece, enemy_pieces, LOOP_INDEX);
+  //
+  //   for (Piece piece : {QUEEN, ROOK, BISHOP, KNIGHT}) {
+  //     Move move(from, LOOP_INDEX, PAWN);
+  //
+  //     move.Set(CAPTURE);
+  //     move.Set(PROMOTION);
+  //
+  //     move.promoted = piece;
+  //     move.captured = enemy_piece;
+  //
+  //     moves.push_back(std::move(move));
+  //   }
+  // }
+  //
+  // Bitboard west_promotion_targets =
+  //     pawn_west_targets(promotable_pawns) & enemy_pieces_bb;
+  //
+  // BITLOOP(west_promotion_targets) {
+  //   Piece enemy_piece;
+  //   Bitboard from = LOOP_INDEX + west_shift;
+  //   Move move(from, LOOP_INDEX, PAWN);
+  //
+  //   PieceAt(&enemy_piece, enemy_pieces, LOOP_INDEX);
+  //
+  //   for (Piece piece : {QUEEN, ROOK, BISHOP, KNIGHT}) {
+  //     Move move(from, LOOP_INDEX, PAWN);
+  //
+  //     move.Set(CAPTURE);
+  //     move.Set(PROMOTION);
+  //
+  //     move.promoted = piece;
+  //     move.captured = enemy_piece;
+  //
+  //     moves.push_back(std::move(move));
+  //   }
+  // }
+
+  // 3. remaining legal moves
+  Bitboard knights = own_pieces[KNIGHT] & ~pin_mask;
+
+  BITLOOP(knights) {
+    Bitboard targets = kAttackMaps[KNIGHT][LOOP_INDEX] & movable_sqs;
+
+    AddMovesToList(moves, LOOP_INDEX, targets, KNIGHT, enemy_pieces,
+                   enemy_pieces_bb);
+  }
+
+  Bitboard queens = own_pieces[QUEEN];
+  Bitboard bishops = own_pieces[BISHOP] & ~pin_hv_mask;
+  Bitboard free_bishops = bishops & ~pin_diag_mask;
+  Bitboard pinned_bishops = (bishops | queens) & pin_diag_mask;
+
+  BITLOOP(pinned_bishops) {
+    Bitboard bb = BITBOARD_FOR_SQUARE(LOOP_INDEX);
+    Bitboard targets = kSlidingAttacks.Bishop(occupied_sqs, LOOP_INDEX) &
+                       movable_sqs & pin_diag_mask;
+
+    targets &= ~own_pieces_bb;
+
+    Piece t = bb & queens ? QUEEN : BISHOP;
+
+    AddMovesToList(moves, LOOP_INDEX, targets, t, enemy_pieces,
+                   enemy_pieces_bb);
+  }
+
+  BITLOOP(free_bishops) {
+    Bitboard targets =
+        kSlidingAttacks.Bishop(occupied_sqs, LOOP_INDEX) & movable_sqs;
+
+    targets &= ~own_pieces_bb;
+
+    AddMovesToList(moves, LOOP_INDEX, targets, BISHOP, enemy_pieces,
+                   enemy_pieces_bb);
+  }
+
+  Bitboard rooks = own_pieces[ROOK] & ~pin_diag_mask;
+  Bitboard free_rooks = rooks & ~pin_hv_mask;
+  Bitboard pinned_rooks = (rooks | queens) & pin_hv_mask;
+
+  BITLOOP(pinned_rooks) {
+    Bitboard bb = BITBOARD_FOR_SQUARE(LOOP_INDEX);
+    Bitboard targets = kSlidingAttacks.Rook(occupied_sqs, LOOP_INDEX) &
+                       movable_sqs & pin_hv_mask;
+
+    targets &= ~own_pieces_bb;
+
+    Piece t = bb & queens ? QUEEN : ROOK;
+
+    AddMovesToList(moves, LOOP_INDEX, targets, t, enemy_pieces,
+                   enemy_pieces_bb);
+  }
+
+  BITLOOP(free_rooks) {
+    Bitboard targets =
+        kSlidingAttacks.Rook(occupied_sqs, LOOP_INDEX) & movable_sqs;
+
+    targets &= ~own_pieces_bb;
+
+    AddMovesToList(moves, LOOP_INDEX, targets, ROOK, enemy_pieces,
+                   enemy_pieces_bb);
+  }
+
+  Bitboard mqueens = own_pieces[QUEEN] & ~pin_mask;
+
+  BITLOOP(mqueens) {
+    Bitboard targets =
+        kSlidingAttacks.Queen(occupied_sqs, LOOP_INDEX) & movable_sqs;
+
+    targets &= ~own_pieces_bb;
+
+    AddMovesToList(moves, LOOP_INDEX, targets, QUEEN, enemy_pieces,
+                   enemy_pieces_bb);
   }
 
   return moves;
 }
 
-std::vector<Move> GenerateMoves(Board &board) {
-  if (board.sqs_attacked_by_[board.turn_ ^ 1] &
-      board.pieces_[board.turn_][KING]) {
-    return GenerateOutOfCheckMoves(board);
+void AddMovesToList(std::vector<Move> &moves, int from, Bitboard targets,
+                    Piece piece, Bitboard *enemy_pieces, Bitboard enemy_bb) {
+  BITLOOP(targets) {
+    Piece captured;
+    Move move(from, LOOP_INDEX, piece);
+    Bitboard bb = BITBOARD_FOR_SQUARE(LOOP_INDEX);
+
+    if (bb & enemy_bb && PieceAt(&captured, enemy_pieces, LOOP_INDEX)) {
+      move.Set(CAPTURE);
+      move.captured = captured;
+    }
+
+    moves.push_back(std::move(move));
   }
-
-  std::vector<Move> moves;
-
-  for (int i = 0; i < 6; i++) {
-    std::vector<Move> result = GenerateMoves(board, static_cast<Piece>(i));
-
-    moves.insert(moves.end(), std::make_move_iterator(result.begin()),
-                 std::make_move_iterator(result.end()));
-  }
-
-  return moves;
 }
 
-std::vector<Move> GenerateMoves(Board &board, Piece piece) {
-  Color opp = static_cast<Color>(board.turn_ ^ 1);
+Bitboard CheckMask(Position &position) {
+  Bitboard mask = kUniverse;
+  Color opp = OPP(position.turn_);
+  Bitboard occupied_sqs = position.OccupiedSquares();
+  Bitboard *opp_pieces = position.Pieces(opp);
+  Bitboard *own_pieces = position.Pieces(position.turn_);
+  Bitboard king_bb = own_pieces[KING];
 
-  if (board.sqs_attacked_by_[opp] & board.pieces_[board.turn_][KING]) {
-    return GenerateOutOfCheckMoves(board);
+  auto [pawn_east_targets, pawn_west_targets, inverse_east_targets,
+        inverse_west_targets] =
+      position.turn_ == BLACK
+          ? std::make_tuple(PawnTargets<WHITE, EAST>, PawnTargets<WHITE, WEST>,
+                            PawnTargets<BLACK, WEST>, PawnTargets<BLACK, EAST>)
+          : std::make_tuple(PawnTargets<BLACK, EAST>, PawnTargets<BLACK, WEST>,
+                            PawnTargets<WHITE, WEST>, PawnTargets<WHITE, EAST>);
+
+  if (pawn_east_targets(opp_pieces[PAWN]) & king_bb) {
+    mask = inverse_east_targets(king_bb);
+  } else if (pawn_west_targets(opp_pieces[PAWN]) & king_bb) {
+    mask = inverse_west_targets(king_bb);
   }
 
-  std::vector<Move> moves;
-  Bitboard bb = board.pieces_[board.turn_][piece];
+  int king_square = BIT_INDEX(king_bb);
 
-  Bitboard targets[MAX_PIECE_MOVES];
-  Bitboard squares[MAX_PIECE_NUMBER];
+  Bitboard knight = kAttackMaps[KNIGHT][king_square] & opp_pieces[KNIGHT];
 
-  std::size_t size = Split(bb, squares);
+  if (knight) {
+    mask = knight;
+  }
 
-  for (std::size_t i = 0; i < size; i++) {
-    Bitboard square = squares[i];
-    std::size_t size = GenerateMoves(board, piece, square, targets);
+  Bitboard enemy_bishop_queen = opp_pieces[BISHOP] | opp_pieces[QUEEN];
 
-    for (std::size_t j = 0; j < size; j++) {
-      // INFO: Maybe not copying the board is possible
-      Board copy = board;
-      Move move(squares[i], targets[j], board.turn_, piece);
+  if (kAttackMaps[BISHOP][king_square] & enemy_bishop_queen) {
+    Bitboard pieces =
+        kSlidingAttacks.Bishop(occupied_sqs, king_square) & enemy_bishop_queen;
 
-      copy.MakeMove(move);
+    BITLOOP(pieces) {
+      int bishop = LOOP_INDEX;
+      Bitboard rays_from_attacker = kCheckBetween[BISHOP][king_square][bishop];
 
-      if (copy.sqs_attacked_by_[opp] & copy.pieces_[board.turn_][KING]) {
-        continue;
-      }
-
-      // moves.push_back(std::move(move));
-      moves.emplace_back(squares[i], targets[j], board.turn_, piece);
+      mask = rays_from_attacker | BITBOARD_FOR_SQUARE(bishop);
     }
   }
 
-  return moves;
-}
+  Bitboard enemy_rook_queen = opp_pieces[ROOK] | opp_pieces[QUEEN];
 
-std::size_t GenerateMoves(Board &board, Piece piece, Bitboard square,
-                          Bitboard *const out) {
-  std::size_t size = 0;
+  if (kAttackMaps[ROOK][king_square] & enemy_rook_queen) {
+    Bitboard pieces =
+        kSlidingAttacks.Rook(occupied_sqs, king_square) & enemy_rook_queen;
 
-  switch (piece) {
-  case PAWN:
-    size = GeneratePawnMoves(board, square, out);
-    break;
+    BITLOOP(pieces) {
+      int rook = LOOP_INDEX;
+      Bitboard rays_from_attacker = kCheckBetween[ROOK][king_square][rook];
 
-  case KNIGHT:
-    size = GenerateKnightMoves(board, square, out);
-    break;
-
-  case KING:
-    size = GenerateKingMoves(board, square, out);
-    break;
-
-  case BISHOP:
-  case ROOK:
-  case QUEEN:
-    size = GenerateSlidingPieceMoves(board, piece, square, out);
-    break;
+      mask = rays_from_attacker | BITBOARD_FOR_SQUARE(rook);
+    }
   }
 
-  return size;
+  return mask;
 }
 
-Bitboard SquaresInBetween(Bitboard from, Bitboard to) {
-  static Bitboard const M = -1;
-  Bitboard btwn, line, rank, file;
+std::tuple<Bitboard, Bitboard> PinMask(Position &position) {
+  Color opp = OPP(position.turn_);
+  Bitboard *own_pieces = position.Pieces(position.turn_);
+  Bitboard *opp_pieces = position.Pieces(opp);
+  Bitboard occupied_sqs = position.OccupiedSquares();
+  Bitboard king_bb = own_pieces[KING];
+  Bitboard own_pieces_bb = BOARD_OCCUPANCY(own_pieces);
 
-  int toSq = SquareFromBitboard(to);
-  int fromSq = SquareFromBitboard(from);
+  Bitboard hv_mask = kEmpty;
+  Bitboard diag_mask = kEmpty;
 
-  btwn = (M << fromSq) ^ (M << toSq);
-  file = (toSq & 7) - (fromSq & 7);
-  rank = ((toSq | 7) - fromSq) >> 3;
-  line = ((file & 7) - 1) & kA2A7;
+  Bitboard enemy_rook_queen = opp_pieces[ROOK] | opp_pieces[QUEEN];
+  Bitboard enemy_bishop_queen = opp_pieces[BISHOP] | opp_pieces[QUEEN];
 
-  line += 2 * (((rank & 7) - 1) >> 58);
-  line += (((rank - file) & 15) - 1) & kB2G7;
-  line += (((rank + file) & 15) - 1) & kH1B7;
-  line *= btwn & -btwn;
+  int king_square = BIT_INDEX(king_bb);
 
-  return line & btwn;
-}
+  if (kAttackMaps[ROOK][king_square] & enemy_rook_queen) {
+    Bitboard attacks_from_king =
+        kSlidingAttacks.Rook(occupied_sqs, king_square);
+    Bitboard xray_attacks_from_king = RookXRayAttacks(
+        attacks_from_king, occupied_sqs, own_pieces_bb, king_square);
 
-std::size_t GeneratePawnMoves(Board &board, Bitboard square,
-                              Bitboard *const out) {
-  Bitboard targets;
-  Bitboard single_push;
-  Bitboard empty_sqs = ~board.occupied_sqs_;
-  Bitboard attacked_sqs = board.sqs_occupied_by_[board.turn_ ^ 1];
+    Bitboard pieces = xray_attacks_from_king & enemy_rook_queen;
 
-  if (board.turn_ == WHITE) {
-    single_push = MOVE_NORTH(square) & empty_sqs;
+    BITLOOP(pieces) {
+      int rook = LOOP_INDEX;
+      Bitboard rays_from_attacker = kCheckBetween[ROOK][king_square][rook];
 
-    targets = single_push | (MOVE_NORTH(single_push) & empty_sqs & kRank4) |
-              (MOVE_NORTH_EAST(square) & attacked_sqs) |
-              (MOVE_NORTH_WEST(square) & attacked_sqs) |
-              (MOVE_NORTH_EAST(square) & board.en_passant_sq_) |
-              (MOVE_NORTH_WEST(square) & board.en_passant_sq_);
-  } else {
-    single_push = MOVE_SOUTH(square) & empty_sqs;
-
-    targets = single_push | (MOVE_SOUTH(single_push) & empty_sqs & kRank5) |
-              (MOVE_SOUTH_EAST(square) & attacked_sqs) |
-              (MOVE_SOUTH_WEST(square) & attacked_sqs) |
-              (MOVE_SOUTH_EAST(square) & board.en_passant_sq_) |
-              (MOVE_SOUTH_WEST(square) & board.en_passant_sq_);
+      hv_mask |= rays_from_attacker | BITBOARD_FOR_SQUARE(rook);
+    }
   }
 
-  return Split(targets, out);
-}
+  if (kAttackMaps[BISHOP][king_square] & enemy_bishop_queen) {
+    Bitboard attacks_from_king =
+        kSlidingAttacks.Bishop(occupied_sqs, king_square);
+    Bitboard xray_attacks_from_king = BishopXRayAttacks(
+        attacks_from_king, occupied_sqs, own_pieces_bb, king_square);
 
-std::size_t GenerateKnightMoves(Board &board, Bitboard square,
-                                Bitboard *const out) {
-  Bitboard targets = KNIGHT_ATTACKS(square);
-  Bitboard occupied_sqs = board.sqs_occupied_by_[board.turn_];
+    Bitboard pieces = xray_attacks_from_king & enemy_bishop_queen;
 
-  return Split((targets ^ occupied_sqs) & targets, out);
-}
+    BITLOOP(pieces) {
+      int bishop = LOOP_INDEX;
+      Bitboard rays_from_attacker = kCheckBetween[BISHOP][king_square][bishop];
 
-std::size_t GenerateSlidingPieceMoves(Board &board, Piece piece,
-                                      Bitboard square, Bitboard *const out) {
-  Bitboard targets;
-  Bitboard occupied_sqs = board.sqs_occupied_by_[board.turn_];
-
-  switch (piece) {
-  case BISHOP:
-    targets = BISHOP_ATTACKS(square, ~board.occupied_sqs_);
-    break;
-
-  case QUEEN:
-    targets = QUEEN_ATTACKS(square, ~board.occupied_sqs_);
-    break;
-
-  case ROOK:
-    targets = ROOK_ATTACKS(square, ~board.occupied_sqs_);
-    break;
-
-  default:
-    return 0;
+      diag_mask |= rays_from_attacker | BITBOARD_FOR_SQUARE(bishop);
+    }
   }
 
-  // 1. cancel out all occupied squares
-  // 2. and filter only squares in targets
-  return Split((targets ^ occupied_sqs) & targets, out);
-}
-
-std::size_t GenerateKingMoves(Board &board, Bitboard square,
-                              Bitboard *const out) {
-  Bitboard targets = KING_ATTACKS(square);
-  Bitboard occupied_sqs = board.sqs_occupied_by_[board.turn_];
-  Bitboard sqs_attacked_by_opp = board.sqs_attacked_by_[board.turn_ ^ 1];
-
-  targets &= (targets ^ occupied_sqs);
-
-  return Split(targets & ~sqs_attacked_by_opp, out);
-}
-
-Bitboard RankMask(int square) { return kRank1 << (square & 56); }
-
-Bitboard FileMask(int square) { return kAFile << (square & 7); }
-
-Bitboard DiagonalMask(int square) {
-  int diagonal = (square & 7) - (square >> 3);
-
-  return diagonal >= 0 ? kA1H8Diagonal >> diagonal * 8
-                       : kA1H8Diagonal << -diagonal * 8;
-}
-
-Bitboard AntiDiagonalMask(int square) {
-  int diagonal = 7 - (square & 7) - (square >> 3);
-
-  return diagonal >= 0 ? kH1A8Diagonal >> diagonal * 8
-                       : kH1A8Diagonal << -diagonal * 8;
+  return {hv_mask, diag_mask};
 }

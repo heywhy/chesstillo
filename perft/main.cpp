@@ -1,15 +1,20 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
+#include <cstring>
+#include <functional>
 #include <iostream>
-#include <map>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <chesstillo/board.hpp>
+#include <chesstillo/constants.hpp>
 #include <chesstillo/fen.hpp>
 #include <chesstillo/move_gen.hpp>
+#include <chesstillo/position.hpp>
 #include <chesstillo/types.hpp>
+#include <chesstillo/utility.hpp>
 
 struct Stat {
   std::size_t nodes = 0;
@@ -20,9 +25,10 @@ struct Stat {
   std::size_t discovery_checks = 0;
   std::size_t double_checks = 0;
   std::size_t promotions = 0;
-  std::map<std::string, int> map{};
+  std::size_t castles = 0;
+  std::unordered_map<std::string, int> map{};
 
-  void operator+=(Stat &stat) {
+  Stat &operator+=(const Stat &stat) {
     nodes += stat.nodes;
     checks += stat.checks;
     captures += stat.captures;
@@ -31,54 +37,72 @@ struct Stat {
     discovery_checks += stat.discovery_checks;
     double_checks += stat.double_checks;
     promotions += stat.promotions;
+    castles += stat.castles;
+
+    return *this;
   }
 };
 
-Stat Perft(Board &board, int depth, bool divide) {
+bool ToString(Move const &move, char *buf) {
+  Coord to;
+  Coord from;
+
+  if (!CoordForSquare(&from, move.from) || !CoordForSquare(&to, move.to)) {
+    return false;
+  }
+
+  buf[0] = from.file;
+  buf[1] = 48 + from.rank;
+
+  buf[2] = to.file;
+  buf[3] = 48 + to.rank;
+
+  if (move.Is(PROMOTION)) {
+    char piece;
+    PieceToChar(move.promoted, &piece);
+
+    buf[4] = piece;
+    buf[5] = '\0';
+  } else {
+    buf[4] = '\0';
+  }
+
+  return true;
+}
+
+Stat Perft(Position &position, int depth, bool divide) {
   if (depth == 0) {
     return {static_cast<std::uint64_t>(1)};
   }
 
   Stat stat;
-  std::vector<Move> moves = GenerateMoves(board);
-
-  char s[5];
-  MoveToString(board.GetMoves().front(), s);
-
-  // if (std::strcmp(s, "c5+") == 0) {
-  //   for (Move &a : moves) {
-  //     MoveToString(a, s);
-  //     std::cout << a.piece << std::endl;
-  //     std::cout << s << std::endl;
-  //   }
-  //
-  //   std::cout << "caught me =" << moves.size() << std::endl;
-  //   std::cout << "caught me =" << board.GetTurn() << std::endl;
-  // }
+  std::vector<Move> moves = GenerateMoves(position);
 
   for (Move &move : moves) {
-    board.ApplyMove(move);
+    position.Make(move);
 
-    Stat result = Perft(board, depth - 1, false);
+    Stat result = Perft(position, depth - 1, false);
 
     stat += result;
 
+    position.Undo(move);
+
     if (depth - 1 == 0) {
+      stat.checks += CheckMask(position) != kUniverse;
       stat.checks += move.Is(CHECK);
-      stat.captures += move.Is(CAPTURE);
-      stat.checkmates += move.Is(CHECKMATE);
+      stat.captures += move.Is(CAPTURE) + move.Is(EN_PASSANT);
       stat.en_passants += move.Is(EN_PASSANT);
+      stat.checkmates += move.Is(CHECKMATE);
       stat.discovery_checks += move.Is(DISCOVERY);
       stat.double_checks += move.Is(DOUBLE);
       stat.promotions += move.Is(PROMOTION);
+      stat.castles += move.Is(CASTLE);
     }
 
-    board.UndoMove(move);
-
     if (divide) {
-      char s[5];
+      char s[6];
 
-      if (MoveToString(move, s)) {
+      if (ToString(move, s)) {
         stat.map.insert({s, result.nodes});
       }
     }
@@ -87,18 +111,52 @@ Stat Perft(Board &board, int depth, bool divide) {
   return stat;
 }
 
-void Run(Board &board, int depth, bool divide) {
-  Stat stat = Perft(board, depth, divide);
+Stat BulkPerft(Position &position, int depth, bool divide) {
+  Stat stat;
+  std::vector<Move> moves = GenerateMoves(position);
+
+  if (depth == 1) {
+    stat.nodes = moves.size();
+    return stat;
+  }
+
+  for (Move &move : moves) {
+    position.Make(move);
+
+    Stat result = BulkPerft(position, depth - 1, false);
+
+    stat += result;
+
+    position.Undo(move);
+
+    if (divide) {
+      char s[6];
+
+      if (ToString(move, s)) {
+        stat.map.insert({s, result.nodes});
+      }
+    }
+  }
+
+  return stat;
+}
+
+typedef std::function<Stat(Position &, int, bool)> PerftFun;
+
+void Run(Position &position, PerftFun perft, int depth, bool divide) {
+  Stat stat = perft(position, depth, divide);
 
   for (auto [k, v] : stat.map) {
-    std::cout << k << " " << v << std::endl;
+    std::cout << k << ": " << v << std::endl;
   }
 
   std::printf(
-      "stats for depth %d is nodes=%lu, captures=%lu, e.p=%lu, promotions=%lu, "
-      "checks=%lu, discovery checks=%lu, double checks=%lu, checkmates=%lu\n",
-      depth, stat.nodes, stat.captures, stat.en_passants, stat.promotions,
-      stat.checks, stat.discovery_checks, stat.double_checks, stat.checkmates);
+      "stats for depth %d is nodes=%lu, captures=%lu, e.p=%lu, castles=%lu, "
+      "promotions=%lu, checks=%lu, discovery checks=%lu, double checks=%lu, "
+      "checkmates=%lu\n",
+      depth, stat.nodes, stat.captures, stat.en_passants, stat.castles,
+      stat.promotions, stat.checks, stat.discovery_checks, stat.double_checks,
+      stat.checkmates);
 
   if (divide) {
     std::cout << std::endl;
@@ -110,9 +168,29 @@ int main() {
   std::printf("starting perf tests\n");
   std::printf("============================================\n");
 
-  for (int i = 0; i < 6; i++) {
-    Run(i, false);
+  Position position;
+  PerftFun perft = BulkPerft;
+
+  ApplyFen(position, START_FEN);
+  ApplyFen(position,
+           "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq - 0 1");
+  // ApplyFen(board, "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1
+  // 8"); ApplyFen(board, "8/2p5/3p4/KP5r/5R1k/8/4P1P1/8 b - - 0 1");
+  // ApplyFen(board, "8/8/3k4/8/1K6/6Q1/8/8 b - - 0 1"); ApplyFen(board,
+  //          "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -
+  //          ");
+  // ApplyFen(board, "8/2p5/3p4/KP5r/1R2P2k/5p2/6P1/8 w - - 0 1");
+
+  for (int i = 0; i < 7; i++) {
+    // Run(board, perft, i, true);
   }
+
+  perft = Perft;
+  Run(position, perft, 3 - 0, true);
+  // Run(board, 6 - 2, true);
+
+  // e4 g4 Rb1 Rb2 Rb3
+  // e4 f3, Ka6
 
   return 0;
 }
