@@ -25,6 +25,10 @@ inline constexpr Bitboard kDarkSquares = 0xAA55AA55AA55AA55;
 inline constexpr Bitboard kA2A7 = 0x0001010101010100;
 inline constexpr Bitboard kB2G7 = 0x0040201008040200;
 inline constexpr Bitboard kH1B7 = 0x0002040810204080;
+inline constexpr Bitboard kKingSide = 0xF0F0F0F0F0F0F0F0;
+inline constexpr Bitboard kQueenSide = 0x0F0F0F0F0F0F0F0F;
+inline constexpr Bitboard kCastleKingSidePath = 0x6000000000000060;
+inline constexpr Bitboard kCastleQueenSidePath = 0x0C0000000000000C;
 
 typedef std::array<std::array<Bitboard, 64>, 4> AttackMaps;
 typedef std::array<std::array<std::array<Bitboard, 64>, 64>, 2> CheckBetween;

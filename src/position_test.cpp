@@ -1,5 +1,6 @@
 #include <array>
 
+#include <chesstillo/board.hpp>
 #include <chesstillo/fen.hpp>
 #include <chesstillo/position.hpp>
 #include <chesstillo/types.hpp>
@@ -120,4 +121,42 @@ TEST_F(PositionTestSuite, EnPassantCapture) {
 
   ASSERT_EQ(PositionToFen(position),
             "rnbqkbnr/pppp1ppp/8/8/2PpP3/8/PP3PPP/RNBQKBNR b KQkq c3 0 1");
+
+  position.Undo(white);
+
+  ApplyFen(position,
+           "rnbqkbnr/pppp1ppp/8/8/3pP3/8/PPP2PPP/RNBQKBNR w KQkq - 0 1");
+}
+
+TEST_F(PositionTestSuite, UpdateCastlingRights) {
+  ApplyFen(position,
+           "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -");
+
+  Move castle_right = DeduceMove(position, e1, g1);
+
+  position.Make(castle_right);
+
+  ASSERT_EQ(
+      PositionToFen(position),
+      "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R4RK1 b kq - 1 1");
+
+  position.Undo(castle_right);
+
+  ASSERT_EQ(
+      PositionToFen(position),
+      "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
+
+  Move castle_left = DeduceMove(position, e1, c1);
+
+  position.Make(castle_left);
+
+  ASSERT_EQ(
+      PositionToFen(position),
+      "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/2KR3R b kq - 1 1");
+
+  position.Undo(castle_left);
+
+  ASSERT_EQ(
+      PositionToFen(position),
+      "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
 }

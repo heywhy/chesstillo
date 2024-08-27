@@ -13,8 +13,6 @@
   (pieces[KING] | pieces[QUEEN] | pieces[BISHOP] | pieces[KNIGHT] |            \
    pieces[ROOK] | pieces[PAWN])
 
-enum Castling { K_WHITE, Q_WHITE, K_BLACK, Q_BLACK };
-
 struct Coord {
   char file;
   int rank;

@@ -4,20 +4,33 @@
 #include <cctype>
 #include <cstdint>
 
-#define CHECK 0
-#define CAPTURE 1
-#define CHECKMATE 2
-#define PROMOTION 3
-#define EN_PASSANT 4
-#define DISCOVERY 5
-#define DOUBLE 6
-#define CASTLE 7
-
 typedef std::uint64_t Bitboard;
 
-enum Color : unsigned int { WHITE, BLACK };
+enum Color : std::uint8_t { WHITE, BLACK };
+enum CastleDir : std::uint8_t { LEFT, RIGHT };
+enum Piece : std::uint8_t { ROOK, BISHOP, KNIGHT, KING, QUEEN, PAWN };
+enum Flag : std::uint8_t {
+  CHECK,
+  CAPTURE,
+  EN_PASSANT,
+  CASTLE_RIGHT,
+  CASTLE_LEFT,
+  CHECKMATE,
+  PROMOTION,
+  // DISCOVERY,
+  // DOUBLE
+};
 
-enum Piece : unsigned int { ROOK, BISHOP, KNIGHT, KING, QUEEN, PAWN };
+#define CASTLE_LEFT(color)                                                     \
+  (static_cast<std::uint8_t>(1)                                                \
+   << (color == WHITE ? LEFT + color : LEFT + color + 1))
+#define CASTLE_RIGHT(color)                                                    \
+  (static_cast<std::uint8_t>(1)                                                \
+   << (color == WHITE ? RIGHT + color : RIGHT + color + 1))
+#define CASTLE_LEFT_WHITE (LEFT + WHITE)
+#define CASTLE_LEFT_BLACK (LEFT + BLACK + 1)
+#define CASTLE_RIGHT_WHITE (RIGHT + WHITE)
+#define CASTLE_RIGHT_BLACK (RIGHT + BLACK + 1)
 
 // clang-format off
 enum ESquare : unsigned int {

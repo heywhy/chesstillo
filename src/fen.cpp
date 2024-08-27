@@ -1,4 +1,3 @@
-#include <cstdint>
 #include <string>
 
 #include <chesstillo/board.hpp>
@@ -43,13 +42,13 @@ void ApplyFen(Position &position, const char *fen) {
     case 'q':
       piece = &black_pieces[QUEEN];
       if (spaces == 2)
-        position.castling_rights_ |= static_cast<std::uint8_t>(1) << Q_BLACK;
+        position.castling_rights_ |= CASTLE_LEFT(BLACK);
       break;
 
     case 'k':
       piece = &black_pieces[KING];
       if (spaces == 2)
-        position.castling_rights_ |= static_cast<std::uint8_t>(1) << K_BLACK;
+        position.castling_rights_ |= CASTLE_RIGHT(BLACK);
       break;
 
     case 'p':
@@ -71,14 +70,14 @@ void ApplyFen(Position &position, const char *fen) {
     case 'Q':
       piece = &white_pieces[QUEEN];
       if (spaces == 2)
-        position.castling_rights_ |= static_cast<std::uint8_t>(1) << Q_WHITE;
+        position.castling_rights_ |= CASTLE_LEFT(WHITE);
       break;
 
     case 'K':
       piece = &white_pieces[KING];
 
       if (spaces == 2)
-        position.castling_rights_ |= static_cast<std::uint8_t>(1) << K_WHITE;
+        position.castling_rights_ |= CASTLE_RIGHT(WHITE);
       break;
 
     case 'P':
@@ -195,16 +194,16 @@ std::string PositionToFen(Position &position) {
     fen += {' ', 'b', ' '};
   }
 
-  if (position.CanCastle(K_WHITE)) {
+  if (position.CanCastle(CASTLE_RIGHT_WHITE)) {
     fen += 'K';
   }
-  if (position.CanCastle(Q_WHITE)) {
+  if (position.CanCastle(CASTLE_LEFT_WHITE)) {
     fen += 'Q';
   }
-  if (position.CanCastle(K_BLACK)) {
+  if (position.CanCastle(CASTLE_RIGHT_BLACK)) {
     fen += 'k';
   }
-  if (position.CanCastle(Q_BLACK)) {
+  if (position.CanCastle(CASTLE_LEFT_BLACK)) {
     fen += 'q';
   }
 

@@ -1,6 +1,6 @@
-#include <bit>
 #include <cstdarg>
 #include <cstddef>
+#include <cstdint>
 #include <tuple>
 #include <utility>
 #include <vector>
@@ -57,24 +57,6 @@ bool PieceAt(Piece *piece, Bitboard *pieces, unsigned int square) {
   return false;
 }
 
-Bitboard GetCheckers(Bitboard *pieces, Bitboard check_mask) {
-  if (check_mask == kUniverse) {
-    return kEmpty;
-  }
-
-  // need to find the LSB & MSB of the check mask since the function does not
-  // know or need attack direction
-  Bitboard lsb = BITBOARD_FOR_SQUARE(BIT_INDEX(check_mask));
-  Bitboard msb = BITBOARD_FOR_SQUARE(BIT_INDEX_MSB(check_mask));
-
-  Bitboard boundary = lsb | msb;
-  Bitboard rook_queen = pieces[ROOK] | pieces[QUEEN];
-  Bitboard bishop_queen = pieces[BISHOP] | pieces[QUEEN];
-
-  return (pieces[KNIGHT] & boundary) | (bishop_queen & boundary) |
-         (rook_queen & boundary) | (pieces[PAWN] & boundary);
-}
-
 std::vector<Move> GenerateMoves(Position &position) {
   std::vector<Move> moves;
 
@@ -117,13 +99,11 @@ std::vector<Move> GenerateMoves(Position &position) {
 
   BITLOOP(quiet_moves) { moves.emplace_back(king_sq, LOOP_INDEX, KING); }
 
-  Bitboard attackers = GetCheckers(enemy_pieces, check_mask);
-
-  if (std::popcount(attackers) > 1) [[unlikely]] {
+  if (check_mask == kEmpty) {
     return moves;
   }
 
-  // 2. pawn pushes, pawn captures, en passant, pawn promotions
+  // 2. pawn pushes, pawn captures
   Bitboard side_pawns = own_pieces[PAWN];
   Bitboard pushable_pawns = side_pawns & ~pin_diag_mask;
   Bitboard attackable_pawns = side_pawns & ~pin_hv_mask;
@@ -215,103 +195,6 @@ std::vector<Move> GenerateMoves(Position &position) {
     }
   }
 
-  // 2.3. en passant
-  {
-    Bitboard ep_target = position.EnPassantTarget();
-    Bitboard west_targets = pawn_west_targets(attackable_pawns) &
-                            position.en_passant_sq_ & check_mask;
-
-    BITLOOP(west_targets) {
-      int from = LOOP_INDEX + west_shift;
-
-      Move move(from, LOOP_INDEX, PAWN);
-
-      move.ep_target = ep_target;
-      move.Set(EN_PASSANT);
-
-      moves.push_back(std::move(move));
-    }
-
-    Bitboard east_targets = pawn_east_targets(attackable_pawns) &
-                            position.en_passant_sq_ & check_mask;
-
-    BITLOOP(east_targets) {
-      int from = LOOP_INDEX + east_shift;
-
-      Move move(from, LOOP_INDEX, PAWN);
-
-      move.ep_target = ep_target;
-      move.Set(EN_PASSANT);
-
-      moves.push_back(std::move(move));
-    }
-  }
-
-  // 2.4. pawn promotions
-  // Bitboard promotable_pawns = movable_pawns & pre_promotion_rank;
-  // Bitboard non_promotable_pawns = movable_pawns & ~pre_promotion_rank;
-  // Bitboard push_promotion_targets =
-  //     single_push_targets(promotable_pawns) & empty_sqs & check_mask;
-  //
-  // BITLOOP(push_promotion_targets) {
-  //   int from = LOOP_INDEX + file_shift;
-  //
-  //   for (Piece piece : {QUEEN, ROOK, BISHOP, KNIGHT}) {
-  //     Move move(from, LOOP_INDEX, PAWN);
-  //
-  //     move.Set(PROMOTION);
-  //     move.promoted = piece;
-  //
-  //     moves.push_back(std::move(move));
-  //   }
-  // }
-  //
-  // Bitboard east_promotion_targets =
-  //     pawn_east_targets(promotable_pawns) & enemy_pieces_bb;
-  //
-  // BITLOOP(east_promotion_targets) {
-  //   Piece enemy_piece;
-  //   Bitboard from = LOOP_INDEX + east_shift;
-  //   Move move(from, LOOP_INDEX, PAWN);
-  //
-  //   PieceAt(&enemy_piece, enemy_pieces, LOOP_INDEX);
-  //
-  //   for (Piece piece : {QUEEN, ROOK, BISHOP, KNIGHT}) {
-  //     Move move(from, LOOP_INDEX, PAWN);
-  //
-  //     move.Set(CAPTURE);
-  //     move.Set(PROMOTION);
-  //
-  //     move.promoted = piece;
-  //     move.captured = enemy_piece;
-  //
-  //     moves.push_back(std::move(move));
-  //   }
-  // }
-  //
-  // Bitboard west_promotion_targets =
-  //     pawn_west_targets(promotable_pawns) & enemy_pieces_bb;
-  //
-  // BITLOOP(west_promotion_targets) {
-  //   Piece enemy_piece;
-  //   Bitboard from = LOOP_INDEX + west_shift;
-  //   Move move(from, LOOP_INDEX, PAWN);
-  //
-  //   PieceAt(&enemy_piece, enemy_pieces, LOOP_INDEX);
-  //
-  //   for (Piece piece : {QUEEN, ROOK, BISHOP, KNIGHT}) {
-  //     Move move(from, LOOP_INDEX, PAWN);
-  //
-  //     move.Set(CAPTURE);
-  //     move.Set(PROMOTION);
-  //
-  //     move.promoted = piece;
-  //     move.captured = enemy_piece;
-  //
-  //     moves.push_back(std::move(move));
-  //   }
-  // }
-
   // 3. remaining legal moves
   {
     Bitboard knights = own_pieces[KNIGHT] & ~pin_mask;
@@ -398,6 +281,144 @@ std::vector<Move> GenerateMoves(Position &position) {
     }
   }
 
+  // 4 en passant, pawn promotions
+  // 4.1. en passant
+  {
+    Bitboard ep_target = position.EnPassantTarget();
+    Bitboard west_targets = pawn_west_targets(attackable_pawns) &
+                            position.en_passant_sq_ & check_mask;
+
+    BITLOOP(west_targets) {
+      int from = LOOP_INDEX + west_shift;
+
+      Move move(from, LOOP_INDEX, PAWN);
+
+      move.ep_target = ep_target;
+      move.Set(EN_PASSANT);
+
+      moves.push_back(std::move(move));
+    }
+
+    Bitboard east_targets = pawn_east_targets(attackable_pawns) &
+                            position.en_passant_sq_ & check_mask;
+
+    BITLOOP(east_targets) {
+      int from = LOOP_INDEX + east_shift;
+
+      Move move(from, LOOP_INDEX, PAWN);
+
+      move.ep_target = ep_target;
+      move.Set(EN_PASSANT);
+
+      moves.push_back(std::move(move));
+    }
+  }
+
+  // 5. castling
+  {
+    auto [left_rook, right_rook, starting_rank] =
+        position.turn_ == WHITE ? std::make_tuple(a1, h1, kRank1)
+                                : std::make_tuple(a8, h8, kRank8);
+
+    std::uint8_t king_side = CASTLE_RIGHT(position.turn_);
+    std::uint8_t queen_side = CASTLE_LEFT(position.turn_);
+    Bitboard rooks = own_pieces[ROOK];
+    Bitboard king = own_pieces[KING] & starting_rank;
+    Bitboard king_side_rook = rooks & BITBOARD_FOR_SQUARE(right_rook);
+    Bitboard queen_side_rook = rooks & BITBOARD_FOR_SQUARE(left_rook);
+    Bitboard king_side_path = kCastleKingSidePath & starting_rank;
+    Bitboard queen_side_path = kCastleQueenSidePath & starting_rank;
+    Bitboard right_occupied =
+        (occupied_sqs ^ king_side_rook ^ king) & kKingSide & starting_rank;
+    Bitboard left_occupied =
+        (occupied_sqs ^ queen_side_rook) & kQueenSide & starting_rank;
+
+    if (check_mask == kUniverse && position.castling_rights_ & king_side &&
+        king_side_rook && !right_occupied &&
+        !(king_side_path & position.king_ban_)) {
+      Move move(BIT_INDEX(king), BIT_INDEX(king << 2), KING);
+
+      move.Set(CASTLE_RIGHT);
+
+      moves.push_back(std::move(move));
+    }
+
+    if (check_mask == kUniverse && position.castling_rights_ & queen_side &&
+        queen_side_rook && !left_occupied &&
+        !(queen_side_path & position.king_ban_)) {
+      Move move(BIT_INDEX(king), BIT_INDEX(king >> 2), KING);
+
+      move.Set(CASTLE_LEFT);
+
+      moves.push_back(std::move(move));
+    }
+  }
+
+  // 2.4. pawn promotions
+  // Bitboard promotable_pawns = movable_pawns & pre_promotion_rank;
+  // Bitboard non_promotable_pawns = movable_pawns & ~pre_promotion_rank;
+  // Bitboard push_promotion_targets =
+  //     single_push_targets(promotable_pawns) & empty_sqs & check_mask;
+  //
+  // BITLOOP(push_promotion_targets) {
+  //   int from = LOOP_INDEX + file_shift;
+  //
+  //   for (Piece piece : {QUEEN, ROOK, BISHOP, KNIGHT}) {
+  //     Move move(from, LOOP_INDEX, PAWN);
+  //
+  //     move.Set(PROMOTION);
+  //     move.promoted = piece;
+  //
+  //     moves.push_back(std::move(move));
+  //   }
+  // }
+  //
+  // Bitboard east_promotion_targets =
+  //     pawn_east_targets(promotable_pawns) & enemy_pieces_bb;
+  //
+  // BITLOOP(east_promotion_targets) {
+  //   Piece enemy_piece;
+  //   Bitboard from = LOOP_INDEX + east_shift;
+  //   Move move(from, LOOP_INDEX, PAWN);
+  //
+  //   PieceAt(&enemy_piece, enemy_pieces, LOOP_INDEX);
+  //
+  //   for (Piece piece : {QUEEN, ROOK, BISHOP, KNIGHT}) {
+  //     Move move(from, LOOP_INDEX, PAWN);
+  //
+  //     move.Set(CAPTURE);
+  //     move.Set(PROMOTION);
+  //
+  //     move.promoted = piece;
+  //     move.captured = enemy_piece;
+  //
+  //     moves.push_back(std::move(move));
+  //   }
+  // }
+  //
+  // Bitboard west_promotion_targets =
+  //     pawn_west_targets(promotable_pawns) & enemy_pieces_bb;
+  //
+  // BITLOOP(west_promotion_targets) {
+  //   Piece enemy_piece;
+  //   Bitboard from = LOOP_INDEX + west_shift;
+  //   Move move(from, LOOP_INDEX, PAWN);
+  //
+  //   PieceAt(&enemy_piece, enemy_pieces, LOOP_INDEX);
+  //
+  //   for (Piece piece : {QUEEN, ROOK, BISHOP, KNIGHT}) {
+  //     Move move(from, LOOP_INDEX, PAWN);
+  //
+  //     move.Set(CAPTURE);
+  //     move.Set(PROMOTION);
+  //
+  //     move.promoted = piece;
+  //     move.captured = enemy_piece;
+  //
+  //     moves.push_back(std::move(move));
+  //   }
+  // }
+
   return moves;
 }
 
@@ -453,6 +474,10 @@ Bitboard CheckMask(Position &position) {
     Bitboard pieces =
         kSlidingAttacks.Bishop(occupied_sqs, king_square) & enemy_bishop_queen;
 
+    if (mask != kUniverse && pieces) {
+      return kEmpty;
+    }
+
     BITLOOP(pieces) {
       int bishop = LOOP_INDEX;
       Bitboard rays_from_attacker = kCheckBetween[BISHOP][king_square][bishop];
@@ -466,6 +491,10 @@ Bitboard CheckMask(Position &position) {
   if (kAttackMaps[ROOK][king_square] & enemy_rook_queen) {
     Bitboard pieces =
         kSlidingAttacks.Rook(occupied_sqs, king_square) & enemy_rook_queen;
+
+    if (mask != kUniverse && pieces) {
+      return kEmpty;
+    }
 
     BITLOOP(pieces) {
       int rook = LOOP_INDEX;

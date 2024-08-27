@@ -1,3 +1,4 @@
+#include <tuple>
 #include <utility>
 
 #include <chesstillo/board.hpp>
@@ -14,9 +15,13 @@ void Position::Reset() {
   king_ban_ = kEmpty;
   castling_rights_ = 0;
   en_passant_sq_ = kEmpty;
+  history_ = kEmptyStack;
 }
 
 void Position::Make(Move move) {
+  history_.emplace(en_passant_sq_, en_passant_sq_, castling_rights_,
+                   halfmove_clock_);
+
   Color opp = OPP(turn_);
   Bitboard &piece = board_.pieces_[turn_][move.piece];
   Bitboard to = BITBOARD_FOR_SQUARE(move.to);
@@ -28,6 +33,44 @@ void Position::Make(Move move) {
     Bitboard &piece = board_.pieces_[opp][move.captured];
 
     piece ^= to;
+  }
+
+  if (move.piece == KING && move.Is(CASTLE_RIGHT)) [[unlikely]] {
+    int king_square = BIT_INDEX(piece);
+    Bitboard rank = RankMask(king_square);
+    Bitboard &rooks = board_.pieces_[turn_][ROOK];
+    Bitboard rook = rooks & rank & kKingSide;
+
+    rooks ^= rook | (rook >> 2);
+  }
+
+  if (move.piece == KING && move.Is(CASTLE_LEFT)) [[unlikely]] {
+    int king_square = BIT_INDEX(piece);
+    Bitboard rank = RankMask(king_square);
+    Bitboard &rooks = board_.pieces_[turn_][ROOK];
+    Bitboard rook = rooks & rank & kQueenSide;
+
+    rooks ^= rook | (rook << 3);
+  }
+
+  {
+    Bitboard castle_left = CASTLE_LEFT(turn_);
+    Bitboard castle_right = CASTLE_RIGHT(turn_);
+
+    auto [left_rook, right_rook] =
+        turn_ == WHITE ? std::make_tuple(a1, h1) : std::make_tuple(a8, h8);
+
+    if ((move.piece == KING ||
+         (move.piece == ROOK && move.from == left_rook)) &&
+        castling_rights_ & castle_left) [[unlikely]] {
+      castling_rights_ ^= castle_left;
+    }
+
+    if ((move.piece == KING ||
+         (move.piece == ROOK && move.from == right_rook)) &&
+        castling_rights_ & castle_right) [[unlikely]] {
+      castling_rights_ ^= castle_right;
+    }
   }
 
   if (move.Is(EN_PASSANT)) [[unlikely]] {
@@ -46,9 +89,6 @@ void Position::Make(Move move) {
 
   turn_ = opp;
 
-  UpdateInternals();
-  UpdateEnPassantSquare(move);
-
   if (move.piece == PAWN || move.Is(CAPTURE)) {
     halfmove_clock_ = 0;
   } else {
@@ -60,6 +100,9 @@ void Position::Make(Move move) {
   }
 
   moves_.push_front(std::move(move));
+
+  UpdateInternals();
+  UpdateEnPassantSquare(move);
 }
 
 void Position::Undo(Move &move) {
@@ -76,6 +119,24 @@ void Position::Undo(Move &move) {
     pieces[move.captured] |= to;
   }
 
+  if (move.piece == KING && move.Is(CASTLE_RIGHT)) [[unlikely]] {
+    int king_square = BIT_INDEX(piece);
+    Bitboard rank = RankMask(king_square);
+    Bitboard &rooks = board_.pieces_[opp][ROOK];
+    Bitboard rook = rooks & rank & kKingSide;
+
+    rooks ^= rook | (rook << 2);
+  }
+
+  if (move.piece == KING && move.Is(CASTLE_LEFT)) [[unlikely]] {
+    int king_square = BIT_INDEX(piece);
+    Bitboard rank = RankMask(king_square);
+    Bitboard &rooks = board_.pieces_[opp][ROOK];
+    Bitboard rook = rooks & rank & kQueenSide;
+
+    rooks ^= rook | (rook >> 3);
+  }
+
   if (move.Is(EN_PASSANT)) [[unlikely]] {
     Bitboard *pieces = board_.pieces_[turn_];
 
@@ -86,16 +147,18 @@ void Position::Undo(Move &move) {
     fullmove_counter_--;
   }
 
-  if (move.Is(CAPTURE) || move.piece == PAWN) {
-    halfmove_clock_ = 0;
-  }
+  _State state = history_.top();
+
+  halfmove_clock_ = state.halfmove_clock;
+  en_passant_sq_ = state.en_passant_square;
+  castling_rights_ = state.castling_rights;
 
   turn_ = opp;
 
+  history_.pop();
   moves_.pop_front();
 
   UpdateInternals();
-  UpdateEnPassantSquare(moves_.front());
 }
 
 void Position::UpdateInternals() {

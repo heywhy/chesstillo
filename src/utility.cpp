@@ -122,5 +122,13 @@ Move DeduceMove(Position &position, unsigned int from, unsigned int to) {
     move.Set(EN_PASSANT);
   }
 
+  if (piece == KING && (from == e1 || from == e8) && (to == c1 || to == c8)) {
+    move.Set(Flag::CASTLE_LEFT);
+  }
+
+  if (piece == KING && (from == e1 || from == e8) && (to == g1 || to == g8)) {
+    move.Set(Flag::CASTLE_RIGHT);
+  }
+
   return move;
 }

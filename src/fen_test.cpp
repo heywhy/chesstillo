@@ -1,5 +1,6 @@
 #include <chesstillo/fen.hpp>
 #include <chesstillo/position.hpp>
+#include <chesstillo/types.hpp>
 #include <gtest/gtest.h>
 
 TEST(FenTest, ApplyFen) {
@@ -17,10 +18,10 @@ TEST(FenTest, MaintainCastlingRights) {
 
   ApplyFen(position, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w Kq - 0 1");
 
-  ASSERT_TRUE(position.CanCastle(K_WHITE));
-  ASSERT_TRUE(position.CanCastle(Q_BLACK));
-  ASSERT_FALSE(position.CanCastle(Q_WHITE));
-  ASSERT_FALSE(position.CanCastle(K_BLACK));
+  ASSERT_TRUE(position.CanCastle(CASTLE_RIGHT_WHITE));
+  ASSERT_TRUE(position.CanCastle(CASTLE_LEFT_BLACK));
+  ASSERT_FALSE(position.CanCastle(CASTLE_LEFT_WHITE));
+  ASSERT_FALSE(position.CanCastle(CASTLE_RIGHT_BLACK));
 }
 
 TEST(FenTest, MaintainCastlingRightsIfMissing) {
@@ -28,10 +29,10 @@ TEST(FenTest, MaintainCastlingRightsIfMissing) {
 
   ApplyFen(position, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1");
 
-  ASSERT_FALSE(position.CanCastle(K_WHITE));
-  ASSERT_FALSE(position.CanCastle(Q_BLACK));
-  ASSERT_FALSE(position.CanCastle(Q_WHITE));
-  ASSERT_FALSE(position.CanCastle(K_BLACK));
+  ASSERT_FALSE(position.CanCastle(CASTLE_RIGHT_WHITE));
+  ASSERT_FALSE(position.CanCastle(CASTLE_RIGHT_BLACK));
+  ASSERT_FALSE(position.CanCastle(CASTLE_LEFT_WHITE));
+  ASSERT_FALSE(position.CanCastle(CASTLE_LEFT_BLACK));
 }
 
 TEST(FenTest, ApplyEnPassantSquare) {

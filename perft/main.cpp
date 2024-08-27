@@ -26,7 +26,7 @@ struct Stat {
   std::size_t double_checks = 0;
   std::size_t promotions = 0;
   std::size_t castles = 0;
-  std::unordered_map<std::string, int> map{};
+  std::unordered_map<std::string, std::size_t> map{};
 
   Stat &operator+=(const Stat &stat) {
     nodes += stat.nodes;
@@ -86,15 +86,15 @@ Stat Perft(Position &position, int depth, bool divide) {
     stat += result;
 
     if (depth - 1 == 0) {
-      stat.checks += CheckMask(position) != kUniverse;
-      stat.checks += move.Is(CHECK);
+      Bitboard check_mask = CheckMask(position);
+      stat.checks += check_mask != kUniverse;
       stat.captures += move.Is(CAPTURE) + move.Is(EN_PASSANT);
       stat.en_passants += move.Is(EN_PASSANT);
       stat.checkmates += move.Is(CHECKMATE);
-      stat.discovery_checks += move.Is(DISCOVERY);
-      stat.double_checks += move.Is(DOUBLE);
+      // stat.discovery_checks += move.Is(DISCOVERY);
+      stat.double_checks += check_mask == kEmpty;
       stat.promotions += move.Is(PROMOTION);
-      stat.castles += move.Is(CASTLE);
+      stat.castles += move.Is(CASTLE_RIGHT) || move.Is(CASTLE_LEFT);
     }
 
     position.Undo(move);
@@ -174,7 +174,7 @@ int main() {
   ApplyFen(position, START_FEN);
 
   // perft = Perft;
-  Run(position, perft, 6 - 0, true);
+  Run(position, perft, 8 - 0, true);
 
   return 0;
 }

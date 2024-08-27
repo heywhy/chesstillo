@@ -1,11 +1,27 @@
 #ifndef POSITION_HPP
 #define POSITION_HPP
 
+#include <cstdint>
 #include <list>
+#include <stack>
 
 #include "board.hpp"
 #include "constants.hpp"
 #include "types.hpp"
+
+struct _State {
+  Bitboard en_passant_square;
+  Bitboard en_passant_target;
+  std::uint8_t castling_rights;
+  unsigned int halfmove_clock;
+
+  _State(Bitboard ep_square, Bitboard ep_target, std::uint8_t castling_rights,
+         unsigned int halfmove_clock)
+      : en_passant_square(ep_square), en_passant_target(ep_target),
+        castling_rights(castling_rights), halfmove_clock(halfmove_clock) {}
+};
+
+static std::stack<_State> const kEmptyStack;
 
 class Position {
 public:
@@ -22,7 +38,7 @@ public:
   Bitboard EnPassantSquare() { return en_passant_sq_; }
   Bitboard OccupiedSquares() { return board_.occupied_sqs_; }
 
-  bool CanCastle(Castling direction) {
+  inline bool CanCastle(std::uint8_t direction) {
     return castling_rights_ & (static_cast<std::uint8_t>(1) << direction);
   }
 
@@ -37,9 +53,11 @@ private:
   long fullmove_counter_;
   unsigned int halfmove_clock_;
 
+  std::stack<_State> history_;
+
   void UpdateKingBan();
   void UpdateInternals();
-  void UpdateEnPassantSquare(Move &last_move);
+  inline void UpdateEnPassantSquare(Move &last_move);
 
   Bitboard EnPassantTarget();
 
