@@ -117,8 +117,6 @@ Move DeduceMove(Position &position, unsigned int from, unsigned int to) {
   }
 
   if (BITBOARD_FOR_SQUARE(to) & position.en_passant_sq_) {
-    move.ep_target = position.EnPassantTarget();
-
     move.Set(EN_PASSANT);
   }
 

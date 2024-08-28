@@ -9,6 +9,21 @@
 #include <chesstillo/position.hpp>
 #include <chesstillo/types.hpp>
 
+_State _State::From(Position &position) {
+  return {position.king_ban_,        *position.occupied_sqs_,
+          position.en_passant_sq_,   position.en_passant_target_,
+          position.castling_rights_, position.halfmove_clock_};
+}
+
+void _State::Apply(Position &position, _State &state) {
+  position.king_ban_ = state.king_ban;
+  *position.occupied_sqs_ = state.occupied_sqs;
+  position.halfmove_clock_ = state.halfmove_clock;
+  position.castling_rights_ = state.castling_rights;
+  position.en_passant_sq_ = state.en_passant_square;
+  position.en_passant_target_ = state.en_passant_target;
+}
+
 void Position::Reset() {
   board_.Reset();
 
@@ -19,8 +34,7 @@ void Position::Reset() {
 }
 
 void Position::Make(Move move) {
-  history_.emplace(en_passant_sq_, en_passant_sq_, castling_rights_,
-                   halfmove_clock_);
+  history_.push(_State::From(*this));
 
   Color opp = OPP(turn_);
   Bitboard &piece = board_.pieces_[turn_][move.piece];
@@ -76,7 +90,7 @@ void Position::Make(Move move) {
   if (move.Is(EN_PASSANT)) [[unlikely]] {
     Bitboard &piece = board_.pieces_[opp][PAWN];
 
-    piece ^= move.ep_target;
+    piece ^= en_passant_target_;
   }
 
   if (move.Is(PROMOTION)) [[unlikely]] {
@@ -106,6 +120,8 @@ void Position::Make(Move move) {
 }
 
 void Position::Undo(Move &move) {
+  _State::Apply(*this, history_.top());
+
   Color opp = OPP(turn_);
   Bitboard &piece = board_.pieces_[opp][move.piece];
   Bitboard to = BITBOARD_FOR_SQUARE(move.to);
@@ -140,25 +156,17 @@ void Position::Undo(Move &move) {
   if (move.Is(EN_PASSANT)) [[unlikely]] {
     Bitboard *pieces = board_.pieces_[turn_];
 
-    pieces[PAWN] |= move.ep_target;
+    pieces[PAWN] |= en_passant_target_;
   }
 
   if (opp == BLACK) {
     fullmove_counter_--;
   }
 
-  _State state = history_.top();
-
-  halfmove_clock_ = state.halfmove_clock;
-  en_passant_sq_ = state.en_passant_square;
-  castling_rights_ = state.castling_rights;
-
   turn_ = opp;
 
   history_.pop();
   moves_.pop_front();
-
-  UpdateInternals();
 }
 
 void Position::UpdateInternals() {
@@ -192,17 +200,8 @@ void Position::UpdateKingBan() {
       pawn_east_targets(enemy_pawns) | pawn_west_targets(enemy_pawns);
 }
 
-Bitboard Position::EnPassantTarget() {
-  if (!en_passant_sq_) [[likely]] {
-    return kEmpty;
-  }
-
-  return turn_ == BLACK ? NorthFill(en_passant_sq_) & kRank4
-                        : SouthFill(en_passant_sq_) & kRank5;
-}
-
 void Position::UpdateEnPassantSquare(Move &last_move) {
-  en_passant_sq_ = kEmpty;
+  en_passant_sq_ = en_passant_target_ = kEmpty;
 
   if (last_move.piece != PAWN) [[likely]] {
     return;
@@ -218,11 +217,13 @@ void Position::UpdateEnPassantSquare(Move &last_move) {
     return;
   }
 
-  auto [pawn_east_targets, pawn_west_targets, file_fill] =
-      turn_ == BLACK ? std::make_tuple(PawnTargets<BLACK, EAST>,
-                                       PawnTargets<BLACK, WEST>, SouthFill(to))
-                     : std::make_tuple(PawnTargets<WHITE, EAST>,
-                                       PawnTargets<WHITE, WEST>, NorthFill(to));
+  auto [pawn_east_targets, pawn_west_targets, file_fill, target_fill,
+        capture_rank] =
+      turn_ == BLACK
+          ? std::make_tuple(PawnTargets<BLACK, EAST>, PawnTargets<BLACK, WEST>,
+                            SouthFill(to), NorthFill, kRank4)
+          : std::make_tuple(PawnTargets<WHITE, EAST>, PawnTargets<WHITE, WEST>,
+                            NorthFill(to), SouthFill, kRank5);
 
   Bitboard attacked_sqs = pawn_east_targets(pawns) | pawn_west_targets(pawns);
 
@@ -231,5 +232,6 @@ void Position::UpdateEnPassantSquare(Move &last_move) {
 
   if (square_behind & attacked_sqs) {
     en_passant_sq_ = square_behind;
+    en_passant_target_ = target_fill(square_behind) & capture_rank;
   }
 }

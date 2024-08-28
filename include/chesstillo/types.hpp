@@ -52,7 +52,6 @@ struct Move {
   Piece piece;
   unsigned int flags;
   Piece captured;
-  Bitboard ep_target;
   Piece promoted;
 
   Move(unsigned int from, unsigned int to, Piece piece)

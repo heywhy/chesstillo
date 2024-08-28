@@ -63,7 +63,7 @@ std::vector<Move> GenerateMoves(Position &position) {
   moves.reserve(218);
 
   Color opp = OPP(position.turn_);
-  Bitboard occupied_sqs = position.OccupiedSquares();
+  Bitboard occupied_sqs = *position.occupied_sqs_;
   Bitboard *enemy_pieces = position.Pieces(opp);
   Bitboard *own_pieces = position.Pieces(position.turn_);
 
@@ -284,7 +284,6 @@ std::vector<Move> GenerateMoves(Position &position) {
   // 4 en passant, pawn promotions
   // 4.1. en passant
   {
-    Bitboard ep_target = position.EnPassantTarget();
     Bitboard west_targets = pawn_west_targets(attackable_pawns) &
                             position.en_passant_sq_ & check_mask;
 
@@ -293,7 +292,6 @@ std::vector<Move> GenerateMoves(Position &position) {
 
       Move move(from, LOOP_INDEX, PAWN);
 
-      move.ep_target = ep_target;
       move.Set(EN_PASSANT);
 
       moves.push_back(std::move(move));
@@ -307,7 +305,6 @@ std::vector<Move> GenerateMoves(Position &position) {
 
       Move move(from, LOOP_INDEX, PAWN);
 
-      move.ep_target = ep_target;
       move.Set(EN_PASSANT);
 
       moves.push_back(std::move(move));
@@ -441,7 +438,7 @@ void AddMovesToList(std::vector<Move> &moves, int from, Bitboard targets,
 Bitboard CheckMask(Position &position) {
   Bitboard mask = kUniverse;
   Color opp = OPP(position.turn_);
-  Bitboard occupied_sqs = position.OccupiedSquares();
+  Bitboard occupied_sqs = *position.occupied_sqs_;
   Bitboard *opp_pieces = position.Pieces(opp);
   Bitboard *own_pieces = position.Pieces(position.turn_);
   Bitboard king_bb = own_pieces[KING];
@@ -511,7 +508,7 @@ std::tuple<Bitboard, Bitboard> PinMask(Position &position) {
   Color opp = OPP(position.turn_);
   Bitboard *own_pieces = position.Pieces(position.turn_);
   Bitboard *opp_pieces = position.Pieces(opp);
-  Bitboard occupied_sqs = position.OccupiedSquares();
+  Bitboard occupied_sqs = *position.occupied_sqs_;
   Bitboard king_bb = own_pieces[KING];
   Bitboard own_pieces_bb = BOARD_OCCUPANCY(own_pieces);
 
