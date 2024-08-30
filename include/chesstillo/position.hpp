@@ -63,7 +63,6 @@ private:
 
   void UpdateKingBan();
   void UpdateInternals();
-  inline void UpdateEnPassantSquare(Move &last_move);
 
   friend struct _State;
 

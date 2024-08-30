@@ -103,14 +103,14 @@ std::vector<Move> GenerateMoves(Position &position) {
     return moves;
   }
 
-  // 2. pawn pushes, pawn captures
+  // 2. pawn pushes, pawn captures, en passant
   Bitboard side_pawns = own_pieces[PAWN];
   Bitboard pushable_pawns = side_pawns & ~pin_diag_mask;
   Bitboard attackable_pawns = side_pawns & ~pin_hv_mask;
 
   auto [single_push_targets, double_push_targets, pawn_east_targets,
         pawn_west_targets, file_shift, east_shift, west_shift,
-        pre_promotion_rank] =
+        before_promotion_rank] =
       position.turn_ == WHITE
           ? std::make_tuple(PushPawn<WHITE>, DoublePushPawn<WHITE>,
                             PawnTargets<WHITE, EAST>, PawnTargets<WHITE, WEST>,
@@ -122,8 +122,10 @@ std::vector<Move> GenerateMoves(Position &position) {
   // 2.1. pawn pushes
   {
     Bitboard movable_sqs_mask = empty_sqs & check_mask;
-    Bitboard pinned_pawns = pushable_pawns & pin_hv_mask;
-    Bitboard free_pawns = pushable_pawns & ~pin_hv_mask;
+    Bitboard pinned_pawns =
+        pushable_pawns & pin_hv_mask & ~before_promotion_rank;
+    Bitboard free_pawns =
+        pushable_pawns & ~pin_hv_mask & ~before_promotion_rank;
 
     Bitboard free_pawns_pts =
         single_push_targets(free_pawns) & movable_sqs_mask;
@@ -138,7 +140,7 @@ std::vector<Move> GenerateMoves(Position &position) {
       moves.emplace_back(from, LOOP_INDEX, PAWN);
     }
 
-    file_shift *= 2;
+    int dbl_file_shift = file_shift * 2;
 
     Bitboard free_pawns_dts =
         double_push_targets(free_pawns, empty_sqs) & check_mask;
@@ -148,50 +150,88 @@ std::vector<Move> GenerateMoves(Position &position) {
     Bitboard double_targets = free_pawns_dts | pinned_pawns_dts;
 
     BITLOOP(double_targets) {
-      moves.emplace_back(LOOP_INDEX + file_shift, LOOP_INDEX, PAWN);
+      moves.emplace_back(LOOP_INDEX + dbl_file_shift, LOOP_INDEX, PAWN);
     }
   }
 
-  // 2.2. pawn captures
   {
-    Bitboard capture_mask = enemy_pieces_bb & check_mask;
-    Bitboard pinned_pawns = attackable_pawns & pin_diag_mask;
-    Bitboard free_pawns = attackable_pawns & ~pin_diag_mask;
+    Bitboard pinned_pawns =
+        attackable_pawns & pin_diag_mask & ~before_promotion_rank;
+    Bitboard free_pawns =
+        attackable_pawns & ~pin_diag_mask & ~before_promotion_rank;
 
-    Bitboard free_pawns_wts = pawn_west_targets(free_pawns) & capture_mask;
-    Bitboard pinned_pawns_wts =
-        pawn_west_targets(pinned_pawns) & capture_mask & pin_diag_mask;
-    Bitboard west_targets = free_pawns_wts | pinned_pawns_wts;
+    Bitboard free_pawns_wts = pawn_west_targets(free_pawns);
+    Bitboard pinned_pawns_wts = pawn_west_targets(pinned_pawns) & pin_diag_mask;
 
-    BITLOOP(west_targets) {
-      Piece piece;
-      int from = LOOP_INDEX + west_shift;
-      Move move(from, LOOP_INDEX, PAWN);
+    Bitboard free_pawns_ets = pawn_east_targets(free_pawns);
+    Bitboard pinned_pawns_ets = pawn_east_targets(pinned_pawns) & pin_diag_mask;
 
-      PieceAt(&piece, enemy_pieces, LOOP_INDEX);
+    // 2.2. pawn captures
+    {
+      Bitboard capture_mask = enemy_pieces_bb & check_mask;
+      Bitboard west_targets =
+          (free_pawns_wts & capture_mask) | (pinned_pawns_wts & capture_mask);
 
-      move.captured = piece;
-      move.Set(CAPTURE);
+      BITLOOP(west_targets) {
+        Piece piece;
+        int from = LOOP_INDEX + west_shift;
+        Move move(from, LOOP_INDEX, PAWN);
 
-      moves.push_back(std::move(move));
+        PieceAt(&piece, enemy_pieces, LOOP_INDEX);
+
+        move.captured = piece;
+        move.Set(CAPTURE);
+
+        moves.push_back(std::move(move));
+      }
+
+      Bitboard east_targets =
+          (free_pawns_ets & capture_mask) | (pinned_pawns_ets & capture_mask);
+
+      BITLOOP(east_targets) {
+        Piece piece;
+        int from = LOOP_INDEX + east_shift;
+        Move move(from, LOOP_INDEX, PAWN);
+
+        PieceAt(&piece, enemy_pieces, LOOP_INDEX);
+
+        move.captured = piece;
+        move.Set(CAPTURE);
+
+        moves.push_back(std::move(move));
+      }
     }
 
-    Bitboard free_pawns_ets = pawn_east_targets(free_pawns) & capture_mask;
-    Bitboard pinned_pawns_ets =
-        pawn_east_targets(pinned_pawns) & capture_mask & pin_diag_mask;
-    Bitboard east_targets = free_pawns_ets | pinned_pawns_ets;
+    // 2.3. en passant
+    {
+      Bitboard capture_mask =
+          check_mask != kUniverse && position.en_passant_target_ & check_mask
+              ? position.en_passant_sq_
+              : position.en_passant_sq_ & check_mask;
 
-    BITLOOP(east_targets) {
-      Piece piece;
-      int from = LOOP_INDEX + east_shift;
-      Move move(from, LOOP_INDEX, PAWN);
+      Bitboard west_targets =
+          (free_pawns_wts & capture_mask) | (pinned_pawns_wts & capture_mask);
 
-      PieceAt(&piece, enemy_pieces, LOOP_INDEX);
+      BITLOOP(west_targets) {
+        int from = LOOP_INDEX + west_shift;
+        Move move(from, LOOP_INDEX, PAWN);
 
-      move.captured = piece;
-      move.Set(CAPTURE);
+        move.Set(EN_PASSANT);
 
-      moves.push_back(std::move(move));
+        moves.push_back(std::move(move));
+      }
+
+      Bitboard east_targets =
+          (free_pawns_ets & capture_mask) | (pinned_pawns_ets & capture_mask);
+
+      BITLOOP(east_targets) {
+        int from = LOOP_INDEX + east_shift;
+        Move move(from, LOOP_INDEX, PAWN);
+
+        move.Set(EN_PASSANT);
+
+        moves.push_back(std::move(move));
+      }
     }
   }
 
@@ -281,36 +321,6 @@ std::vector<Move> GenerateMoves(Position &position) {
     }
   }
 
-  // 4 en passant, pawn promotions
-  // 4.1. en passant
-  {
-    Bitboard west_targets = pawn_west_targets(attackable_pawns) &
-                            position.en_passant_sq_ & check_mask;
-
-    BITLOOP(west_targets) {
-      int from = LOOP_INDEX + west_shift;
-
-      Move move(from, LOOP_INDEX, PAWN);
-
-      move.Set(EN_PASSANT);
-
-      moves.push_back(std::move(move));
-    }
-
-    Bitboard east_targets = pawn_east_targets(attackable_pawns) &
-                            position.en_passant_sq_ & check_mask;
-
-    BITLOOP(east_targets) {
-      int from = LOOP_INDEX + east_shift;
-
-      Move move(from, LOOP_INDEX, PAWN);
-
-      move.Set(EN_PASSANT);
-
-      moves.push_back(std::move(move));
-    }
-  }
-
   // 5. castling
   {
     auto [left_rook, right_rook, starting_rank] =
@@ -351,70 +361,91 @@ std::vector<Move> GenerateMoves(Position &position) {
     }
   }
 
-  // 2.4. pawn promotions
-  // Bitboard promotable_pawns = movable_pawns & pre_promotion_rank;
-  // Bitboard non_promotable_pawns = movable_pawns & ~pre_promotion_rank;
-  // Bitboard push_promotion_targets =
-  //     single_push_targets(promotable_pawns) & empty_sqs & check_mask;
-  //
-  // BITLOOP(push_promotion_targets) {
-  //   int from = LOOP_INDEX + file_shift;
-  //
-  //   for (Piece piece : {QUEEN, ROOK, BISHOP, KNIGHT}) {
-  //     Move move(from, LOOP_INDEX, PAWN);
-  //
-  //     move.Set(PROMOTION);
-  //     move.promoted = piece;
-  //
-  //     moves.push_back(std::move(move));
-  //   }
-  // }
-  //
-  // Bitboard east_promotion_targets =
-  //     pawn_east_targets(promotable_pawns) & enemy_pieces_bb;
-  //
-  // BITLOOP(east_promotion_targets) {
-  //   Piece enemy_piece;
-  //   Bitboard from = LOOP_INDEX + east_shift;
-  //   Move move(from, LOOP_INDEX, PAWN);
-  //
-  //   PieceAt(&enemy_piece, enemy_pieces, LOOP_INDEX);
-  //
-  //   for (Piece piece : {QUEEN, ROOK, BISHOP, KNIGHT}) {
-  //     Move move(from, LOOP_INDEX, PAWN);
-  //
-  //     move.Set(CAPTURE);
-  //     move.Set(PROMOTION);
-  //
-  //     move.promoted = piece;
-  //     move.captured = enemy_piece;
-  //
-  //     moves.push_back(std::move(move));
-  //   }
-  // }
-  //
-  // Bitboard west_promotion_targets =
-  //     pawn_west_targets(promotable_pawns) & enemy_pieces_bb;
-  //
-  // BITLOOP(west_promotion_targets) {
-  //   Piece enemy_piece;
-  //   Bitboard from = LOOP_INDEX + west_shift;
-  //   Move move(from, LOOP_INDEX, PAWN);
-  //
-  //   PieceAt(&enemy_piece, enemy_pieces, LOOP_INDEX);
-  //
-  //   for (Piece piece : {QUEEN, ROOK, BISHOP, KNIGHT}) {
-  //     Move move(from, LOOP_INDEX, PAWN);
-  //
-  //     move.Set(CAPTURE);
-  //     move.Set(PROMOTION);
-  //
-  //     move.promoted = piece;
-  //     move.captured = enemy_piece;
-  //
-  //     moves.push_back(std::move(move));
-  //   }
-  // }
+  // 6. pawn promotions
+  {
+    Bitboard movable_sqs_mask = empty_sqs & check_mask;
+    Bitboard pinned_pawns =
+        pushable_pawns & pin_hv_mask & before_promotion_rank;
+    Bitboard free_pawns = pushable_pawns & ~pin_hv_mask & before_promotion_rank;
+
+    Bitboard free_pawns_pts =
+        single_push_targets(free_pawns) & movable_sqs_mask;
+    Bitboard pinned_pawns_pts =
+        single_push_targets(pinned_pawns) & movable_sqs_mask & pin_hv_mask;
+
+    Bitboard single_targets = free_pawns_pts | pinned_pawns_pts;
+
+    BITLOOP(single_targets) {
+      int from = LOOP_INDEX + file_shift;
+
+      for (Piece piece : {QUEEN, ROOK, BISHOP, KNIGHT}) {
+        Move move(from, LOOP_INDEX, PAWN);
+
+        move.Set(PROMOTION);
+        move.promoted = piece;
+
+        moves.push_back(std::move(move));
+      }
+    }
+
+    {
+      Bitboard capture_mask = enemy_pieces_bb & check_mask;
+      Bitboard pinned_pawns =
+          attackable_pawns & pin_diag_mask & before_promotion_rank;
+      Bitboard free_pawns =
+          attackable_pawns & ~pin_diag_mask & before_promotion_rank;
+
+      Bitboard free_pawns_wts = pawn_west_targets(free_pawns) & capture_mask;
+      Bitboard pinned_pawns_wts =
+          pawn_west_targets(pinned_pawns) & capture_mask & pin_diag_mask;
+      Bitboard west_targets = free_pawns_wts | pinned_pawns_wts;
+
+      BITLOOP(west_targets) {
+        Piece enemy_piece;
+        Bitboard from = LOOP_INDEX + west_shift;
+        Move move(from, LOOP_INDEX, PAWN);
+
+        PieceAt(&enemy_piece, enemy_pieces, LOOP_INDEX);
+
+        for (Piece piece : {QUEEN, ROOK, BISHOP, KNIGHT}) {
+          Move move(from, LOOP_INDEX, PAWN);
+
+          move.Set(CAPTURE);
+          move.Set(PROMOTION);
+
+          move.promoted = piece;
+          move.captured = enemy_piece;
+
+          moves.push_back(std::move(move));
+        }
+      }
+
+      Bitboard free_pawns_ets = pawn_east_targets(free_pawns) & capture_mask;
+      Bitboard pinned_pawns_ets =
+          pawn_east_targets(pinned_pawns) & capture_mask & pin_diag_mask;
+      Bitboard east_targets = free_pawns_ets | pinned_pawns_ets;
+
+      BITLOOP(east_targets) {
+        Piece enemy_piece;
+        Bitboard from = LOOP_INDEX + east_shift;
+        Move move(from, LOOP_INDEX, PAWN);
+
+        PieceAt(&enemy_piece, enemy_pieces, LOOP_INDEX);
+
+        for (Piece piece : {QUEEN, ROOK, BISHOP, KNIGHT}) {
+          Move move(from, LOOP_INDEX, PAWN);
+
+          move.Set(CAPTURE);
+          move.Set(PROMOTION);
+
+          move.promoted = piece;
+          move.captured = enemy_piece;
+
+          moves.push_back(std::move(move));
+        }
+      }
+    }
+  }
 
   return moves;
 }
@@ -471,13 +502,13 @@ Bitboard CheckMask(Position &position) {
     Bitboard pieces =
         kSlidingAttacks.Bishop(occupied_sqs, king_square) & enemy_bishop_queen;
 
-    if (mask != kUniverse && pieces) {
-      return kEmpty;
-    }
-
     BITLOOP(pieces) {
       int bishop = LOOP_INDEX;
       Bitboard rays_from_attacker = kCheckBetween[BISHOP][king_square][bishop];
+
+      if (mask != kUniverse) {
+        return kEmpty;
+      }
 
       mask = rays_from_attacker | BITBOARD_FOR_SQUARE(bishop);
     }
@@ -489,13 +520,13 @@ Bitboard CheckMask(Position &position) {
     Bitboard pieces =
         kSlidingAttacks.Rook(occupied_sqs, king_square) & enemy_rook_queen;
 
-    if (mask != kUniverse && pieces) {
-      return kEmpty;
-    }
-
     BITLOOP(pieces) {
       int rook = LOOP_INDEX;
       Bitboard rays_from_attacker = kCheckBetween[ROOK][king_square][rook];
+
+      if (mask != kUniverse) {
+        return kEmpty;
+      }
 
       mask = rays_from_attacker | BITBOARD_FOR_SQUARE(rook);
     }
@@ -503,6 +534,8 @@ Bitboard CheckMask(Position &position) {
 
   return mask;
 }
+
+Bitboard EPPinMask(Position &position) { return kEmpty; }
 
 std::tuple<Bitboard, Bitboard> PinMask(Position &position) {
   Color opp = OPP(position.turn_);

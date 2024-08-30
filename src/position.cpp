@@ -67,12 +67,13 @@ void Position::Make(Move move) {
     rooks ^= rook | (rook << 3);
   }
 
+  auto [left_rook, right_rook, single_push] =
+      turn_ == WHITE ? std::make_tuple(a1, h1, PushPawn<WHITE>)
+                     : std::make_tuple(a8, h8, PushPawn<BLACK>);
+
   {
     Bitboard castle_left = CASTLE_LEFT(turn_);
     Bitboard castle_right = CASTLE_RIGHT(turn_);
-
-    auto [left_rook, right_rook] =
-        turn_ == WHITE ? std::make_tuple(a1, h1) : std::make_tuple(a8, h8);
 
     if ((move.piece == KING ||
          (move.piece == ROOK && move.from == left_rook)) &&
@@ -102,6 +103,14 @@ void Position::Make(Move move) {
   }
 
   turn_ = opp;
+  en_passant_sq_ = kEmpty;
+
+  bool is_double_push =
+      ((from & kRank2) | (from & kRank7)) && ((to & kRank4) | (to & kRank5));
+
+  if (move.piece == PAWN && is_double_push) {
+    en_passant_sq_ = single_push(from);
+  }
 
   if (move.piece == PAWN || move.Is(CAPTURE)) {
     halfmove_clock_ = 0;
@@ -116,7 +125,6 @@ void Position::Make(Move move) {
   moves_.push_front(std::move(move));
 
   UpdateInternals();
-  UpdateEnPassantSquare(move);
 }
 
 void Position::Undo(Move &move) {
@@ -133,6 +141,14 @@ void Position::Undo(Move &move) {
     Bitboard *pieces = board_.pieces_[turn_];
 
     pieces[move.captured] |= to;
+  }
+
+  if (move.Is(PROMOTION)) [[unlikely]] {
+    Bitboard &new_piece = board_.pieces_[opp][move.promoted];
+
+    // reset the old piece & unset the promoted piece
+    piece ^= to;
+    new_piece ^= to;
   }
 
   if (move.piece == KING && move.Is(CASTLE_RIGHT)) [[unlikely]] {
@@ -173,6 +189,50 @@ void Position::UpdateInternals() {
   board_.UpdateOccupiedSqs();
 
   UpdateKingBan();
+
+  en_passant_target_ = (PushPawn<WHITE>(en_passant_sq_) & kRank4) |
+                       (PushPawn<BLACK>(en_passant_sq_) & kRank5);
+
+  Color opp = OPP(turn_);
+  Bitboard enemy_rook_queen =
+      board_.pieces_[opp][ROOK] | board_.pieces_[opp][QUEEN];
+
+  Bitboard pawns = board_.pieces_[turn_][PAWN];
+  Bitboard king = board_.pieces_[turn_][KING];
+  int ep_sq = BIT_INDEX(en_passant_target_);
+  Bitboard ep_rank = RankMask(ep_sq);
+  int king_sq = BIT_INDEX(king);
+
+  if (en_passant_target_ && (ep_rank & king) && (ep_rank & enemy_rook_queen) && (ep_rank & pawns)) {
+    auto [pawn_west_targets, pawn_east_targets] =
+        turn_ == WHITE ? std::make_tuple(PawnTargets<BLACK, WEST>,
+                                         PawnTargets<BLACK, EAST>)
+                       : std::make_tuple(PawnTargets<WHITE, WEST>,
+                                         PawnTargets<WHITE, EAST>);
+
+    Bitboard west_targets = pawn_west_targets(en_passant_sq_) & pawns;
+    Bitboard east_targets = pawn_east_targets(en_passant_sq_) & pawns;
+
+    if (west_targets) {
+      Bitboard occupied_sqs_after_ep =
+          *occupied_sqs_ & ~(en_passant_target_ | west_targets);
+
+      if (kSlidingAttacks.Rook(occupied_sqs_after_ep, king_sq) &
+          enemy_rook_queen) {
+        en_passant_sq_ = kEmpty;
+      }
+    }
+
+    if (east_targets) {
+      Bitboard occupied_sqs_after_ep =
+          *occupied_sqs_ & ~(en_passant_target_ | east_targets);
+
+      if (kSlidingAttacks.Rook(occupied_sqs_after_ep, king_sq) &
+          enemy_rook_queen) {
+        en_passant_sq_ = kEmpty;
+      }
+    }
+  }
 }
 
 void Position::UpdateKingBan() {
@@ -198,40 +258,4 @@ void Position::UpdateKingBan() {
       (ROOK_ATTACKS(enemy_rook_queen,
                     ~board_.occupied_sqs_ | board_.pieces_[turn_][KING])) |
       pawn_east_targets(enemy_pawns) | pawn_west_targets(enemy_pawns);
-}
-
-void Position::UpdateEnPassantSquare(Move &last_move) {
-  en_passant_sq_ = en_passant_target_ = kEmpty;
-
-  if (last_move.piece != PAWN) [[likely]] {
-    return;
-  }
-
-  Bitboard to = BITBOARD_FOR_SQUARE(last_move.to);
-  Bitboard from = BITBOARD_FOR_SQUARE(last_move.from);
-
-  Bitboard pawns = board_.pieces_[turn_][PAWN];
-
-  if (!((kRank2 & from && kRank4 & to && kRank4 & pawns) ||
-        (kRank7 & from && kRank5 & to && kRank5 & pawns))) [[likely]] {
-    return;
-  }
-
-  auto [pawn_east_targets, pawn_west_targets, file_fill, target_fill,
-        capture_rank] =
-      turn_ == BLACK
-          ? std::make_tuple(PawnTargets<BLACK, EAST>, PawnTargets<BLACK, WEST>,
-                            SouthFill(to), NorthFill, kRank4)
-          : std::make_tuple(PawnTargets<WHITE, EAST>, PawnTargets<WHITE, WEST>,
-                            NorthFill(to), SouthFill, kRank5);
-
-  Bitboard attacked_sqs = pawn_east_targets(pawns) | pawn_west_targets(pawns);
-
-  Bitboard square_behind =
-      (file_fill ^ from ^ board_.occupied_sqs_) & file_fill;
-
-  if (square_behind & attacked_sqs) {
-    en_passant_sq_ = square_behind;
-    en_passant_target_ = target_fill(square_behind) & capture_rank;
-  }
 }
