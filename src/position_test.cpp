@@ -23,7 +23,7 @@ TEST_F(PositionTestSuite, ApplyPawnMove) {
 
   ASSERT_NE(~position.OccupiedSquares(), empty_squares);
   ASSERT_EQ(PositionToFen(position),
-            "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1");
+            "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1");
 }
 
 TEST_F(PositionTestSuite, ApplyPawnCaptureMove) {

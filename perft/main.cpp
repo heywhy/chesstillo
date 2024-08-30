@@ -4,7 +4,9 @@
 #include <cstring>
 #include <functional>
 #include <iostream>
+#include <mutex>
 #include <string>
+#include <thread>
 #include <unordered_map>
 #include <vector>
 
@@ -141,6 +143,51 @@ Stat BulkPerft(Position &position, int depth, bool divide) {
   return stat;
 }
 
+Stat ThreadedPerft(Position &position, int depth, bool divide) {
+  Stat stat;
+  std::mutex m;
+  std::vector<std::thread> threads;
+
+  std::vector<Move> moves = GenerateMoves(position);
+
+  if (depth == 1) {
+    stat.nodes = moves.size();
+    return stat;
+  }
+
+  auto callback = [](Position position, int depth, bool divide, Move *move,
+                     Stat *stat, std::mutex *m) {
+    Stat result = BulkPerft(position, depth, false);
+
+    std::lock_guard<std::mutex> lock_guard(*m);
+
+    *stat += result;
+
+    if (divide) {
+      char s[6];
+
+      if (ToString(*move, s)) {
+        (*stat).map.insert({s, result.nodes});
+      }
+    }
+  };
+
+  for (Move &move : moves) {
+    position.Make(move);
+
+    threads.emplace_back(callback, position, depth - 1, divide, &move, &stat,
+                         &m);
+
+    position.Undo(move);
+  }
+
+  for (std::thread &thread : threads) {
+    thread.join();
+  }
+
+  return stat;
+}
+
 typedef std::function<Stat(Position &, int, bool)> PerftFun;
 
 void Run(Position &position, PerftFun perft, int depth, bool divide) {
@@ -173,7 +220,7 @@ int main() {
 
   ApplyFen(position, START_FEN);
 
-  // perft = Perft;
+  perft = ThreadedPerft;
   Run(position, perft, 8 - 0, true);
 
   return 0;

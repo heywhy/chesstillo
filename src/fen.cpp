@@ -151,6 +151,7 @@ void ApplyFen(Position &position, const char *fen) {
   }
 
   position.UpdateInternals();
+  position.UpdateMailbox();
 }
 
 std::string PositionToFen(Position &position) {

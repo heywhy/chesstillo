@@ -31,6 +31,10 @@ void Position::Reset() {
   castling_rights_ = 0;
   en_passant_sq_ = kEmpty;
   history_ = kEmptyStack;
+
+  for (int i = 0; i < 64; i++) {
+    mailbox_[i] = NONE;
+  }
 }
 
 void Position::Make(Move move) {
@@ -43,6 +47,9 @@ void Position::Make(Move move) {
 
   piece ^= from ^ to;
 
+  mailbox_[move.from] = NONE;
+  mailbox_[move.to] = move.piece;
+
   if (move.Is(CAPTURE)) {
     Bitboard &piece = board_.pieces_[opp][move.captured];
 
@@ -54,8 +61,12 @@ void Position::Make(Move move) {
     Bitboard rank = RankMask(king_square);
     Bitboard &rooks = board_.pieces_[turn_][ROOK];
     Bitboard rook = rooks & rank & kKingSide;
+    Bitboard new_position = rook >> 2;
 
-    rooks ^= rook | (rook >> 2);
+    rooks ^= rook | new_position;
+
+    mailbox_[BIT_INDEX(rook)] = NONE;
+    mailbox_[BIT_INDEX(new_position)] = ROOK;
   }
 
   if (move.piece == KING && move.Is(CASTLE_LEFT)) [[unlikely]] {
@@ -63,8 +74,12 @@ void Position::Make(Move move) {
     Bitboard rank = RankMask(king_square);
     Bitboard &rooks = board_.pieces_[turn_][ROOK];
     Bitboard rook = rooks & rank & kQueenSide;
+    Bitboard new_position = rook << 3;
 
-    rooks ^= rook | (rook << 3);
+    rooks ^= rook | new_position;
+
+    mailbox_[BIT_INDEX(rook)] = NONE;
+    mailbox_[BIT_INDEX(new_position)] = ROOK;
   }
 
   auto [left_rook, right_rook, single_push] =
@@ -92,6 +107,8 @@ void Position::Make(Move move) {
     Bitboard &piece = board_.pieces_[opp][PAWN];
 
     piece ^= en_passant_target_;
+
+    mailbox_[BIT_INDEX(en_passant_target_)] = NONE;
   }
 
   if (move.Is(PROMOTION)) [[unlikely]] {
@@ -100,6 +117,8 @@ void Position::Make(Move move) {
     // unset the old piece & set the index on the promoted piece
     piece ^= to;
     new_piece ^= to;
+
+    mailbox_[move.to] = move.promoted;
   }
 
   turn_ = opp;
@@ -137,11 +156,7 @@ void Position::Undo(Move &move) {
 
   piece = (piece ^ to) | from;
 
-  if (move.Is(CAPTURE)) {
-    Bitboard *pieces = board_.pieces_[turn_];
-
-    pieces[move.captured] |= to;
-  }
+  mailbox_[move.from] = move.piece;
 
   if (move.Is(PROMOTION)) [[unlikely]] {
     Bitboard &new_piece = board_.pieces_[opp][move.promoted];
@@ -149,6 +164,16 @@ void Position::Undo(Move &move) {
     // reset the old piece & unset the promoted piece
     piece ^= to;
     new_piece ^= to;
+
+    mailbox_[move.to] = NONE;
+  }
+
+  if (move.Is(CAPTURE)) {
+    Bitboard *pieces = board_.pieces_[turn_];
+
+    pieces[move.captured] |= to;
+
+    mailbox_[move.to] = move.captured;
   }
 
   if (move.piece == KING && move.Is(CASTLE_RIGHT)) [[unlikely]] {
@@ -156,8 +181,12 @@ void Position::Undo(Move &move) {
     Bitboard rank = RankMask(king_square);
     Bitboard &rooks = board_.pieces_[opp][ROOK];
     Bitboard rook = rooks & rank & kKingSide;
+    Bitboard old_position = (rook << 2);
 
-    rooks ^= rook | (rook << 2);
+    rooks ^= rook | old_position;
+
+    mailbox_[BIT_INDEX(rook)] = NONE;
+    mailbox_[BIT_INDEX(old_position)] = ROOK;
   }
 
   if (move.piece == KING && move.Is(CASTLE_LEFT)) [[unlikely]] {
@@ -165,14 +194,20 @@ void Position::Undo(Move &move) {
     Bitboard rank = RankMask(king_square);
     Bitboard &rooks = board_.pieces_[opp][ROOK];
     Bitboard rook = rooks & rank & kQueenSide;
+    Bitboard old_position = (rook >> 3);
 
-    rooks ^= rook | (rook >> 3);
+    rooks ^= rook | old_position;
+
+    mailbox_[BIT_INDEX(rook)] = NONE;
+    mailbox_[BIT_INDEX(old_position)] = ROOK;
   }
 
   if (move.Is(EN_PASSANT)) [[unlikely]] {
     Bitboard *pieces = board_.pieces_[turn_];
 
     pieces[PAWN] |= en_passant_target_;
+
+    mailbox_[BIT_INDEX(en_passant_target_)] = PAWN;
   }
 
   if (opp == BLACK) {
@@ -203,7 +238,8 @@ void Position::UpdateInternals() {
   Bitboard ep_rank = RankMask(ep_sq);
   int king_sq = BIT_INDEX(king);
 
-  if (en_passant_target_ && (ep_rank & king) && (ep_rank & enemy_rook_queen) && (ep_rank & pawns)) {
+  if (en_passant_target_ && (ep_rank & king) && (ep_rank & enemy_rook_queen) &&
+      (ep_rank & pawns)) {
     auto [pawn_west_targets, pawn_east_targets] =
         turn_ == WHITE ? std::make_tuple(PawnTargets<BLACK, WEST>,
                                          PawnTargets<BLACK, EAST>)
@@ -258,4 +294,23 @@ void Position::UpdateKingBan() {
       (ROOK_ATTACKS(enemy_rook_queen,
                     ~board_.occupied_sqs_ | board_.pieces_[turn_][KING])) |
       pawn_east_targets(enemy_pawns) | pawn_west_targets(enemy_pawns);
+}
+
+void Position::UpdateMailbox() {
+  for (int i = 0; i < 64; i++) {
+    Bitboard bb = BITBOARD_FOR_SQUARE(i);
+
+    if (bb & *occupied_sqs_) {
+      for (int j = 0; j < 6; j++) {
+        Piece piece = static_cast<Piece>(j);
+
+        if ((board_.pieces_[WHITE][j] & bb) | (board_.pieces_[BLACK][j] & bb)) {
+          mailbox_[i] = piece;
+        }
+      }
+
+    } else {
+      mailbox_[i] = NONE;
+    }
+  }
 }

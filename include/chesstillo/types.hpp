@@ -8,7 +8,7 @@ typedef std::uint64_t Bitboard;
 
 enum Color : std::uint8_t { WHITE, BLACK };
 enum CastleDir : std::uint8_t { LEFT, RIGHT };
-enum Piece : std::uint8_t { ROOK, BISHOP, KNIGHT, KING, QUEEN, PAWN };
+enum Piece : std::uint8_t { ROOK, BISHOP, KNIGHT, KING, QUEEN, PAWN, NONE };
 enum Flag : std::uint8_t {
   CHECK,
   CAPTURE,

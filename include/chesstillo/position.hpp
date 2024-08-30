@@ -2,6 +2,7 @@
 #define POSITION_HPP
 
 #include <cstdint>
+#include <cstring>
 #include <list>
 #include <stack>
 
@@ -33,6 +34,23 @@ public:
     occupied_sqs_ = &board_.occupied_sqs_;
   };
 
+  Position(const Position &src) {
+    turn_ = src.turn_;
+    king_ban_ = src.king_ban_;
+    en_passant_sq_ = src.en_passant_sq_;
+    en_passant_target_ = src.en_passant_target_;
+    castling_rights_ = src.castling_rights_;
+    fullmove_counter_ = src.fullmove_counter_;
+    halfmove_clock_ = src.halfmove_clock_;
+
+    history_ = src.history_;
+    board_ = src.board_;
+
+    occupied_sqs_ = &board_.occupied_sqs_;
+
+    std::memcpy(mailbox_, src.mailbox_, sizeof(src.mailbox_));
+  }
+
   void Reset();
   void Make(Move move);
   void Undo(Move &move);
@@ -60,8 +78,10 @@ private:
   unsigned int halfmove_clock_;
 
   std::stack<_State> history_;
+  Piece mailbox_[64];
 
   void UpdateKingBan();
+  void UpdateMailbox();
   void UpdateInternals();
 
   friend struct _State;

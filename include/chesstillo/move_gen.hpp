@@ -51,7 +51,7 @@ std::tuple<Bitboard, Bitboard> PinMask(Position &position);
 std::vector<Move> GenerateMoves(Position &position);
 
 void AddMovesToList(std::vector<Move> &moves, int from, Bitboard targets,
-                    Piece piece, Bitboard *enemy_pieces, Bitboard enemy_bb);
+                    Piece piece, Piece *mailbox, Bitboard enemy_bb);
 
 constexpr Bitboard RankMask(int square) { return kRank1 << (square & 56); }
 
