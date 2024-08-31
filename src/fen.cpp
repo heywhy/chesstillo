@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <string>
 
 #include <chesstillo/board.hpp>
@@ -5,18 +6,18 @@
 #include <chesstillo/position.hpp>
 #include <chesstillo/types.hpp>
 
-int ToInt(char num) { return num - '0'; }
+uint16_t ToInt(char num) { return num - '0'; }
 
 void ApplyFen(Position &position, const char *fen) {
   Bitboard *piece;
   Bitboard *black_pieces = position.Pieces(BLACK);
   Bitboard *white_pieces = position.Pieces(WHITE);
 
-  int rank = 7;
-  int file = 0;
-  int spaces = 0;
-  long move_count = 0;
-  int en_passant_rank;
+  uint8_t rank = 7;
+  uint8_t file = 0;
+  uint8_t spaces = 0;
+  uint16_t move_count = 0;
+  uint8_t en_passant_rank;
   char en_passant_file;
 
   position.Reset();
@@ -130,15 +131,15 @@ void ApplyFen(Position &position, const char *fen) {
     }
 
     if (spaces == 0 && piece) {
-      unsigned int square = TO_SQUARE(file, rank);
+      uint8_t square = TO_SQUARE(file, rank);
       *piece |= BITBOARD_FOR_SQUARE(square);
 
       file++;
     } else if (spaces == 3 && (en_passant_rank == 3 || en_passant_rank == 6) &&
                en_passant_file >= 'a' && en_passant_file <= 'h') {
-      unsigned int rank = en_passant_rank - 1;
-      unsigned int file = en_passant_file - 97;
-      unsigned int square = TO_SQUARE(file, rank);
+      uint8_t rank = en_passant_rank - 1;
+      uint8_t file = en_passant_file - 97;
+      uint8_t square = TO_SQUARE(file, rank);
 
       position.en_passant_sq_ = BITBOARD_FOR_SQUARE(square);
     } else if (spaces == 4) {
@@ -161,7 +162,7 @@ std::string PositionToFen(Position &position) {
 
   for (int rank = 7; rank >= 0; rank--) {
     for (int file = 0; file < 8; file++) {
-      unsigned int square = TO_SQUARE(file, rank);
+      uint8_t square = TO_SQUARE(file, rank);
       Bitboard bb = BITBOARD_FOR_SQUARE(square);
 
       if (occupied_sqs & bb) {
@@ -172,7 +173,7 @@ std::string PositionToFen(Position &position) {
 
         char piece;
 
-        if (position.PieceAtSquare(square, &piece)) {
+        if (position.PieceAt(&piece, square)) {
           fen += piece;
         }
       } else {
@@ -213,7 +214,7 @@ std::string PositionToFen(Position &position) {
   }
 
   Coord coord;
-  unsigned int en_passant_square = BIT_INDEX(position.en_passant_sq_);
+  uint8_t en_passant_square = BIT_INDEX(position.en_passant_sq_);
 
   if (CoordForSquare(&coord, en_passant_square)) {
     char rank = '0' + coord.rank;

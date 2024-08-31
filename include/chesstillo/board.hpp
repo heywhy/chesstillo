@@ -1,6 +1,8 @@
 #ifndef BOARD_HPP
 #define BOARD_HPP
 
+#include <cstdint>
+
 #include "constants.hpp"
 #include "types.hpp"
 
@@ -15,25 +17,16 @@
 
 struct Coord {
   char file;
-  int rank;
+  std::uint8_t rank;
 };
 
-bool CoordForSquare(Coord *coord, int square);
+bool CoordForSquare(Coord *coord, std::uint8_t square);
 
-/**
- * TODO:
- *
- * castling
- */
 class Board {
 public:
   Board() : occupied_sqs_(kEmpty) {}
 
   void Reset();
-  bool PieceAtSquare(unsigned int square, char *);
-  bool PieceAtSquare(unsigned int square, Piece *);
-  Bitboard EmptySquares() { return ~occupied_sqs_; }
-  Bitboard PiecesAttackingSquare(unsigned int square, Color color);
 
   Bitboard Position(Piece piece, Color color) { return pieces_[color][piece]; }
 

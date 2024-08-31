@@ -17,8 +17,8 @@ struct _State {
   Bitboard occupied_sqs;
   Bitboard en_passant_square;
   Bitboard en_passant_target;
-  std::uint8_t castling_rights;
-  unsigned int halfmove_clock;
+  uint8_t castling_rights;
+  uint8_t halfmove_clock;
 
   static _State From(Position &position);
   static void Apply(Position &position, _State &state);
@@ -54,13 +54,15 @@ public:
   void Reset();
   void Make(Move move);
   void Undo(Move &move);
+  bool PieceAt(char *, uint8_t);
+  bool PieceAt(Piece *, uint8_t);
 
   Color GetTurn() { return turn_; }
   std::list<Move> &GetMoves() { return moves_; }
-  Bitboard EnPassantSquare() { return en_passant_sq_; }
   Bitboard OccupiedSquares() { return *occupied_sqs_; }
+  inline Bitboard EnPassantSquare() { return en_passant_sq_; }
 
-  inline bool CanCastle(std::uint8_t direction) {
+  inline bool CanCastle(uint8_t direction) {
     return castling_rights_ & (static_cast<std::uint8_t>(1) << direction);
   }
 
@@ -71,11 +73,11 @@ private:
   Bitboard *occupied_sqs_;
   Bitboard en_passant_sq_;
   Bitboard en_passant_target_;
-  std::uint8_t castling_rights_;
+  uint8_t castling_rights_;
 
   std::list<Move> moves_;
   long fullmove_counter_;
-  unsigned int halfmove_clock_;
+  uint8_t halfmove_clock_;
 
   std::stack<_State> history_;
   Piece mailbox_[64];
@@ -91,16 +93,6 @@ private:
   friend std::tuple<Bitboard, Bitboard> PinMask(Position &position);
   friend std::string PositionToFen(Position &position);
   friend void ApplyFen(Position &position, const char *fen);
-  friend Move DeduceMove(Position &position, unsigned int from,
-                         unsigned int to);
-
-  bool PieceAtSquare(unsigned int square, char *piece) {
-    return board_.PieceAtSquare(square, piece);
-  }
-
-  bool PieceAtSquare(unsigned int square, Piece *piece) {
-    return board_.PieceAtSquare(square, piece);
-  }
 
   inline Bitboard *Pieces(Color color) { return board_.pieces_[color]; }
 };

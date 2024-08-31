@@ -61,7 +61,7 @@ bool ToString(Move const &move, char *buf) {
 
   if (move.Is(PROMOTION)) {
     char piece;
-    PieceToChar(move.promoted, &piece);
+    PieceToChar(&piece, move.promoted);
 
     buf[4] = piece;
     buf[5] = '\0';

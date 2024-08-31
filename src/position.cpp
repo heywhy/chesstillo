@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <tuple>
 #include <utility>
 
@@ -8,6 +9,7 @@
 #include <chesstillo/move_gen.hpp>
 #include <chesstillo/position.hpp>
 #include <chesstillo/types.hpp>
+#include <chesstillo/utility.hpp>
 
 _State _State::From(Position &position) {
   return {position.king_ban_,        *position.occupied_sqs_,
@@ -22,6 +24,32 @@ void _State::Apply(Position &position, _State &state) {
   position.castling_rights_ = state.castling_rights;
   position.en_passant_sq_ = state.en_passant_square;
   position.en_passant_target_ = state.en_passant_target;
+}
+
+bool Position::PieceAt(Piece *piece, uint8_t index) {
+  *piece = mailbox_[index];
+
+  return *piece != NONE;
+}
+
+bool Position::PieceAt(char *c, uint8_t index) {
+  Piece piece;
+
+  if (!PieceAt(&piece, index)) {
+    return false;
+  }
+
+  Bitboard bb = BITBOARD_FOR_SQUARE(index);
+
+  if (board_.pieces_[WHITE][piece] & bb) {
+    return PieceToChar(c, piece, WHITE);
+  }
+
+  if (board_.pieces_[BLACK][piece] & bb) {
+    return PieceToChar(c, piece, BLACK);
+  }
+
+  return false;
 }
 
 void Position::Reset() {
@@ -177,7 +205,7 @@ void Position::Undo(Move &move) {
   }
 
   if (move.piece == KING && move.Is(CASTLE_RIGHT)) [[unlikely]] {
-    int king_square = BIT_INDEX(piece);
+    uint8_t king_square = BIT_INDEX(piece);
     Bitboard rank = RankMask(king_square);
     Bitboard &rooks = board_.pieces_[opp][ROOK];
     Bitboard rook = rooks & rank & kKingSide;
@@ -190,7 +218,7 @@ void Position::Undo(Move &move) {
   }
 
   if (move.piece == KING && move.Is(CASTLE_LEFT)) [[unlikely]] {
-    int king_square = BIT_INDEX(piece);
+    uint8_t king_square = BIT_INDEX(piece);
     Bitboard rank = RankMask(king_square);
     Bitboard &rooks = board_.pieces_[opp][ROOK];
     Bitboard rook = rooks & rank & kQueenSide;
@@ -234,9 +262,9 @@ void Position::UpdateInternals() {
 
   Bitboard pawns = board_.pieces_[turn_][PAWN];
   Bitboard king = board_.pieces_[turn_][KING];
-  int ep_sq = BIT_INDEX(en_passant_target_);
+  uint8_t ep_sq = BIT_INDEX(en_passant_target_);
   Bitboard ep_rank = RankMask(ep_sq);
-  int king_sq = BIT_INDEX(king);
+  uint8_t king_sq = BIT_INDEX(king);
 
   if (en_passant_target_ && (ep_rank & king) && (ep_rank & enemy_rook_queen) &&
       (ep_rank & pawns)) {
@@ -308,7 +336,6 @@ void Position::UpdateMailbox() {
           mailbox_[i] = piece;
         }
       }
-
     } else {
       mailbox_[i] = NONE;
     }

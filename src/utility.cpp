@@ -1,11 +1,12 @@
 #include <cstddef>
+#include <cstdint>
 #include <cstring>
 
 #include <chesstillo/board.hpp>
 #include <chesstillo/types.hpp>
 #include <chesstillo/utility.hpp>
 
-bool PieceToChar(Piece piece, char *c) {
+bool PieceToChar(char *c, Piece piece) {
   switch (piece) {
   case ROOK:
     *c = 'r';
@@ -32,8 +33,8 @@ bool PieceToChar(Piece piece, char *c) {
   return true;
 }
 
-bool PieceToChar(Piece piece, Color color, char *c) {
-  if (!PieceToChar(piece, c)) {
+bool PieceToChar(char *c, Piece piece, Color color) {
+  if (!PieceToChar(c, piece)) {
     return false;
   }
 
@@ -42,7 +43,7 @@ bool PieceToChar(Piece piece, Color color, char *c) {
   return true;
 }
 
-bool MoveToString(Move const &move, Color turn, char *text) {
+bool MoveToString(char *text, Move const &move, Color turn) {
   Coord to;
   Coord from;
 
@@ -54,7 +55,7 @@ bool MoveToString(Move const &move, Color turn, char *text) {
   char piece;
   char buffer[6];
 
-  if (move.piece != PAWN && PieceToChar(move.piece, turn, &piece)) {
+  if (move.piece != PAWN && PieceToChar(&piece, move.piece, turn)) {
     buffer[i++] = piece;
 
     if (move.Is(CAPTURE)) {
@@ -87,36 +88,20 @@ bool MoveToString(Move const &move, Color turn, char *text) {
   return true;
 }
 
-std::size_t Split(Bitboard bb, Bitboard *const out) {
-  std::size_t size = 0;
-
-  Bitboard lsb = bb & -bb;
-  Bitboard rest = bb ^ lsb;
-
-  while (lsb) {
-    out[size++] = lsb;
-
-    lsb = rest & -rest;
-    rest ^= lsb;
-  }
-
-  return size;
-}
-
-Move DeduceMove(Position &position, unsigned int from, unsigned int to) {
+Move DeduceMove(Position &position, uint8_t from, uint8_t to) {
   Piece piece;
   Piece captured;
 
-  position.PieceAtSquare(from, &piece);
+  position.PieceAt(&piece, from);
 
   Move move(from, to, piece);
 
-  if (position.PieceAtSquare(to, &captured)) {
+  if (position.PieceAt(&captured, to)) {
     move.captured = captured;
     move.Set(CAPTURE);
   }
 
-  if (BITBOARD_FOR_SQUARE(to) & position.en_passant_sq_) {
+  if (BITBOARD_FOR_SQUARE(to) & position.EnPassantSquare()) {
     move.Set(EN_PASSANT);
   }
 

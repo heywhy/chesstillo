@@ -2,14 +2,13 @@
 #define UTILITY_HPP
 
 #include <cstddef>
+#include <cstdint>
 
 #include <chesstillo/position.hpp>
 #include <chesstillo/types.hpp>
 
-std::size_t Split(Bitboard bb, Bitboard *const out);
-
-bool PieceToChar(Piece piece, char *c);
-bool PieceToChar(Piece piece, Color color, char *c);
-bool MoveToString(Move const &move, Color turn, char *text);
-Move DeduceMove(Position &position, unsigned int from, unsigned int to);
+bool PieceToChar(char *c, Piece piece);
+bool PieceToChar(char *c, Piece piece, Color color);
+bool MoveToString(char *text, Move const &move, Color turn);
+Move DeduceMove(Position &position, uint8_t from, uint8_t to);
 #endif

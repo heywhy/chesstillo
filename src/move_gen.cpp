@@ -21,7 +21,7 @@
 #define MAX_PIECE_NUMBER 10
 #define MAX_MOVES_BUFFER_SIZE 256
 
-inline bool PieceAt(Piece *piece, Piece *mailbox, unsigned int square) {
+inline bool PieceAt(Piece *piece, Piece *mailbox, uint8_t square) {
   *piece = mailbox[square];
 
   return *piece != NONE;
@@ -48,7 +48,7 @@ std::vector<Move> GenerateMoves(Position &position) {
   Bitboard movable_sqs = enemy_or_empty_sqs & check_mask;
 
   // 1. safe king squares
-  int king_sq = BIT_INDEX(own_pieces[KING]);
+  uint8_t king_sq = BIT_INDEX(own_pieces[KING]);
   Bitboard legal_king_moves =
       kAttackMaps[KING][king_sq] & enemy_or_empty_sqs & ~position.king_ban_;
 
@@ -57,9 +57,10 @@ std::vector<Move> GenerateMoves(Position &position) {
 
   BITLOOP(captures) {
     Piece piece;
-    Move move(king_sq, LOOP_INDEX, KING);
+    uint8_t to = LOOP_INDEX;
+    Move move(king_sq, to, KING);
 
-    PieceAt(&piece, position.mailbox_, LOOP_INDEX);
+    PieceAt(&piece, position.mailbox_, to);
 
     move.captured = piece;
     move.Set(CAPTURE);
@@ -105,9 +106,10 @@ std::vector<Move> GenerateMoves(Position &position) {
     Bitboard single_targets = free_pawns_pts | pinned_pawns_pts;
 
     BITLOOP(single_targets) {
-      int from = LOOP_INDEX + file_shift;
+      uint8_t to = LOOP_INDEX;
+      uint8_t from = to + file_shift;
 
-      moves.emplace_back(from, LOOP_INDEX, PAWN);
+      moves.emplace_back(from, to, PAWN);
     }
 
     int dbl_file_shift = file_shift * 2;
@@ -120,7 +122,10 @@ std::vector<Move> GenerateMoves(Position &position) {
     Bitboard double_targets = free_pawns_dts | pinned_pawns_dts;
 
     BITLOOP(double_targets) {
-      moves.emplace_back(LOOP_INDEX + dbl_file_shift, LOOP_INDEX, PAWN);
+      uint8_t to = LOOP_INDEX;
+      uint8_t from = to + dbl_file_shift;
+
+      moves.emplace_back(from, to, PAWN);
     }
   }
 
@@ -143,8 +148,8 @@ std::vector<Move> GenerateMoves(Position &position) {
 
       BITLOOP(west_targets) {
         Piece piece;
-        int to = LOOP_INDEX;
-        int from = to + west_shift;
+        uint8_t to = LOOP_INDEX;
+        uint8_t from = to + west_shift;
         Move move(from, to, PAWN);
 
         PieceAt(&piece, position.mailbox_, to);
@@ -160,8 +165,8 @@ std::vector<Move> GenerateMoves(Position &position) {
 
       BITLOOP(east_targets) {
         Piece piece;
-        int to = LOOP_INDEX;
-        int from = to + east_shift;
+        uint8_t to = LOOP_INDEX;
+        uint8_t from = to + east_shift;
         Move move(from, to, PAWN);
 
         PieceAt(&piece, position.mailbox_, to);
@@ -184,8 +189,9 @@ std::vector<Move> GenerateMoves(Position &position) {
           (free_pawns_wts & capture_mask) | (pinned_pawns_wts & capture_mask);
 
       BITLOOP(west_targets) {
-        int from = LOOP_INDEX + west_shift;
-        Move move(from, LOOP_INDEX, PAWN);
+        uint8_t to = LOOP_INDEX;
+        uint8_t from = to + west_shift;
+        Move move(from, to, PAWN);
 
         move.Set(EN_PASSANT);
 
@@ -196,8 +202,9 @@ std::vector<Move> GenerateMoves(Position &position) {
           (free_pawns_ets & capture_mask) | (pinned_pawns_ets & capture_mask);
 
       BITLOOP(east_targets) {
-        int from = LOOP_INDEX + east_shift;
-        Move move(from, LOOP_INDEX, PAWN);
+        uint8_t to = LOOP_INDEX;
+        int from = to + east_shift;
+        Move move(from, to, PAWN);
 
         move.Set(EN_PASSANT);
 
@@ -211,7 +218,7 @@ std::vector<Move> GenerateMoves(Position &position) {
     Bitboard knights = own_pieces[KNIGHT] & ~pin_mask;
 
     BITLOOP(knights) {
-      int from = LOOP_INDEX;
+      uint8_t from = LOOP_INDEX;
       Bitboard targets = kAttackMaps[KNIGHT][from] & movable_sqs;
 
       AddMovesToList(moves, from, targets, KNIGHT, position.mailbox_,
@@ -227,7 +234,7 @@ std::vector<Move> GenerateMoves(Position &position) {
     Bitboard pinned_bishops = (bishops | queens) & pin_diag_mask;
 
     BITLOOP(pinned_bishops) {
-      int from = LOOP_INDEX;
+      uint8_t from = LOOP_INDEX;
       Bitboard bb = BITBOARD_FOR_SQUARE(from);
       Bitboard targets = kSlidingAttacks.Bishop(occupied_sqs, from) &
                          movable_sqs & pin_diag_mask;
@@ -241,7 +248,7 @@ std::vector<Move> GenerateMoves(Position &position) {
     }
 
     BITLOOP(free_bishops) {
-      int from = LOOP_INDEX;
+      uint8_t from = LOOP_INDEX;
       Bitboard targets =
           kSlidingAttacks.Bishop(occupied_sqs, from) & movable_sqs;
 
@@ -258,7 +265,7 @@ std::vector<Move> GenerateMoves(Position &position) {
     Bitboard pinned_rooks = (rooks | queens) & pin_hv_mask;
 
     BITLOOP(pinned_rooks) {
-      int from = LOOP_INDEX;
+      uint8_t from = LOOP_INDEX;
       Bitboard bb = BITBOARD_FOR_SQUARE(from);
       Bitboard targets =
           kSlidingAttacks.Rook(occupied_sqs, from) & movable_sqs & pin_hv_mask;
@@ -272,7 +279,7 @@ std::vector<Move> GenerateMoves(Position &position) {
     }
 
     BITLOOP(free_rooks) {
-      int from = LOOP_INDEX;
+      uint8_t from = LOOP_INDEX;
 
       Bitboard targets = kSlidingAttacks.Rook(occupied_sqs, from) & movable_sqs;
 
@@ -287,7 +294,7 @@ std::vector<Move> GenerateMoves(Position &position) {
     Bitboard mqueens = own_pieces[QUEEN] & ~pin_mask;
 
     BITLOOP(mqueens) {
-      int from = LOOP_INDEX;
+      uint8_t from = LOOP_INDEX;
 
       Bitboard targets =
           kSlidingAttacks.Queen(occupied_sqs, from) & movable_sqs;
@@ -305,8 +312,8 @@ std::vector<Move> GenerateMoves(Position &position) {
         position.turn_ == WHITE ? std::make_tuple(a1, h1, kRank1)
                                 : std::make_tuple(a8, h8, kRank8);
 
-    std::uint8_t king_side = CASTLE_RIGHT(position.turn_);
-    std::uint8_t queen_side = CASTLE_LEFT(position.turn_);
+    uint8_t king_side = CASTLE_RIGHT(position.turn_);
+    uint8_t queen_side = CASTLE_LEFT(position.turn_);
     Bitboard rooks = own_pieces[ROOK];
     Bitboard king = own_pieces[KING] & starting_rank;
     Bitboard king_side_rook = rooks & BITBOARD_FOR_SQUARE(right_rook);
@@ -354,8 +361,8 @@ std::vector<Move> GenerateMoves(Position &position) {
     Bitboard single_targets = free_pawns_pts | pinned_pawns_pts;
 
     BITLOOP(single_targets) {
-      int to = LOOP_INDEX;
-      int from = LOOP_INDEX + file_shift;
+      uint8_t to = LOOP_INDEX;
+      uint8_t from = LOOP_INDEX + file_shift;
 
       for (Piece piece : {QUEEN, ROOK, BISHOP, KNIGHT}) {
         Move move(from, to, PAWN);
@@ -381,8 +388,8 @@ std::vector<Move> GenerateMoves(Position &position) {
 
       BITLOOP(west_targets) {
         Piece enemy_piece;
-        int to = LOOP_INDEX;
-        Bitboard from = LOOP_INDEX + west_shift;
+        uint8_t to = LOOP_INDEX;
+        uint8_t from = to + west_shift;
 
         PieceAt(&enemy_piece, position.mailbox_, to);
 
@@ -406,8 +413,8 @@ std::vector<Move> GenerateMoves(Position &position) {
 
       BITLOOP(east_targets) {
         Piece enemy_piece;
-        int to = LOOP_INDEX;
-        Bitboard from = LOOP_INDEX + east_shift;
+        uint8_t to = LOOP_INDEX;
+        uint8_t from = to + east_shift;
 
         PieceAt(&enemy_piece, position.mailbox_, to);
 
@@ -429,7 +436,7 @@ std::vector<Move> GenerateMoves(Position &position) {
   return moves;
 }
 
-void AddMovesToList(std::vector<Move> &moves, int from, Bitboard targets,
+void AddMovesToList(std::vector<Move> &moves, uint8_t from, Bitboard targets,
                     Piece piece, Piece *mailbox, Bitboard enemy_bb) {
   BITLOOP(targets) {
     Piece captured;
@@ -467,7 +474,7 @@ Bitboard CheckMask(Position &position) {
     mask = inverse_west_targets(king_bb);
   }
 
-  int king_square = BIT_INDEX(king_bb);
+  uint8_t king_square = BIT_INDEX(king_bb);
 
   Bitboard knight = kAttackMaps[KNIGHT][king_square] & opp_pieces[KNIGHT];
 
@@ -482,7 +489,7 @@ Bitboard CheckMask(Position &position) {
         kSlidingAttacks.Bishop(occupied_sqs, king_square) & enemy_bishop_queen;
 
     BITLOOP(pieces) {
-      int bishop = LOOP_INDEX;
+      uint8_t bishop = LOOP_INDEX;
       Bitboard rays_from_attacker = kCheckBetween[BISHOP][king_square][bishop];
 
       if (mask != kUniverse) {
@@ -500,7 +507,7 @@ Bitboard CheckMask(Position &position) {
         kSlidingAttacks.Rook(occupied_sqs, king_square) & enemy_rook_queen;
 
     BITLOOP(pieces) {
-      int rook = LOOP_INDEX;
+      uint8_t rook = LOOP_INDEX;
       Bitboard rays_from_attacker = kCheckBetween[ROOK][king_square][rook];
 
       if (mask != kUniverse) {
@@ -528,7 +535,7 @@ std::tuple<Bitboard, Bitboard> PinMask(Position &position) {
   Bitboard enemy_rook_queen = opp_pieces[ROOK] | opp_pieces[QUEEN];
   Bitboard enemy_bishop_queen = opp_pieces[BISHOP] | opp_pieces[QUEEN];
 
-  int king_square = BIT_INDEX(king_bb);
+  uint8_t king_square = BIT_INDEX(king_bb);
 
   if (kAttackMaps[ROOK][king_square] & enemy_rook_queen) {
     Bitboard attacks_from_king =
@@ -539,7 +546,7 @@ std::tuple<Bitboard, Bitboard> PinMask(Position &position) {
     Bitboard pieces = xray_attacks_from_king & enemy_rook_queen;
 
     BITLOOP(pieces) {
-      int rook = LOOP_INDEX;
+      uint8_t rook = LOOP_INDEX;
       Bitboard rays_from_attacker = kCheckBetween[ROOK][king_square][rook];
 
       hv_mask |= rays_from_attacker | BITBOARD_FOR_SQUARE(rook);
@@ -555,7 +562,7 @@ std::tuple<Bitboard, Bitboard> PinMask(Position &position) {
     Bitboard pieces = xray_attacks_from_king & enemy_bishop_queen;
 
     BITLOOP(pieces) {
-      int bishop = LOOP_INDEX;
+      uint8_t bishop = LOOP_INDEX;
       Bitboard rays_from_attacker = kCheckBetween[BISHOP][king_square][bishop];
 
       diag_mask |= rays_from_attacker | BITBOARD_FOR_SQUARE(bishop);

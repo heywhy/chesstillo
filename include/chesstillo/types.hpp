@@ -6,10 +6,10 @@
 
 typedef std::uint64_t Bitboard;
 
-enum Color : std::uint8_t { WHITE, BLACK };
-enum CastleDir : std::uint8_t { LEFT, RIGHT };
-enum Piece : std::uint8_t { ROOK, BISHOP, KNIGHT, KING, QUEEN, PAWN, NONE };
-enum Flag : std::uint8_t {
+enum Color : uint8_t { WHITE, BLACK };
+enum CastleDir : uint8_t { LEFT, RIGHT };
+enum Piece : uint8_t { ROOK, BISHOP, KNIGHT, KING, QUEEN, PAWN, NONE };
+enum Flag : uint8_t {
   CHECK,
   CAPTURE,
   EN_PASSANT,
@@ -22,18 +22,18 @@ enum Flag : std::uint8_t {
 };
 
 #define CASTLE_LEFT(color)                                                     \
-  (static_cast<std::uint8_t>(1)                                                \
-   << (color == WHITE ? LEFT + color : LEFT + color + 1))
+  (static_cast<uint8_t>(1) << (color == WHITE ? LEFT + color                   \
+                                              : LEFT + color + 1))
 #define CASTLE_RIGHT(color)                                                    \
-  (static_cast<std::uint8_t>(1)                                                \
-   << (color == WHITE ? RIGHT + color : RIGHT + color + 1))
+  (static_cast<uint8_t>(1) << (color == WHITE ? RIGHT + color                  \
+                                              : RIGHT + color + 1))
 #define CASTLE_LEFT_WHITE (LEFT + WHITE)
 #define CASTLE_LEFT_BLACK (LEFT + BLACK + 1)
 #define CASTLE_RIGHT_WHITE (RIGHT + WHITE)
 #define CASTLE_RIGHT_BLACK (RIGHT + BLACK + 1)
 
 // clang-format off
-enum ESquare : unsigned int {
+enum ESquare : uint8_t {
   a1, b1, c1, d1, e1, f1, g1, h1,
   a2, b2, c2, d2, e2, f2, g2, h2,
   a3, b3, c3, d3, e3, f3, g3, h3,
@@ -47,26 +47,25 @@ enum ESquare : unsigned int {
 
 // TODO: Maybe find a way to avoid move copying
 struct Move {
-  unsigned int from;
-  unsigned int to;
+  uint8_t from;
+  uint8_t to;
   Piece piece;
-  unsigned int flags;
+  uint8_t flags;
   Piece captured;
   Piece promoted;
 
-  Move(unsigned int from, unsigned int to, Piece piece)
+  Move(uint8_t from, uint8_t to, Piece piece)
       : from(from), to(to), piece(piece), flags(0) {}
 
-  Move(unsigned int from, unsigned int to, Piece piece, unsigned int flags)
+  Move(uint8_t from, uint8_t to, Piece piece, uint8_t flags)
       : from(from), to(to), piece(piece), flags(flags) {}
 
-  void Set(unsigned int flag) { flags |= 1U << flag; }
+  void Set(uint8_t flag) { flags |= 1U << flag; }
 
-  bool Is(unsigned int flag) const { return flags & (1U << flag); }
+  bool Is(uint8_t flag) const { return flags & (1U << flag); }
 
   friend inline bool operator==(const Move &lhs, const Move &rhs) {
     return lhs.from == rhs.from && lhs.to == rhs.to && lhs.piece == rhs.piece;
   }
 };
-
 #endif
