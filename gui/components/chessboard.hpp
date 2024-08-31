@@ -1,20 +1,23 @@
 #ifndef GUI_CHESSBOARD_HPP
 #define GUI_CHESSBOARD_HPP
 
-#include <chesstillo/board.hpp>
 #include <cstdint>
+
+#include <chesstillo/position.hpp>
+#include <chesstillo/utility.hpp>
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/component_base.hpp>
 #include <ftxui/component/mouse.hpp>
 #include <ftxui/dom/node.hpp>
 
 #include "components/square.hpp"
-#include "utils.hpp"
+#include "contracts.hpp"
 
-class Chessboard : public ftxui::ComponentBase, public OnSelectSquare {
+class Chessboard : public ftxui::ComponentBase, public SquareListener {
 public:
-  Chessboard(const Theme *theme, std::shared_ptr<Board> board)
-      : board_(board), selected_(-1) {
+  Chessboard(const Theme *theme, std::shared_ptr<Position> position,
+             ChessboardListener *listener)
+      : position_(position), selected_(-1), listener_(listener) {
     for (int i = 0; i < 64; i++) {
       Add(ftxui::Make<Square>(theme, this, i, &selected_));
     }
@@ -76,13 +79,11 @@ public:
       return;
     }
 
-    // FIXME: Only current player pieces are selectable.
-    Piece piece;
+    if (listener_ != nullptr) {
+      Move move =
+          DeduceMove(*position_, selected->GetIndex(), square->GetIndex());
 
-    if (board_->PieceAtSquare(selected->bitboard, &piece)) {
-      Move move(selected->bitboard, square->bitboard, board_->GetTurn(), piece);
-
-      board_->ApplyMove(move);
+      listener_->OnMove(move);
 
       FillBoard();
     }
@@ -95,7 +96,7 @@ public:
       char piece;
       Square *square = dynamic_cast<Square *>(component.get());
 
-      if (board_->PieceAtSquare(square->bitboard, &piece)) {
+      if (position_->PieceAt(&piece, square->GetIndex())) {
         square->SetPiece(piece);
       } else {
         square->SetPiece('\0');
@@ -105,8 +106,9 @@ public:
 
 private:
   ftxui::Box box_;
-  std::shared_ptr<Board> board_;
-  std::int8_t selected_;
+  std::shared_ptr<Position> position_;
+  int8_t selected_;
+  ChessboardListener *listener_;
 };
 
 #endif

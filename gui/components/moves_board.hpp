@@ -1,32 +1,32 @@
 #ifndef GUI_MOVES_HPP
-
 #define GUI_MOVES_HPP
 
-#include <chesstillo/board.hpp>
+#include <list>
+#include <string>
+
 #include <chesstillo/types.hpp>
 #include <ftxui/component/component_base.hpp>
 #include <ftxui/dom/elements.hpp>
 #include <ftxui/dom/node.hpp>
-#include <list>
-#include <memory>
-#include <string>
+
+#include "utils.hpp"
 
 class MovesBoard : public ftxui::ComponentBase {
 public:
-  MovesBoard(std::shared_ptr<Board> board) : board_(board) {}
+  MovesBoard(std::list<Move> *moves) : moves_(moves) {}
 
   ftxui::Element Render() override {
     ftxui::Elements elements;
 
-    std::list<Move> moves = board_->GetMoves();
-
-    elements.reserve(moves.size() / 2);
+    elements.reserve(moves_->size() / 2);
 
     int index = 1;
-    auto it = moves.rbegin();
+    int count = 0;
+    auto it = moves_->rbegin();
 
-    while (it != moves.rend()) {
+    while (it != moves_->rend()) {
       ftxui::Elements texts;
+      Color turn = static_cast<Color>(count % 2);
       std::string move_number = std::to_string(index) + ". ";
 
       texts.push_back(ftxui::text(move_number) | ftxui::center |
@@ -34,18 +34,22 @@ public:
 
       char text[5];
 
-      if (MoveToString(*it, text)) {
+      if (ToString(text, *it, turn)) {
         texts.push_back(ftxui::text(text) |
                         ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 10));
 
         it++;
+        count++;
       }
 
-      if (it != moves.rend() && MoveToString(*it, text)) {
+      turn = static_cast<Color>(count % 2);
+
+      if (it != moves_->rend() && ToString(text, *it, turn)) {
         texts.push_back(ftxui::text(text) |
                         ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 10));
 
         it++;
+        count++;
       }
 
       if (texts.size() > 0) {
@@ -63,7 +67,7 @@ public:
   bool Focusable() const override { return true; }
 
 private:
-  std::shared_ptr<Board> board_;
+  std::list<Move> *moves_;
 };
 
 #endif

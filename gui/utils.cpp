@@ -1,3 +1,5 @@
+#include <chesstillo/board.hpp>
+#include <chesstillo/utility.hpp>
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/event.hpp>
 #include <ftxui/component/screen_interactive.hpp>
@@ -16,4 +18,49 @@ void HookQuitEvent(ftxui::Component &component) {
 
     return false;
   });
+}
+
+bool ToString(char *text, Move const &move, Color turn) {
+  Coord to;
+  Coord from;
+
+  if (!CoordForSquare(&from, move.from) || !CoordForSquare(&to, move.to)) {
+    return false;
+  }
+
+  int i = 0;
+  char piece;
+  char buffer[6];
+
+  if (move.piece != PAWN && PieceToChar(&piece, move.piece, turn)) {
+    buffer[i++] = piece;
+
+    if (move.Is(CAPTURE)) {
+      buffer[i++] = 'x';
+    }
+
+    buffer[i++] = to.file;
+  } else if (move.Is(CAPTURE)) {
+    buffer[i++] = from.file;
+    buffer[i++] = 'x';
+    buffer[i++] = to.file;
+  } else {
+    buffer[i++] = to.file;
+  }
+
+  buffer[i++] = 48 + to.rank;
+
+  if (move.Is(CHECK)) {
+    buffer[i++] = '+';
+  }
+
+  if (move.Is(CHECKMATE)) {
+    buffer[i - 1] = '#';
+  }
+
+  buffer[i++] = '\0';
+
+  std::strcpy(text, buffer);
+
+  return true;
 }

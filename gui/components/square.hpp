@@ -1,27 +1,28 @@
 #ifndef GUI_SQUARE_HPP
 #define GUI_SQUARE_HPP
 
+#include <tuple>
+
 #include <chesstillo/board.hpp>
 #include <chesstillo/constants.hpp>
 #include <chesstillo/types.hpp>
 #include <ftxui/component/component_base.hpp>
 #include <ftxui/component/event.hpp>
 #include <ftxui/screen/color.hpp>
-#include <tuple>
 
+#include "contracts.hpp"
 #include "fonts.hpp"
 #include "theme.hpp"
-#include "utils.hpp"
 
 class Square : public ftxui::ComponentBase {
 public:
-  Bitboard const bitboard;
-
-  Square(const Theme *theme, OnSelectSquare *observer, std::uint8_t index,
+  Square(const Theme *theme, SquareListener *listener, std::uint8_t index,
          std::int8_t *selected)
-      : bitboard(BITBOARD_FOR_SQUARE(index)), theme_(theme),
-        observer_(observer), index_(index), selected_(selected), piece_('\0') {}
+      : theme_(theme), listener_(listener), index_(index),
+        bitboard_(BITBOARD_FOR_SQUARE(index)), selected_(selected),
+        piece_('\0') {}
 
+  std::uint8_t GetIndex() { return index_; }
   void SetPiece(char piece) { piece_ = piece; }
   bool IsEmpty() { return piece_ == '\0'; }
 
@@ -43,7 +44,7 @@ public:
 
     if (*selected_ != index_) {
       ftxui::Color color =
-          bitboard & kDarkSquares ? theme_->dark_square : theme_->light_square;
+          bitboard_ & kDarkSquares ? theme_->dark_square : theme_->light_square;
 
       square |= ftxui::bgcolor(color);
     } else {
@@ -54,13 +55,13 @@ public:
   }
 
   bool OnEvent(ftxui::Event event) override {
-    if (event.is_mouse()) {
+    if (event.is_mouse() && listener_ != nullptr) {
       ftxui::Mouse mouse = event.mouse();
 
       if (mouse.motion == ftxui::Mouse::Motion::Pressed &&
           mouse.button == ftxui::Mouse::Button::Left &&
           box_.Contain(mouse.x, mouse.y)) {
-        observer_->OnSelect(index_);
+        listener_->OnSelect(index_);
 
         return true;
       }
@@ -72,8 +73,9 @@ public:
 private:
   ftxui::Box box_;
   const Theme *theme_;
-  OnSelectSquare *observer_;
+  SquareListener *listener_;
   std::uint8_t index_;
+  Bitboard bitboard_;
   std::int8_t *selected_;
   char piece_;
 
