@@ -47,7 +47,7 @@ include(FetchContent)
 FetchContent_Declare(
   ftxui
   GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui.git
-  GIT_TAG 5a9ef876a14b91a3cc5b0313cfdaf6b5527eccf4
+  GIT_TAG dfb9558eaff417ee7909169d0abd66e6c52c9d55
   GIT_SHALLOW true
 )
 
