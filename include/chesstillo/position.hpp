@@ -3,8 +3,10 @@
 
 #include <cstdint>
 #include <cstring>
-#include <list>
 #include <stack>
+#include <string>
+#include <tuple>
+#include <vector>
 
 #include "board.hpp"
 #include "constants.hpp"
