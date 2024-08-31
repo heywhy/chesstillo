@@ -21,7 +21,7 @@ public:
     config.Set(ftxui::FlexboxConfig::JustifyContent::Center);
 
     ftxui::Element content =
-        ftxui::flexbox({ftxui::text("Welcome to Chestillo") | ftxui::bold,
+        ftxui::flexbox({ftxui::text("Welcome to Chesstillo") | ftxui::bold,
                         ftxui::separatorEmpty(), ftxui::text("[n] New game"),
                         ftxui::text("[q] Quit")},
                        config) |
