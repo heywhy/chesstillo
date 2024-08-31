@@ -14,7 +14,7 @@ else()
   set(COMPILE_OPTIONS /std:c++20)
 endif()
 
-add_library(chesstillo
+add_library(chesstillo_lib
   STATIC
   src/initializer.cpp
   src/utility.cpp
@@ -26,21 +26,27 @@ add_library(chesstillo
   src/game.cpp
 )
 
-target_include_directories(chesstillo PRIVATE include)
-target_compile_options(chesstillo PRIVATE ${COMPILE_OPTIONS})
-target_link_options(chesstillo PRIVATE -O3)
+target_include_directories(chesstillo_lib PRIVATE include)
+target_compile_options(chesstillo_lib PRIVATE ${COMPILE_OPTIONS})
+target_link_options(chesstillo_lib PRIVATE -O3)
 
 add_executable(chesstillo_tui tui/theme.cpp tui/utils.cpp tui/main.cpp)
 target_include_directories(chesstillo_tui PRIVATE include tui)
-target_link_libraries(chesstillo_tui PRIVATE chesstillo)
+target_link_libraries(chesstillo_tui PRIVATE chesstillo_lib)
 target_compile_options(chesstillo_tui PRIVATE ${COMPILE_OPTIONS})
 target_link_options(chesstillo_tui PRIVATE -O3)
 
 add_executable(chesstillo_perft perft/main.cpp)
 target_include_directories(chesstillo_perft PRIVATE include)
-target_link_libraries(chesstillo_perft PRIVATE chesstillo)
+target_link_libraries(chesstillo_perft PRIVATE chesstillo_lib)
 target_compile_options(chesstillo_perft PRIVATE ${COMPILE_OPTIONS})
 target_link_options(chesstillo_perft PRIVATE -O3)
+
+add_executable(chesstillo uci/main.cpp)
+target_include_directories(chesstillo PRIVATE include)
+target_link_libraries(chesstillo PRIVATE chesstillo_lib)
+target_compile_options(chesstillo PRIVATE ${COMPILE_OPTIONS})
+target_link_options(chesstillo PRIVATE -O3)
 
 include(FetchContent)
 
@@ -73,7 +79,7 @@ FetchContent_MakeAvailable(ftxui googletest magic_bits)
 add_library(magic_bits INTERFACE)
 target_include_directories(magic_bits INTERFACE ${magic_bits_SOURCE_DIR}/include)
 
-target_link_libraries(chesstillo PUBLIC magic_bits)
+target_link_libraries(chesstillo_lib PUBLIC magic_bits)
 
 target_link_libraries(
   chesstillo_tui
@@ -90,7 +96,7 @@ add_executable(chesstillo_test ${TEST_SRC})
 target_include_directories(chesstillo_test PRIVATE include)
 target_link_libraries(
   chesstillo_test
-  PRIVATE chesstillo
+  PRIVATE chesstillo_lib
   PRIVATE GTest::gtest_main
 )
 
