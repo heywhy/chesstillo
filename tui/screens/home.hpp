@@ -1,6 +1,5 @@
-#ifndef GUI_HOME_HPP
-
-#define GUI_HOME_HPP
+#ifndef TUI_HOME_HPP
+#define TUI_HOME_HPP
 
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/component_base.hpp>
@@ -51,5 +50,4 @@ private:
     screen.Loop(component);
   }
 };
-
 #endif

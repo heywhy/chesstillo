@@ -1,5 +1,5 @@
-#ifndef GUI_MOVES_HPP
-#define GUI_MOVES_HPP
+#ifndef TUI_MOVES_HPP
+#define TUI_MOVES_HPP
 
 #include <list>
 #include <string>
@@ -69,5 +69,4 @@ public:
 private:
   std::list<Move> *moves_;
 };
-
 #endif

@@ -1,5 +1,5 @@
-#ifndef GUI_CHESSBOARD_HPP
-#define GUI_CHESSBOARD_HPP
+#ifndef TUI_CHESSBOARD_HPP
+#define TUI_CHESSBOARD_HPP
 
 #include <cstdint>
 
@@ -110,5 +110,4 @@ private:
   int8_t selected_;
   ChessboardListener *listener_;
 };
-
 #endif

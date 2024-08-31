@@ -1,5 +1,5 @@
-#ifndef GUI_UTILS_HPP
-#define GUI_UTILS_HPP
+#ifndef TUI_UTILS_HPP
+#define TUI_UTILS_HPP
 
 #include <chesstillo/types.hpp>
 #include <ftxui/component/component_base.hpp>

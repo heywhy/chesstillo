@@ -1,5 +1,5 @@
-#ifndef GUI_CONTRACTS_HPP
-#define GUI_CONTRACTS_HPP
+#ifndef TUI_CONTRACTS_HPP
+#define TUI_CONTRACTS_HPP
 
 #include <cstdint>
 
@@ -14,5 +14,4 @@ class SquareListener {
 public:
   virtual void OnSelect(std::uint8_t index) = 0;
 };
-
 #endif

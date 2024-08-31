@@ -1,6 +1,6 @@
 // dubbed from tuwe. https://github.com/moogion/tuwe
-#ifndef GUI_SCROLL_VIEW_HPP
-#define GUI_SCROLL_VIEW_HPP
+#ifndef TUI_SCROLL_VIEW_HPP
+#define TUI_SCROLL_VIEW_HPP
 
 #include <ftxui/component/component_base.hpp>
 #include <ftxui/component/event.hpp>
@@ -151,5 +151,4 @@ private:
   int size_width_;
   int size_height_;
 };
-
 #endif

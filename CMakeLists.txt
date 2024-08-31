@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.29.3)
 
-project(chestillo)
+project(chesstillo)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 20)
@@ -14,7 +14,7 @@ else()
   set(COMPILE_OPTIONS /std:c++20)
 endif()
 
-add_library(chestillo
+add_library(chesstillo
   STATIC
   src/initializer.cpp
   src/utility.cpp
@@ -26,21 +26,21 @@ add_library(chestillo
   src/game.cpp
 )
 
-target_include_directories(chestillo PRIVATE include)
-target_compile_options(chestillo PRIVATE ${COMPILE_OPTIONS})
-target_link_options(chestillo PRIVATE -O3)
+target_include_directories(chesstillo PRIVATE include)
+target_compile_options(chesstillo PRIVATE ${COMPILE_OPTIONS})
+target_link_options(chesstillo PRIVATE -O3)
 
-add_executable(chestillo_gui gui/theme.cpp gui/utils.cpp gui/main.cpp)
-target_include_directories(chestillo_gui PRIVATE include gui)
-target_link_libraries(chestillo_gui PRIVATE chestillo)
-target_compile_options(chestillo_gui PRIVATE ${COMPILE_OPTIONS})
-target_link_options(chestillo_gui PRIVATE -O3)
+add_executable(chesstillo_tui tui/theme.cpp tui/utils.cpp tui/main.cpp)
+target_include_directories(chesstillo_tui PRIVATE include tui)
+target_link_libraries(chesstillo_tui PRIVATE chesstillo)
+target_compile_options(chesstillo_tui PRIVATE ${COMPILE_OPTIONS})
+target_link_options(chesstillo_tui PRIVATE -O3)
 
-add_executable(chestillo_perft perft/main.cpp)
-target_include_directories(chestillo_perft PRIVATE include)
-target_link_libraries(chestillo_perft PRIVATE chestillo)
-target_compile_options(chestillo_perft PRIVATE ${COMPILE_OPTIONS})
-target_link_options(chestillo_perft PRIVATE -O3)
+add_executable(chesstillo_perft perft/main.cpp)
+target_include_directories(chesstillo_perft PRIVATE include)
+target_link_libraries(chesstillo_perft PRIVATE chesstillo)
+target_compile_options(chesstillo_perft PRIVATE ${COMPILE_OPTIONS})
+target_link_options(chesstillo_perft PRIVATE -O3)
 
 include(FetchContent)
 
@@ -73,10 +73,10 @@ FetchContent_MakeAvailable(ftxui googletest magic_bits)
 add_library(magic_bits INTERFACE)
 target_include_directories(magic_bits INTERFACE ${magic_bits_SOURCE_DIR}/include)
 
-target_link_libraries(chestillo PUBLIC magic_bits)
+target_link_libraries(chesstillo PUBLIC magic_bits)
 
 target_link_libraries(
-  chestillo_gui
+  chesstillo_tui
   PRIVATE ftxui::screen
   PRIVATE ftxui::dom
   PRIVATE ftxui::component
@@ -86,14 +86,14 @@ enable_testing()
 
 file(GLOB TEST_SRC LIST_DIRECTORIES false src/*_test.cpp)
 
-add_executable(chestillo_test ${TEST_SRC})
-target_include_directories(chestillo_test PRIVATE include)
+add_executable(chesstillo_test ${TEST_SRC})
+target_include_directories(chesstillo_test PRIVATE include)
 target_link_libraries(
-  chestillo_test
-  PRIVATE chestillo
+  chesstillo_test
+  PRIVATE chesstillo
   PRIVATE GTest::gtest_main
 )
 
 include(GoogleTest)
 
-gtest_discover_tests(chestillo_test)
+gtest_discover_tests(chesstillo_test)

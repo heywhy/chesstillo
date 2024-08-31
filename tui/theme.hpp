@@ -1,6 +1,5 @@
-#ifndef GUI_THEME_HPP
-
-#define GUI_THEME_HPP
+#ifndef TUI_THEME_HPP
+#define TUI_THEME_HPP
 
 #include <ftxui/screen/color.hpp>
 
@@ -13,5 +12,4 @@ struct Theme {
 
   static const Theme Default;
 };
-
 #endif

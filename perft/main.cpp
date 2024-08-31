@@ -219,9 +219,10 @@ int main() {
   PerftFun perft = BulkPerft;
 
   ApplyFen(position, START_FEN);
+  // ApplyFen(position, "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -");
 
   perft = ThreadedPerft;
-  Run(position, perft, 8 - 0, true);
+  Run(position, perft, 8 - 2, true);
 
   return 0;
 }

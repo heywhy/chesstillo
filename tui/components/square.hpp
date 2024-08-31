@@ -1,5 +1,5 @@
-#ifndef GUI_SQUARE_HPP
-#define GUI_SQUARE_HPP
+#ifndef TUI_SQUARE_HPP
+#define TUI_SQUARE_HPP
 
 #include <tuple>
 
@@ -136,5 +136,4 @@ private:
     return true;
   }
 };
-
 #endif

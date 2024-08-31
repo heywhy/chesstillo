@@ -1,5 +1,5 @@
-#ifndef GUI_MATCH_HPP
-#define GUI_MATCH_HPP
+#ifndef TUI_MATCH_HPP
+#define TUI_MATCH_HPP
 
 #include <list>
 #include <memory>
@@ -101,5 +101,4 @@ private:
     GetChessboard()->FillBoard();
   }
 };
-
 #endif
