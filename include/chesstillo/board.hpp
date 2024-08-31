@@ -28,8 +28,6 @@ public:
 
   void Reset();
 
-  Bitboard Position(Piece piece, Color color) { return pieces_[color][piece]; }
-
 private:
   // pawn, rook, knight, bishop, queen, king
   Bitboard pieces_[2][6];

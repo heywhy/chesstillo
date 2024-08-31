@@ -43,51 +43,6 @@ bool PieceToChar(char *c, Piece piece, Color color) {
   return true;
 }
 
-bool MoveToString(char *text, Move const &move, Color turn) {
-  Coord to;
-  Coord from;
-
-  if (!CoordForSquare(&from, move.from) || !CoordForSquare(&to, move.to)) {
-    return false;
-  }
-
-  int i = 0;
-  char piece;
-  char buffer[6];
-
-  if (move.piece != PAWN && PieceToChar(&piece, move.piece, turn)) {
-    buffer[i++] = piece;
-
-    if (move.Is(CAPTURE)) {
-      buffer[i++] = 'x';
-    }
-
-    buffer[i++] = to.file;
-  } else if (move.Is(CAPTURE)) {
-    buffer[i++] = from.file;
-    buffer[i++] = 'x';
-    buffer[i++] = to.file;
-  } else {
-    buffer[i++] = to.file;
-  }
-
-  buffer[i++] = 48 + to.rank;
-
-  if (move.Is(CHECK)) {
-    buffer[i++] = '+';
-  }
-
-  if (move.Is(CHECKMATE)) {
-    buffer[i - 1] = '#';
-  }
-
-  buffer[i++] = '\0';
-
-  std::strcpy(text, buffer);
-
-  return true;
-}
-
 Move DeduceMove(Position &position, uint8_t from, uint8_t to) {
   Piece piece;
   Piece captured;

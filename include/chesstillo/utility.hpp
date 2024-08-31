@@ -9,6 +9,5 @@
 
 bool PieceToChar(char *c, Piece piece);
 bool PieceToChar(char *c, Piece piece, Color color);
-bool MoveToString(char *text, Move const &move, Color turn);
 Move DeduceMove(Position &position, uint8_t from, uint8_t to);
 #endif
