@@ -169,8 +169,6 @@ void Position::Make(Move move) {
     fullmove_counter_++;
   }
 
-  moves_.push_front(std::move(move));
-
   UpdateInternals();
 }
 
@@ -245,7 +243,6 @@ void Position::Undo(Move &move) {
   turn_ = opp;
 
   history_.pop();
-  moves_.pop_front();
 }
 
 void Position::UpdateInternals() {

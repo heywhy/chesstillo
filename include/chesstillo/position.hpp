@@ -58,7 +58,6 @@ public:
   bool PieceAt(Piece *, uint8_t);
 
   Color GetTurn() { return turn_; }
-  std::list<Move> &GetMoves() { return moves_; }
   Bitboard OccupiedSquares() { return *occupied_sqs_; }
   inline Bitboard EnPassantSquare() { return en_passant_sq_; }
 
@@ -75,7 +74,6 @@ private:
   Bitboard en_passant_target_;
   uint8_t castling_rights_;
 
-  std::list<Move> moves_;
   long fullmove_counter_;
   uint8_t halfmove_clock_;
 
