@@ -3,12 +3,18 @@
 
 #include <cstdint>
 #include <tuple>
-#include <vector>
 
 #include <chesstillo/board.hpp>
 #include <chesstillo/constants.hpp>
 #include <chesstillo/position.hpp>
 #include <chesstillo/types.hpp>
+
+// The max number of squares any piece can travel to is that of the queen
+#define MAX_PIECE_MOVES 27
+// Assuming the maximum number of any piece type asides king &
+// pawns is 10
+#define MAX_PIECE_NUMBER 10
+#define MAX_MOVES_BUFFER_SIZE 256
 
 #define MOVE_NORTH(bitboard) bitboard << 8
 #define MOVE_SOUTH(bitboard) bitboard >> 8
@@ -49,10 +55,10 @@
 Bitboard CheckMask(Position &position);
 std::tuple<Bitboard, Bitboard> PinMask(Position &position);
 
-std::vector<Move> GenerateMoves(Position &position);
+Moves GenerateMoves(Position &position);
 
-void AddMovesToList(std::vector<Move> &moves, uint8_t from, Bitboard targets,
-                    Piece piece, Piece *mailbox, Bitboard enemy_bb);
+void AddMovesToList(Moves &moves, uint8_t from, Bitboard targets, Piece piece,
+                    Piece *mailbox, Bitboard enemy_bb);
 
 constexpr Bitboard RankMask(uint8_t square) { return kRank1 << (square & 56); }
 

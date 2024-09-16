@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <tuple>
 #include <utility>
-#include <vector>
 
 #include <magic_bits.hpp>
 
@@ -14,21 +13,14 @@
 #include <chesstillo/types.hpp>
 #include <chesstillo/utility.hpp>
 
-// The max number of squares any piece can travel to is that of the queen
-#define MAX_PIECE_MOVES 27
-// Assuming the maximum number of any piece type asides king &
-// pawns is 10
-#define MAX_PIECE_NUMBER 10
-#define MAX_MOVES_BUFFER_SIZE 256
-
 inline bool PieceAt(Piece *piece, Piece *mailbox, uint8_t square) {
   *piece = mailbox[square];
 
   return *piece != NONE;
 }
 
-std::vector<Move> GenerateMoves(Position &position) {
-  std::vector<Move> moves;
+Moves GenerateMoves(Position &position) {
+  Moves moves;
 
   moves.reserve(218);
 
@@ -436,7 +428,7 @@ std::vector<Move> GenerateMoves(Position &position) {
   return moves;
 }
 
-void AddMovesToList(std::vector<Move> &moves, uint8_t from, Bitboard targets,
+void AddMovesToList(Moves &moves, uint8_t from, Bitboard targets,
                     Piece piece, Piece *mailbox, Bitboard enemy_bb) {
   BITLOOP(targets) {
     Piece captured;

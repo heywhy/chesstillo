@@ -1,6 +1,5 @@
 #include <cstdint>
 #include <tuple>
-#include <utility>
 
 #include <chesstillo/board.hpp>
 #include <chesstillo/constants.hpp>

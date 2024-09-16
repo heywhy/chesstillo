@@ -45,33 +45,6 @@ struct Stat {
   }
 };
 
-bool ToString(Move const &move, char *buf) {
-  Coord to;
-  Coord from;
-
-  if (!CoordForSquare(&from, move.from) || !CoordForSquare(&to, move.to)) {
-    return false;
-  }
-
-  buf[0] = from.file;
-  buf[1] = 48 + from.rank;
-
-  buf[2] = to.file;
-  buf[3] = 48 + to.rank;
-
-  if (move.Is(PROMOTION)) {
-    char piece;
-    PieceToChar(&piece, move.promoted);
-
-    buf[4] = piece;
-    buf[5] = '\0';
-  } else {
-    buf[4] = '\0';
-  }
-
-  return true;
-}
-
 Stat Perft(Position &position, int depth, bool divide) {
   if (depth == 0) {
     return {static_cast<std::uint64_t>(1)};
@@ -104,7 +77,7 @@ Stat Perft(Position &position, int depth, bool divide) {
     if (divide) {
       char s[6];
 
-      if (ToString(move, s)) {
+      if (ToString(s, move)) {
         stat.map.insert({s, result.nodes});
       }
     }
@@ -134,7 +107,7 @@ Stat BulkPerft(Position &position, int depth, bool divide) {
     if (divide) {
       char s[6];
 
-      if (ToString(move, s)) {
+      if (ToString(s, move)) {
         stat.map.insert({s, result.nodes});
       }
     }
@@ -166,7 +139,7 @@ Stat ThreadedPerft(Position &position, int depth, bool divide) {
     if (divide) {
       char s[6];
 
-      if (ToString(*move, s)) {
+      if (ToString(s, *move)) {
         (*stat).map.insert({s, result.nodes});
       }
     }

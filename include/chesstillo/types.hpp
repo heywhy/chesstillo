@@ -3,8 +3,12 @@
 
 #include <cctype>
 #include <cstdint>
+#include <vector>
+
+struct Move;
 
 typedef std::uint64_t Bitboard;
+typedef std::vector<Move> Moves;
 
 enum Color : uint8_t { WHITE, BLACK };
 enum CastleDir : uint8_t { LEFT, RIGHT };
@@ -63,6 +67,8 @@ struct Move {
   void Set(uint8_t flag) { flags |= 1U << flag; }
 
   bool Is(uint8_t flag) const { return flags & (1U << flag); }
+
+  static Move None() { return {0, 0, NONE}; }
 
   friend inline bool operator==(const Move &lhs, const Move &rhs) {
     return lhs.from == rhs.from && lhs.to == rhs.to && lhs.piece == rhs.piece;

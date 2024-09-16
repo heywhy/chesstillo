@@ -40,4 +40,6 @@ Bitboard SouthEastOccluded(Bitboard bb, Bitboard pro);
 
 Bitboard NorthFill(Bitboard bb);
 Bitboard SouthFill(Bitboard bb);
+
+inline Bitboard FileFill(Bitboard bb) { return NorthFill(bb) | SouthFill(bb); }
 #endif

@@ -24,6 +24,8 @@ add_library(chesstillo_lib
   src/fill.cpp
   src/move_gen.cpp
   src/game.cpp
+  src/evaluation.cpp
+  src/search.cpp
 )
 
 target_include_directories(chesstillo_lib PRIVATE include)

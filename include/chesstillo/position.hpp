@@ -87,7 +87,10 @@ private:
   void UpdateInternals();
 
   friend struct _State;
+  friend struct EvalState;
 
+  friend int SEE(Position &position);
+  friend int Evaluate(Position &position);
   friend std::vector<Move> GenerateMoves(Position &position);
   friend Bitboard CheckMask(Position &position);
   friend std::tuple<Bitboard, Bitboard> PinMask(Position &position);
