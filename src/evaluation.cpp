@@ -1,6 +1,5 @@
 #include <bit>
 #include <cstdint>
-#include <cstdio>
 #include <tuple>
 
 #include <chesstillo/board.hpp>
@@ -47,11 +46,11 @@ EvalState EvalState::For(Position &position) {
 
 // TODO: consider tapered evaluation using game phase alongside other
 // properties
-int Evaluate(Position &position) {
+float Evaluate(Position &position) {
   EvalState state = EvalState::For(position);
   int side_to_move = position.turn_ == WHITE ? 1 : -1;
 
-  auto [opening_mobility, endgame_mobility] = EvalMobility(state);
+  auto [opening_pieces, endgame_pieces] = EvalPieces(state);
   auto [opening_materials, endgame_materials] = EvalMaterials(state);
   auto [opening_pawn_structure, endgame_pawn_structure] =
       EvalPawnStructure(state);
@@ -59,9 +58,9 @@ int Evaluate(Position &position) {
   auto [opening_tempo, endgame_tempo] = std::make_tuple(
       kWeights[TEMPO][0] * side_to_move, kWeights[TEMPO][1] * side_to_move);
 
-  int opening = opening_tempo + opening_materials + opening_mobility -
+  int opening = opening_tempo + opening_materials + opening_pieces -
                 opening_pawn_structure;
-  int endgame = endgame_tempo + endgame_materials + endgame_mobility -
+  int endgame = endgame_tempo + endgame_materials + endgame_pieces -
                 endgame_pawn_structure;
 
   return TAPER_EVAL(opening, endgame, state.phase);
@@ -100,8 +99,8 @@ std::tuple<int, int> EvalMaterials(EvalState &state) {
 }
 
 // TODO: maybe include the "candidate" property from fruits/TOGA
-std::tuple<int, int> EvalPawnStructure(EvalState &state) {
-  int scores[2];
+std::tuple<float, float> EvalPawnStructure(EvalState &state) {
+  float scores[2];
   Bitboard white_pawns = state.white_pieces[PAWN];
   Bitboard black_pawns = state.black_pieces[PAWN];
   Bitboard empty_sqs = ~(white_pawns | black_pawns);
@@ -138,8 +137,86 @@ std::tuple<int, int> EvalPawnStructure(EvalState &state) {
   return std::make_tuple(scores[0], scores[1]);
 }
 
+// TODO: knight outpost, king distance, 7th rank
+std::tuple<int, int> EvalPieces(EvalState &state) {
+  auto [opening_mobility, endgame_mobility] = EvalMobility(state);
+  auto [opening_open_line, endgame_open_line] = EvalOpenFile(state);
+
+  int opening = opening_mobility + opening_open_line;
+  int endgame = endgame_mobility + endgame_open_line;
+
+  return std::make_tuple(opening, endgame);
+}
+
 std::tuple<int, int> EvalMobility(EvalState &state) {
-  int scores[2] = {0, 0};
+  int scores[2];
+
+  for (int i = 0; i < 2; i++) {
+    int rooks_mobility =
+        kWeights[ROOK_MOBILITY][i] *
+        (RooksMobility<WHITE>(state) - RooksMobility<BLACK>(state));
+
+    int bishop_mobility =
+        kWeights[BISHOP_MOBILITY][i] *
+        (BishopsMobility<WHITE>(state) - BishopsMobility<BLACK>(state));
+
+    int knight_mobility =
+        kWeights[KNIGHT_MOBILITY][i] *
+        (KnightsMobility<WHITE>(state) - KnightsMobility<BLACK>(state));
+
+    scores[i] = rooks_mobility + bishop_mobility + knight_mobility;
+  }
+
+  return std::make_tuple(scores[0], scores[1]);
+}
+
+std::tuple<int, int> EvalOpenFile(EvalState &state) {
+  int scores[2];
+
+  int closed_files = ClosedFiles<WHITE>(state) - ClosedFiles<BLACK>(state);
+
+  // semi-open files
+  auto [white_semi_open_files, white_semi_open_files_adj_enemy_king,
+        white_semi_open_files_same_enemy_king] = SemiOpenFiles<WHITE>(state);
+
+  auto [black_semi_open_files, black_semi_open_files_adj_enemy_king,
+        black_semi_open_files_same_enemy_king] = SemiOpenFiles<BLACK>(state);
+
+  int semi_open_files = white_semi_open_files - black_semi_open_files;
+
+  int semi_open_files_adj_enemy_king = white_semi_open_files_adj_enemy_king -
+                                       black_semi_open_files_adj_enemy_king;
+
+  int semi_open_files_same_enemy_king = white_semi_open_files_same_enemy_king -
+                                        black_semi_open_files_same_enemy_king;
+
+  // open files
+  auto [white_open_files, white_open_files_adj_enemy_king,
+        white_open_files_same_enemy_king] = OpenFiles<WHITE>(state);
+
+  auto [black_open_files, black_open_files_adj_enemy_king,
+        black_open_files_same_enemy_king] = OpenFiles<BLACK>(state);
+
+  int open_files = white_open_files - black_open_files;
+
+  int open_files_adj_enemy_king =
+      white_open_files_adj_enemy_king - black_open_files_adj_enemy_king;
+
+  int open_files_same_enemy_king =
+      white_open_files_same_enemy_king - black_open_files_same_enemy_king;
+
+  for (int i = 0; i < 2; i++) {
+    scores[i] =
+        (kWeights[CLOSED_FILE][i] * closed_files) +
+        (kWeights[SEMI_OPEN_FILE][i] * semi_open_files) +
+        (kWeights[SEMI_OPEN_FILE_ADJ_ENEMY_KING][i] *
+         semi_open_files_adj_enemy_king) +
+        (kWeights[SEMI_OPEN_FILE_SAME_ENEMY_KING][i] *
+         semi_open_files_same_enemy_king) +
+        (kWeights[OPEN_FILE][i] * open_files) +
+        (kWeights[OPEN_FILE_ADJ_ENEMY_KING][i] * open_files_adj_enemy_king) +
+        (kWeights[OPEN_FILE_SAME_ENEMY_KING][i] * open_files_same_enemy_king);
+  }
 
   return std::make_tuple(scores[0], scores[1]);
 }
@@ -236,4 +313,187 @@ std::tuple<int, int> BackwardPawns(Bitboard side_pawns, Bitboard enemy_pawns) {
   }
 
   return std::make_tuple(count, open);
+}
+
+template <enum Color side> int RooksMobility(EvalState &state) {
+  int squares = 0;
+  Bitboard enemy_sqs;
+  Bitboard side_rooks;
+  Bitboard empty_sqs = ~state.occupied_sqs;
+
+  if constexpr (side == WHITE) {
+    side_rooks = state.white_pieces[ROOK];
+    enemy_sqs = BOARD_OCCUPANCY(state.black_pieces);
+  } else {
+    side_rooks = state.black_pieces[ROOK];
+    enemy_sqs = BOARD_OCCUPANCY(state.white_pieces);
+  }
+
+  Bitboard movable_sqs = empty_sqs | enemy_sqs;
+
+  BITLOOP(side_rooks) {
+    Bitboard moves =
+        kSlidingAttacks.Rook(state.occupied_sqs, LOOP_INDEX) & movable_sqs;
+
+    squares += std::popcount(moves) - 7;
+  };
+
+  return squares;
+}
+
+template <enum Color side> int BishopsMobility(EvalState &state) {
+  int squares = 0;
+  Bitboard enemy_sqs;
+  Bitboard side_bishops;
+  Bitboard empty_sqs = ~state.occupied_sqs;
+
+  if constexpr (side == WHITE) {
+    side_bishops = state.white_pieces[BISHOP];
+    enemy_sqs = BOARD_OCCUPANCY(state.black_pieces);
+  } else {
+    side_bishops = state.black_pieces[BISHOP];
+    enemy_sqs = BOARD_OCCUPANCY(state.white_pieces);
+  }
+
+  Bitboard movable_sqs = empty_sqs | enemy_sqs;
+
+  BITLOOP(side_bishops) {
+    Bitboard moves =
+        kSlidingAttacks.Bishop(state.occupied_sqs, LOOP_INDEX) & movable_sqs;
+
+    squares += std::popcount(moves) - 6;
+  };
+
+  return squares;
+}
+
+template <enum Color side> int KnightsMobility(EvalState &state) {
+  int squares = 0;
+  Bitboard enemy_sqs;
+  Bitboard side_knights;
+  Bitboard empty_sqs = ~state.occupied_sqs;
+
+  if constexpr (side == WHITE) {
+    side_knights = state.white_pieces[KNIGHT];
+    enemy_sqs = BOARD_OCCUPANCY(state.black_pieces);
+  } else {
+    side_knights = state.black_pieces[KNIGHT];
+    enemy_sqs = BOARD_OCCUPANCY(state.white_pieces);
+  }
+
+  Bitboard movable_sqs = empty_sqs | enemy_sqs;
+
+  BITLOOP(side_knights) {
+    Bitboard moves = kAttackMaps[KNIGHT][LOOP_INDEX] & movable_sqs;
+
+    squares += std::popcount(moves) - 4;
+  };
+
+  return squares;
+}
+
+template <enum Color side> int ClosedFiles(EvalState &state) {
+  int count = 0;
+  Bitboard side_pawns;
+  Bitboard side_rooks;
+
+  if constexpr (side == WHITE) {
+    side_rooks = state.white_pieces[ROOK];
+    side_pawns = state.white_pieces[PAWN];
+  } else {
+    side_rooks = state.black_pieces[ROOK];
+    side_pawns = state.black_pieces[PAWN];
+  }
+
+  BITLOOP(side_rooks) {
+    Bitboard file = FileMask(LOOP_INDEX);
+
+    if (file & side_pawns) {
+      count++;
+    }
+  }
+
+  return count;
+}
+
+template <enum Color side>
+std::tuple<int, int, int> SemiOpenFiles(EvalState &state) {
+  int count = 0;
+  int adj_enemy_king = 0;
+  int same_as_enemy_king = 0;
+
+  Bitboard side_rooks;
+  Bitboard enemy_pawns;
+  Bitboard side_pawns;
+  Bitboard enemy_king;
+  Bitboard enemy_king_file;
+
+  if constexpr (side == WHITE) {
+    side_pawns = state.white_pieces[PAWN];
+    side_rooks = state.white_pieces[ROOK];
+    enemy_pawns = state.black_pieces[PAWN];
+
+    enemy_king = state.black_pieces[KING];
+    enemy_king_file = FileMask(BIT_INDEX(enemy_king));
+  } else {
+    side_pawns = state.black_pieces[PAWN];
+    side_rooks = state.black_pieces[ROOK];
+    enemy_pawns = state.white_pieces[PAWN];
+
+    enemy_king = state.white_pieces[KING];
+    enemy_king_file = FileMask(BIT_INDEX(enemy_king));
+  }
+
+  BITLOOP(side_rooks) {
+    Bitboard file = FileMask(LOOP_INDEX);
+
+    if (!(file & side_pawns) && file & enemy_pawns) {
+      count++;
+
+      Bitboard adjacents = ((MOVE_WEST(file)) | (MOVE_EAST(file)));
+
+      same_as_enemy_king += static_cast<bool>(file & enemy_king_file);
+      adj_enemy_king += static_cast<bool>(adjacents & enemy_king_file);
+    }
+  }
+
+  return std::make_tuple(count, adj_enemy_king, same_as_enemy_king);
+}
+
+template <enum Color side>
+std::tuple<int, int, int> OpenFiles(EvalState &state) {
+  int count = 0;
+  int adj_enemy_king = 0;
+  int same_as_enemy_king = 0;
+  Bitboard all_pawns = state.white_pieces[PAWN] | state.black_pieces[PAWN];
+
+  Bitboard side_rooks;
+  Bitboard enemy_king;
+  Bitboard enemy_king_file;
+
+  if constexpr (side == WHITE) {
+    side_rooks = state.white_pieces[ROOK];
+
+    enemy_king = state.black_pieces[KING];
+    enemy_king_file = FileMask(BIT_INDEX(enemy_king));
+  } else {
+    side_rooks = state.black_pieces[ROOK];
+
+    enemy_king = state.white_pieces[KING];
+    enemy_king_file = FileMask(BIT_INDEX(enemy_king));
+  }
+
+  BITLOOP(side_rooks) {
+    Bitboard file = FileMask(LOOP_INDEX);
+
+    if (!(file & all_pawns)) {
+      count++;
+      Bitboard adjacents = ((MOVE_WEST(file)) | (MOVE_EAST(file)));
+
+      same_as_enemy_king += static_cast<bool>(file & enemy_king_file);
+      adj_enemy_king += static_cast<bool>(adjacents & enemy_king_file);
+    }
+  }
+
+  return std::make_tuple(count, adj_enemy_king, same_as_enemy_king);
 }

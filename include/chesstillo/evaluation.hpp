@@ -17,6 +17,16 @@
 #define BACKWARD_AND_OPEN_PAWNS 11
 #define CANDIDATE_PAWNS 12
 #define TEMPO 13
+#define KNIGHT_MOBILITY 14
+#define BISHOP_MOBILITY 15
+#define ROOK_MOBILITY 16
+#define CLOSED_FILE 17
+#define SEMI_OPEN_FILE 18
+#define SEMI_OPEN_FILE_ADJ_ENEMY_KING 19
+#define SEMI_OPEN_FILE_SAME_ENEMY_KING 20
+#define OPEN_FILE 21
+#define OPEN_FILE_ADJ_ENEMY_KING 22
+#define OPEN_FILE_SAME_ENEMY_KING 23
 
 #define TOTAL_PHASE 24
 #define TAPER_EVAL(opening, endgame, phase)                                    \
@@ -24,25 +34,37 @@
 
 // INFO: opening & endgame weights
 // order of weights should corresponding with type::piece spec.
-const int kWeights[14][2] = {
-    {500, 500},
-    {325, 325},
-    {325, 325},
-    {2000, 2000},
-    {975, 975},
-    {70, 90},
-    // bishop pair values
-    {50, 50},
-    // pawns structure
-    {10, 20},
-    {10, 20},
-    {20, 20},
-    {8, 10},
-    {16, 10},
-    {5, 10},
-    // tempo
-    {20, 10},
-};
+const int kWeights[24][2] = {{500, 500},
+                             {325, 325},
+                             {325, 325},
+                             {2000, 2000},
+                             {975, 975},
+                             {70, 90},
+                             // bishop pair values
+                             {50, 50},
+                             // pawns structure
+                             {10, 20},
+                             {10, 20},
+                             {20, 20},
+                             {8, 10},
+                             {16, 10},
+                             {5, 10},
+                             // tempo
+                             {20, 10},
+                             // knight mobility
+                             {4, 4},
+                             // bishop mobility
+                             {5, 5},
+                             // rook mobility
+                             {2, 4},
+                             // file
+                             {-10, -10},
+                             {0, 0},
+                             {10, 0},
+                             {20, 0},
+                             {10, 10},
+                             {20, 10},
+                             {30, 10}};
 
 const float kRankBonus[] = {0, 0, 0.1, 0.3, 0.6, 1};
 
@@ -80,11 +102,23 @@ std::tuple<int, int> IsolatedPawns(Bitboard pawns, Bitboard empty_sqs);
 template <enum Color side>
 std::tuple<int, int> BackwardPawns(Bitboard side_pawns, Bitboard enemy_pawns);
 
-inline std::tuple<int, int> EvalMobility(EvalState &state);
-inline std::tuple<int, int> EvalMaterials(EvalState &state);
-inline std::tuple<int, int> EvalPawnStructure(EvalState &state);
+template <enum Color side> inline int ClosedFiles(EvalState &state);
+template <enum Color side>
+inline std::tuple<int, int, int> SemiOpenFiles(EvalState &state);
+template <enum Color side>
+inline std::tuple<int, int, int> OpenFiles(EvalState &state);
 
-int Evaluate(Position &position);
+inline std::tuple<int, int> EvalPieces(EvalState &state);
+inline std::tuple<int, int> EvalMobility(EvalState &state);
+inline std::tuple<int, int> EvalOpenFile(EvalState &state);
+inline std::tuple<int, int> EvalMaterials(EvalState &state);
+inline std::tuple<float, float> EvalPawnStructure(EvalState &state);
+
+template <enum Color> inline int RooksMobility(EvalState &state);
+template <enum Color> inline int BishopsMobility(EvalState &state);
+template <enum Color> inline int KnightsMobility(EvalState &state);
+
+float Evaluate(Position &position);
 
 inline int PieceValue(Piece piece) {
   switch (piece) {

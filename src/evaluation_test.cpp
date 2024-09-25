@@ -106,12 +106,12 @@ TEST_F(EvaluationTestSuite, RandomPositionOne) {
   ApplyFen(position,
            "1r3rk1/3bb1pp/2p1p3/1p2Pp1Q/2pP4/1P4P1/q3NPBP/2RR2K1 w - - 0 1");
 
-  ASSERT_EQ(Evaluate(position), -148);
+  ASSERT_EQ(Evaluate(position), -136);
 }
 
 TEST_F(EvaluationTestSuite, RandomPositionTwo) {
   ApplyFen(position,
            "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1");
 
-  ASSERT_EQ(Evaluate(position), 2);
+  ASSERT_EQ(Evaluate(position), 184);
 }
