@@ -1,5 +1,7 @@
 #include <bit>
 #include <cstdint>
+#include <cstdio>
+#include <cstdlib>
 #include <tuple>
 
 #include <chesstillo/board.hpp>
@@ -44,9 +46,8 @@ EvalState EvalState::For(Position &position) {
           check_mask,   pin_hv_mask,  pin_diag_mask};
 }
 
-// TODO: consider tapered evaluation using game phase alongside other
-// properties
-float Evaluate(Position &position) {
+// TODO: Position table, Pattern, King, Passed Pawn
+int Evaluate(Position &position) {
   EvalState state = EvalState::For(position);
   int side_to_move = position.turn_ == WHITE ? 1 : -1;
 
@@ -137,13 +138,17 @@ std::tuple<float, float> EvalPawnStructure(EvalState &state) {
   return std::make_tuple(scores[0], scores[1]);
 }
 
-// TODO: knight outpost, king distance, 7th rank
+// TODO: knight outpost
 std::tuple<int, int> EvalPieces(EvalState &state) {
+  int king_distance = EvalKingDistance(state);
   auto [opening_mobility, endgame_mobility] = EvalMobility(state);
   auto [opening_open_line, endgame_open_line] = EvalOpenFile(state);
+  auto [opening_7th_rank, endgame_7th_rank] = EvalRank7(state);
 
-  int opening = opening_mobility + opening_open_line;
-  int endgame = endgame_mobility + endgame_open_line;
+  int opening =
+      opening_mobility + opening_open_line + opening_7th_rank + king_distance;
+  int endgame =
+      endgame_mobility + endgame_open_line + endgame_7th_rank + king_distance;
 
   return std::make_tuple(opening, endgame);
 }
@@ -219,6 +224,27 @@ std::tuple<int, int> EvalOpenFile(EvalState &state) {
   }
 
   return std::make_tuple(scores[0], scores[1]);
+}
+
+std::tuple<int, int> EvalRank7(EvalState &state) {
+  int scores[2];
+
+  for (int i = 0; i < 2; i++) {
+    int rooks_on_7th = (kWeights[ROOK_ON_7th][i] * (Rank7<WHITE, ROOK>(state) -
+                                                    Rank7<BLACK, ROOK>(state)));
+
+    int queens_on_7th =
+        (kWeights[QUEEN_ON_7th][i] *
+         (Rank7<WHITE, QUEEN>(state) - Rank7<BLACK, QUEEN>(state)));
+
+    scores[i] = rooks_on_7th + queens_on_7th;
+  }
+
+  return std::make_tuple(scores[0], scores[1]);
+}
+
+int EvalKingDistance(EvalState &state) {
+  return KingDistance<WHITE>(state) - KingDistance<BLACK>(state);
 }
 
 template <enum Color side> int DoublePawns(Bitboard pawns) {
@@ -496,4 +522,54 @@ std::tuple<int, int, int> OpenFiles(EvalState &state) {
   }
 
   return std::make_tuple(count, adj_enemy_king, same_as_enemy_king);
+}
+
+template <enum Color side, enum Piece piece> int Rank7(EvalState &state) {
+  if constexpr (side == WHITE) {
+    Bitboard hostile_pawns = state.black_pieces[PAWN] & kRank7;
+    Bitboard attacking_piece = state.white_pieces[piece] & kRank7;
+
+    return hostile_pawns && std::popcount(attacking_piece);
+  }
+
+  Bitboard hostile_pawns = state.white_pieces[PAWN] & kRank2;
+  Bitboard attacking_piece = state.black_pieces[piece] & kRank2;
+
+  return hostile_pawns && std::popcount(attacking_piece);
+}
+
+template <enum Color side> int KingDistance(EvalState &state) {
+  int score = 0;
+  int king_file;
+
+  Bitboard own_queen;
+  Bitboard enemy_king;
+
+  if constexpr (side == WHITE) {
+    own_queen = state.white_pieces[QUEEN];
+    enemy_king = state.black_pieces[KING];
+  } else {
+    own_queen = state.black_pieces[QUEEN];
+    enemy_king = state.white_pieces[KING];
+  }
+
+  Coord king_coord;
+
+  CoordForSquare(&king_coord, BIT_INDEX(enemy_king));
+
+  king_file = king_coord.file - 97;
+
+  BITLOOP(own_queen) {
+    int queen_file;
+    Coord queen_coord;
+
+    CoordForSquare(&queen_coord, LOOP_INDEX);
+
+    queen_file = queen_coord.file - 97;
+
+    score += 10 - std::abs(queen_file - king_file) -
+             std::abs(queen_coord.rank - king_coord.rank);
+  }
+
+  return score;
 }

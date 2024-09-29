@@ -27,6 +27,8 @@
 #define OPEN_FILE 21
 #define OPEN_FILE_ADJ_ENEMY_KING 22
 #define OPEN_FILE_SAME_ENEMY_KING 23
+#define ROOK_ON_7th 24
+#define QUEEN_ON_7th 25
 
 #define TOTAL_PHASE 24
 #define TAPER_EVAL(opening, endgame, phase)                                    \
@@ -34,7 +36,7 @@
 
 // INFO: opening & endgame weights
 // order of weights should corresponding with type::piece spec.
-const int kWeights[24][2] = {{500, 500},
+const int kWeights[26][2] = {{500, 500},
                              {325, 325},
                              {325, 325},
                              {2000, 2000},
@@ -64,7 +66,10 @@ const int kWeights[24][2] = {{500, 500},
                              {20, 0},
                              {10, 10},
                              {20, 10},
-                             {30, 10}};
+                             {30, 10},
+                             // 7th rank
+                             {20, 40},
+                             {10, 20}};
 
 const float kRankBonus[] = {0, 0, 0.1, 0.3, 0.6, 1};
 
@@ -108,9 +113,14 @@ inline std::tuple<int, int, int> SemiOpenFiles(EvalState &state);
 template <enum Color side>
 inline std::tuple<int, int, int> OpenFiles(EvalState &state);
 
+template <enum Color side, enum Piece piece> inline int Rank7(EvalState &state);
+template <enum Color side> inline int KingDistance(EvalState &state);
+
 inline std::tuple<int, int> EvalPieces(EvalState &state);
+inline int EvalKingDistance(EvalState &state);
 inline std::tuple<int, int> EvalMobility(EvalState &state);
 inline std::tuple<int, int> EvalOpenFile(EvalState &state);
+inline std::tuple<int, int> EvalRank7(EvalState &state);
 inline std::tuple<int, int> EvalMaterials(EvalState &state);
 inline std::tuple<float, float> EvalPawnStructure(EvalState &state);
 
@@ -118,7 +128,7 @@ template <enum Color> inline int RooksMobility(EvalState &state);
 template <enum Color> inline int BishopsMobility(EvalState &state);
 template <enum Color> inline int KnightsMobility(EvalState &state);
 
-float Evaluate(Position &position);
+int Evaluate(Position &position);
 
 inline int PieceValue(Piece piece) {
   switch (piece) {
