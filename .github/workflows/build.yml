@@ -3,7 +3,7 @@ name: Build
 on:
   create:
     tags:
-      -v*
+      - v*
   push:
     branches:
       - main
