@@ -26,6 +26,8 @@ add_library(chesstillo_lib
   src/game.cpp
   src/evaluation.cpp
   src/search.cpp
+  src/scheduler.cpp
+  src/transposition.cpp
 )
 
 target_include_directories(chesstillo_lib PRIVATE include)
@@ -55,7 +57,7 @@ include(FetchContent)
 FetchContent_Declare(
   ftxui
   GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui.git
-  GIT_TAG dfb9558eaff417ee7909169d0abd66e6c52c9d55
+  GIT_TAG ad0392ec395450da8f9049e4abbe258f34f0f59c
   GIT_SHALLOW true
 )
 
@@ -100,6 +102,7 @@ target_link_libraries(
   chesstillo_test
   PRIVATE chesstillo_lib
   PRIVATE GTest::gtest_main
+  PRIVATE GTest::gmock
 )
 
 include(GoogleTest)

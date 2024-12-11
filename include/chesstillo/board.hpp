@@ -8,6 +8,8 @@
 
 #define OPP(turn) static_cast<Color>(turn ^ 1)
 #define TO_SQUARE(file, rank) 8 * rank + file
+#define RANK(square) ((square / 8) + 1)
+#define FILE(square) (square % 8)
 #define BIT_INDEX(x) std::countr_zero(x)
 #define BIT_INDEX_MSB(x) (63 - std::countl_zero(x))
 #define BITBOARD_FOR_SQUARE(index) static_cast<Bitboard>(1) << index

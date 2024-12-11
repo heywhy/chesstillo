@@ -98,6 +98,35 @@ TEST_F(EvaluationTestSuite, EvalBackwardPawns) {
   ASSERT_EQ(std::get<0>(result), 1);
 }
 
+TEST_F(EvaluationTestSuite, PassedPawns) {
+  ApplyFen(position,
+           "5rk1/3bb1pp/2p1p3/4P3/1rpP4/1RN1p1P1/5PBP/3R2K1 w - - 0 1");
+
+  EvalState state = EvalState::For(position);
+  auto [opening, endgame] = EvalPassedPawns(state);
+
+  ASSERT_EQ(opening, -28);
+  ASSERT_EQ(endgame, -56);
+}
+
+TEST_F(EvaluationTestSuite, KingPosition) {
+  ApplyFen(position,
+           "1r3rk1/3bb1pp/2p1p3/1p2Pp1Q/2pP4/1P4P1/q3NPBP/2RR2K1 w - - 0 1");
+
+  EvalState state = EvalState::For(position);
+  int score = EvalKingPosition(state);
+
+  ASSERT_EQ(score, -117);
+
+  ApplyFen(position,
+           "5r1k/2pbb1rp/1p6/p2Pp2q/P1P4P/2P1N1P1/R1Q1RPBK/8 w - - 0 1");
+
+  state = EvalState::For(position);
+  score = EvalKingPosition(state);
+
+  ASSERT_EQ(score, -296);
+}
+
 TEST_F(EvaluationTestSuite, ScoreStartingPosition) {
   ASSERT_EQ(Evaluate(position), 20);
 }
@@ -106,12 +135,12 @@ TEST_F(EvaluationTestSuite, RandomPositionOne) {
   ApplyFen(position,
            "1r3rk1/3bb1pp/2p1p3/1p2Pp1Q/2pP4/1P4P1/q3NPBP/2RR2K1 w - - 0 1");
 
-  ASSERT_EQ(Evaluate(position), -144);
+  ASSERT_EQ(Evaluate(position), -242);
 }
 
 TEST_F(EvaluationTestSuite, RandomPositionTwo) {
   ApplyFen(position,
            "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1");
 
-  ASSERT_EQ(Evaluate(position), 184);
+  ASSERT_EQ(Evaluate(position), 224);
 }

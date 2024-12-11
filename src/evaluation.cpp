@@ -1,6 +1,7 @@
+#include <array>
 #include <bit>
+#include <cmath>
 #include <cstdint>
-#include <cstdio>
 #include <cstdlib>
 #include <tuple>
 
@@ -13,7 +14,7 @@
 #include <chesstillo/types.hpp>
 
 void EvalState::ComputeMaterials() {
-  for (int i = 0; i < 6; i++) {
+  for (int i = 0; i < PIECES; i++) {
     Piece piece = static_cast<Piece>(i);
 
     materials[WHITE][piece] = std::popcount(white_pieces[piece]);
@@ -32,6 +33,33 @@ void EvalState::ComputePhase() {
   phase = (score * 256 + (TOTAL_PHASE / 2)) / TOTAL_PHASE;
 }
 
+// TODO: maybe apply pin masks to filter what pieces attacks are counted
+template <enum Color side> void EvalState::ComputeAttackMap() {
+  Bitboard *side_pieces;
+
+  if constexpr (side == WHITE) {
+    side_pieces = white_pieces;
+  } else {
+    side_pieces = black_pieces;
+  }
+
+  Bitboard queens_and_bishops = side_pieces[QUEEN] | side_pieces[BISHOP];
+  Bitboard queens_and_rooks = side_pieces[QUEEN] | side_pieces[ROOK];
+
+  attack_map[side] = kEmpty;
+  attack_map[side] |= PawnTargets<side>(side_pieces[PAWN]) |
+                      KNIGHT_ATTACKS(side_pieces[KNIGHT]) |
+                      KING_ATTACKS(side_pieces[KING]);
+
+  BITLOOP(queens_and_bishops) {
+    attack_map[side] |= kSlidingAttacks.Bishop(occupied_sqs, LOOP_INDEX);
+  }
+
+  BITLOOP(queens_and_rooks) {
+    attack_map[side] |= kSlidingAttacks.Rook(occupied_sqs, LOOP_INDEX);
+  }
+}
+
 EvalState EvalState::For(Position &position) {
   Bitboard *white_pieces = position.Pieces(WHITE);
   Bitboard *black_pieces = position.Pieces(BLACK);
@@ -47,6 +75,7 @@ EvalState EvalState::For(Position &position) {
 }
 
 // TODO: Position table, Pattern, King, Passed Pawn
+// convert score to float
 int Evaluate(Position &position) {
   EvalState state = EvalState::For(position);
   int side_to_move = position.turn_ == WHITE ? 1 : -1;
@@ -55,14 +84,18 @@ int Evaluate(Position &position) {
   auto [opening_materials, endgame_materials] = EvalMaterials(state);
   auto [opening_pawn_structure, endgame_pawn_structure] =
       EvalPawnStructure(state);
+  auto opening_king_position = EvalKingPosition(state);
 
   auto [opening_tempo, endgame_tempo] = std::make_tuple(
       kWeights[TEMPO][0] * side_to_move, kWeights[TEMPO][1] * side_to_move);
 
+  auto [opening_passed_pawns, endgame_passed_pawns] = EvalPassedPawns(state);
+
   int opening = opening_tempo + opening_materials + opening_pieces -
-                opening_pawn_structure;
+                opening_pawn_structure + opening_king_position +
+                opening_passed_pawns;
   int endgame = endgame_tempo + endgame_materials + endgame_pieces -
-                endgame_pawn_structure;
+                endgame_pawn_structure + endgame_passed_pawns;
 
   return TAPER_EVAL(opening, endgame, state.phase);
 }
@@ -151,6 +184,178 @@ std::tuple<int, int> EvalPieces(EvalState &state) {
       endgame_mobility + endgame_open_line + endgame_7th_rank + king_distance;
 
   return std::make_tuple(opening, endgame);
+}
+
+std::tuple<float, float> EvalPassedPawns(EvalState &state) {
+  auto [opening_white_passed_pawns, endgame_white_passed_pawns] =
+      PassedPawns<WHITE>(state);
+
+  auto [opening_black_passed_pawns, endgame_black_passed_pawns] =
+      PassedPawns<BLACK>(state);
+
+  float opening = opening_white_passed_pawns - opening_black_passed_pawns;
+  float endgame = endgame_white_passed_pawns - endgame_black_passed_pawns;
+
+  return std::make_tuple(opening, endgame);
+}
+
+int EvalKingPosition(EvalState &state) {
+  return -(KingPosition<WHITE>(state) - KingPosition<BLACK>(state));
+}
+
+// TODO: consider the castling rights while looking at pawn shelter
+template <enum Color side> int KingPosition(EvalState &state) {
+  Bitboard king_bb;
+  Bitboard storm_area;
+  Bitboard *side_pieces;
+  Bitboard *enemy_pieces;
+  Bitboard (*file_fill)(Bitboard);
+
+  if constexpr (side == WHITE) {
+    file_fill = NorthFill;
+    side_pieces = state.white_pieces;
+    enemy_pieces = state.black_pieces;
+    king_bb = state.white_pieces[KING];
+
+    storm_area = kRank3 | kRank4 | kRank5;
+  } else {
+    file_fill = SouthFill;
+    side_pieces = state.black_pieces;
+    enemy_pieces = state.white_pieces;
+    king_bb = state.black_pieces[KING];
+
+    storm_area = kRank4 | kRank5 | kRank6;
+  }
+
+  if (!(enemy_pieces[QUEEN] &&
+        (enemy_pieces[BISHOP] | enemy_pieces[KNIGHT] | enemy_pieces[ROOK]))) {
+    return 0;
+  }
+
+  Bitboard king_file = file_fill(king_bb);
+  Bitboard shelter_sqs =
+      (PushPawn<side>(king_bb) | PawnTargets<side, EAST>(king_bb) |
+       PawnTargets<side, WEST>(king_bb));
+
+  Bitboard shelter_files = file_fill(shelter_sqs);
+
+  // Pawn shelter
+  int shelter_penalty = 0;
+
+  Bitboard shelter_pawns = shelter_files & side_pieces[PAWN];
+
+  BITLOOP(shelter_pawns) {
+    uint8_t distance;
+    uint8_t square = LOOP_INDEX;
+    uint8_t rank = RANK(square);
+    Bitboard bb = BITBOARD_FOR_SQUARE(square);
+
+    if constexpr (side == WHITE) {
+      distance = 8 - rank;
+    } else {
+      distance = 7 - std::abs(rank - 8);
+    }
+
+    int penalty = 36 - std::pow(distance, 2);
+
+    if (bb & king_file) {
+      penalty *= 2;
+    }
+
+    shelter_sqs ^= FileFill(bb) & shelter_sqs;
+    shelter_penalty += penalty;
+  };
+
+  BITLOOP(shelter_sqs) {
+    int penalty = 36;
+    Bitboard bb = BITBOARD_FOR_SQUARE(LOOP_INDEX);
+
+    if (bb & king_file) {
+      penalty *= 2;
+    }
+
+    shelter_penalty += penalty;
+  }
+
+  if (shelter_penalty == 0) {
+    shelter_penalty = -11;
+  }
+
+  // Piece storm
+  int hostile_pawns_penalty = 0;
+  Bitboard hostile_pawns = shelter_files & storm_area & enemy_pieces[PAWN];
+
+  BITLOOP(hostile_pawns) {
+    uint8_t square = LOOP_INDEX;
+    Bitboard bb = BITBOARD_FOR_SQUARE(square);
+
+    // clang-format off
+    if constexpr (side == WHITE) {
+      if (bb & storm_area & kRank3) hostile_pawns_penalty += 60;
+      if (bb & storm_area & kRank4) hostile_pawns_penalty += 30;
+      if (bb & storm_area & kRank5) hostile_pawns_penalty += 10;
+    } else {
+      if (bb & storm_area & kRank6) hostile_pawns_penalty += 60;
+      if (bb & storm_area & kRank5) hostile_pawns_penalty += 30;
+      if (bb & storm_area & kRank4) hostile_pawns_penalty += 10;
+    }
+    // clang-format on
+  }
+
+  // Piece attack
+  int attackers_value = 0;
+  Bitboard attackers = kEmpty;
+  Bitboard enemy_king_adjacents = KING_ATTACKS(enemy_pieces[KING]);
+  Bitboard enemy_king_adjacents_x2 =
+      enemy_king_adjacents | KING_ATTACKS(enemy_king_adjacents);
+  Bitboard bishop_and_queen = side_pieces[BISHOP] | side_pieces[QUEEN];
+
+  BITLOOP(enemy_pieces[KNIGHT]) {
+    uint8_t square = LOOP_INDEX;
+    Bitboard targets = kAttackMaps[KNIGHT][square];
+
+    if (targets & enemy_king_adjacents || enemy_king_adjacents_x2 & targets) {
+      Bitboard bb = BITBOARD_FOR_SQUARE(square);
+
+      attackers_value += 1;
+      attackers |= bb;
+    }
+  }
+
+  BITLOOP(bishop_and_queen) {
+    uint8_t square = LOOP_INDEX;
+    Bitboard targets = kSlidingAttacks.Bishop(state.occupied_sqs, square);
+
+    if (kAttackMaps[BISHOP][square] & enemy_king_adjacents ||
+        enemy_king_adjacents_x2 & targets) {
+      Bitboard bb = BITBOARD_FOR_SQUARE(square);
+
+      attackers_value += bb & side_pieces[BISHOP] ? 1 : 4;
+      attackers |= bb;
+    }
+  }
+
+  Bitboard rook_and_queen = side_pieces[ROOK] | side_pieces[QUEEN];
+
+  BITLOOP(rook_and_queen) {
+    uint8_t square = LOOP_INDEX;
+    Bitboard bb = BITBOARD_FOR_SQUARE(square);
+    Bitboard targets = kSlidingAttacks.Rook(state.occupied_sqs, square);
+
+    if (kAttackMaps[ROOK][square] & enemy_king_adjacents ||
+        enemy_king_adjacents_x2 & targets) {
+      attackers_value += bb & side_pieces[ROOK] ? 2 : 4;
+      attackers |= bb;
+    }
+  }
+
+  static std::array<float, 8> PA_WEIGHTS{0,    0,    0.5,  0.75,
+                                         0.88, 0.94, 0.97, 0.99};
+
+  int attackers_count = std::popcount(attackers);
+  int attackers_score = 20 * attackers_value * PA_WEIGHTS[attackers_count];
+
+  return shelter_penalty + hostile_pawns_penalty - attackers_score;
 }
 
 std::tuple<int, int> EvalMobility(EvalState &state) {
@@ -572,4 +777,68 @@ template <enum Color side> int KingDistance(EvalState &state) {
   }
 
   return score;
+}
+
+// TODO: implement kings distance & unstoppable passed pawn scoring
+template <enum Color side>
+std::tuple<float, float> PassedPawns(EvalState &state) {
+  int side_diff;
+  Bitboard side_pawns;
+  Bitboard enemy_pawns;
+  Bitboard (*front_fill)(Bitboard);
+
+  float opening_score = 0;
+  float endgame_score = 0;
+  Bitboard empty_sqs = ~state.occupied_sqs;
+  Bitboard all_pawns = state.white_pieces[PAWN] | state.black_pieces[PAWN];
+
+  static std::array<float, 8> PP_BONUS{0, 0, 0, 0.1, 0.3, 0.6, 1};
+
+  if constexpr (side == WHITE) {
+    side_diff = 0;
+    front_fill = NorthFill;
+    side_pawns = state.white_pieces[PAWN];
+    enemy_pawns = state.black_pieces[PAWN];
+  } else {
+    side_diff = 8;
+    front_fill = SouthFill;
+    side_pawns = state.black_pieces[PAWN];
+    enemy_pawns = state.white_pieces[PAWN];
+  }
+
+  BITLOOP(side_pawns) {
+    uint8_t square = LOOP_INDEX;
+    int rank = RANK(square);
+    Bitboard bb = BITBOARD_FOR_SQUARE(square);
+    Bitboard front_targets = front_fill(bb) ^ bb;
+
+    if (front_targets & all_pawns) {
+      continue;
+    }
+
+    Bitboard adjacent_sqs = (MOVE_WEST(bb)) | (MOVE_EAST(bb));
+    Bitboard targets = front_fill(adjacent_sqs) ^ adjacent_sqs;
+
+    if (targets & enemy_pawns) {
+      continue;
+    }
+
+    opening_score += 10 + 60 * PP_BONUS[std::abs(rank - side_diff)];
+
+    // endgame evaluation
+    int kings_distance = 0;
+    int unstoppable_score = 0;
+
+    Bitboard push_target = PushPawn<side>(bb);
+
+    int free_score =
+        60 * static_cast<bool>(push_target & empty_sqs &&
+                               !(push_target & state.attack_map[OPP(side)]));
+
+    endgame_score +=
+        20 + (120 + kings_distance + free_score + unstoppable_score) *
+                 PP_BONUS[std::abs(rank - side_diff)];
+  }
+
+  return std::make_tuple(opening_score, endgame_score);
 }

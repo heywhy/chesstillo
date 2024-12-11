@@ -20,7 +20,7 @@ void HookQuitEvent(ftxui::Component &component) {
   });
 }
 
-bool ToString(char *text, Move const &move, Color turn) {
+bool ToString(char *text, const Move &move, Color turn) {
   Coord to;
   Coord from;
 

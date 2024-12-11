@@ -1,8 +1,8 @@
 #ifndef POSITION_HPP
 #define POSITION_HPP
 
+#include <algorithm>
 #include <cstdint>
-#include <cstring>
 #include <stack>
 #include <string>
 #include <tuple>
@@ -28,13 +28,13 @@ struct _State {
 
 static std::stack<_State> const kEmptyStack;
 
+// NOTE: maybe compute position hash on every move instead of at TT.
 class Position {
 public:
   Position()
-      : turn_(WHITE), king_ban_(kEmpty), en_passant_sq_(kEmpty),
-        castling_rights_(0), fullmove_counter_(1), halfmove_clock_(0) {
-    occupied_sqs_ = &board_.occupied_sqs_;
-  };
+      : turn_(WHITE), king_ban_(kEmpty), occupied_sqs_(&board_.occupied_sqs_),
+        en_passant_sq_(kEmpty), castling_rights_(0), fullmove_counter_(1),
+        halfmove_clock_(0) {};
 
   Position(const Position &src) {
     turn_ = src.turn_;
@@ -50,7 +50,8 @@ public:
 
     occupied_sqs_ = &board_.occupied_sqs_;
 
-    std::memcpy(mailbox_, src.mailbox_, sizeof(src.mailbox_));
+    int size = sizeof(src.mailbox_) / sizeof(src.mailbox_[0]);
+    std::copy(src.mailbox_, src.mailbox_ + size, mailbox_);
   }
 
   void Reset();
@@ -88,6 +89,7 @@ private:
 
   friend struct _State;
   friend struct EvalState;
+  friend class TT;
 
   friend int SEE(Position &position);
   friend int Evaluate(Position &position);

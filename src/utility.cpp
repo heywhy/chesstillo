@@ -71,7 +71,7 @@ Move DeduceMove(Position &position, uint8_t from, uint8_t to) {
   return move;
 }
 
-bool ToString(char *buf, Move const &move) {
+bool ToString(char *buf, const Move &move) {
   Coord to;
   Coord from;
 

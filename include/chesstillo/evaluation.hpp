@@ -83,6 +83,7 @@ struct EvalState {
 
   int phase;
   int materials[4][6];
+  Bitboard attack_map[2];
 
   EvalState(Bitboard *white_pieces, Bitboard *black_pieces,
             Bitboard occupied_sqs, Bitboard check_mask, Bitboard pin_hv_mask,
@@ -92,6 +93,8 @@ struct EvalState {
         pin_hv_mask(pin_hv_mask), pin_diag_mask(pin_diag_mask) {
     ComputeMaterials();
     ComputePhase();
+    ComputeAttackMap<WHITE>();
+    ComputeAttackMap<BLACK>();
   }
 
   static EvalState For(Position &position);
@@ -99,7 +102,10 @@ struct EvalState {
 private:
   void ComputePhase();
   void ComputeMaterials();
+  template <enum Color side> void ComputeAttackMap();
 };
+
+enum Phase : uint8_t { OPENING, ENDGAME };
 
 template <enum Color side> int DoublePawns(Bitboard pawns);
 template <enum Color side>
@@ -107,26 +113,31 @@ std::tuple<int, int> IsolatedPawns(Bitboard pawns, Bitboard empty_sqs);
 template <enum Color side>
 std::tuple<int, int> BackwardPawns(Bitboard side_pawns, Bitboard enemy_pawns);
 
-template <enum Color side> inline int ClosedFiles(EvalState &state);
+template <enum Color side> int ClosedFiles(EvalState &state);
 template <enum Color side>
-inline std::tuple<int, int, int> SemiOpenFiles(EvalState &state);
+std::tuple<int, int, int> SemiOpenFiles(EvalState &state);
 template <enum Color side>
-inline std::tuple<int, int, int> OpenFiles(EvalState &state);
+std::tuple<int, int, int> OpenFiles(EvalState &state);
 
-template <enum Color side, enum Piece piece> inline int Rank7(EvalState &state);
-template <enum Color side> inline int KingDistance(EvalState &state);
+template <enum Color side, enum Piece piece> int Rank7(EvalState &state);
+template <enum Color side> int KingDistance(EvalState &state);
 
-inline std::tuple<int, int> EvalPieces(EvalState &state);
-inline int EvalKingDistance(EvalState &state);
-inline std::tuple<int, int> EvalMobility(EvalState &state);
-inline std::tuple<int, int> EvalOpenFile(EvalState &state);
-inline std::tuple<int, int> EvalRank7(EvalState &state);
-inline std::tuple<int, int> EvalMaterials(EvalState &state);
-inline std::tuple<float, float> EvalPawnStructure(EvalState &state);
+template <enum Color> int RooksMobility(EvalState &state);
+template <enum Color> int BishopsMobility(EvalState &state);
+template <enum Color> int KnightsMobility(EvalState &state);
+template <enum Color> std::tuple<float, float> PassedPawns(EvalState &state);
 
-template <enum Color> inline int RooksMobility(EvalState &state);
-template <enum Color> inline int BishopsMobility(EvalState &state);
-template <enum Color> inline int KnightsMobility(EvalState &state);
+template <enum Color> int KingPosition(EvalState &state);
+
+std::tuple<int, int> EvalPieces(EvalState &state);
+int EvalKingDistance(EvalState &state);
+std::tuple<int, int> EvalMobility(EvalState &state);
+std::tuple<int, int> EvalOpenFile(EvalState &state);
+std::tuple<int, int> EvalRank7(EvalState &state);
+std::tuple<int, int> EvalMaterials(EvalState &state);
+std::tuple<float, float> EvalPassedPawns(EvalState &state);
+std::tuple<float, float> EvalPawnStructure(EvalState &state);
+int EvalKingPosition(EvalState &state);
 
 int Evaluate(Position &position);
 

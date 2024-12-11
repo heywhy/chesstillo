@@ -325,7 +325,7 @@ void Position::UpdateMailbox() {
     Bitboard bb = BITBOARD_FOR_SQUARE(i);
 
     if (bb & *occupied_sqs_) {
-      for (int j = 0; j < 6; j++) {
+      for (int j = 0; j < PIECES; j++) {
         Piece piece = static_cast<Piece>(j);
 
         if ((board_.pieces_[WHITE][j] & bb) | (board_.pieces_[BLACK][j] & bb)) {

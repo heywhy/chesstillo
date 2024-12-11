@@ -173,7 +173,7 @@ Moves GenerateMoves(Position &position) {
     // 2.3. en passant
     {
       Bitboard capture_mask =
-          check_mask != kUniverse && position.en_passant_target_ & check_mask
+          IN_CHECK(check_mask) && position.en_passant_target_ & check_mask
               ? position.en_passant_sq_
               : position.en_passant_sq_ & check_mask;
 
@@ -428,8 +428,8 @@ Moves GenerateMoves(Position &position) {
   return moves;
 }
 
-void AddMovesToList(Moves &moves, uint8_t from, Bitboard targets,
-                    Piece piece, Piece *mailbox, Bitboard enemy_bb) {
+void AddMovesToList(Moves &moves, uint8_t from, Bitboard targets, Piece piece,
+                    Piece *mailbox, Bitboard enemy_bb) {
   BITLOOP(targets) {
     Piece captured;
     Move move(from, LOOP_INDEX, piece);

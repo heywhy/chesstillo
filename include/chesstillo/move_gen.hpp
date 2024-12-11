@@ -15,6 +15,7 @@
 // pawns is 10
 #define MAX_PIECE_NUMBER 10
 #define MAX_MOVES_BUFFER_SIZE 256
+#define IN_CHECK(mask) mask != kUniverse
 
 #define MOVE_NORTH(bitboard) bitboard << 8
 #define MOVE_SOUTH(bitboard) bitboard >> 8
@@ -142,7 +143,7 @@ constexpr Bitboard DoublePushPawn(Bitboard b, Bitboard empty) {
 enum Compass { EAST, WEST };
 
 template <enum Color side, enum Compass compass>
-constexpr Bitboard PawnTargets(Bitboard b) {
+constexpr inline Bitboard PawnTargets(Bitboard b) {
   if constexpr (side == WHITE && compass == WEST) {
     return MOVE_NORTH_WEST(b);
   }
@@ -158,5 +159,9 @@ constexpr Bitboard PawnTargets(Bitboard b) {
   if constexpr (side == BLACK && compass == EAST) {
     return MOVE_SOUTH_EAST(b);
   }
+}
+
+template <enum Color side> constexpr Bitboard PawnTargets(Bitboard b) {
+  return PawnTargets<side, EAST>(b) | PawnTargets<side, WEST>(b);
 }
 #endif

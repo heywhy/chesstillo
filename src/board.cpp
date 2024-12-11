@@ -6,10 +6,10 @@
 
 bool CoordForSquare(Coord *coord, uint8_t square) {
   if (square >= 0 && square < 64) {
-    std::uint8_t file = square % 8;
-    std::uint8_t rank = square / 8;
+    uint8_t file = FILE(square);
+    uint8_t rank = RANK(square);
 
-    *coord = {static_cast<char>(file + 97), static_cast<uint8_t>(rank + 1)};
+    *coord = {static_cast<char>(file + 97), static_cast<uint8_t>(rank)};
 
     return true;
   }

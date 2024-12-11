@@ -91,7 +91,7 @@ private:
   ftxui::Component scroll_view_;
 
   Chessboard *GetChessboard() {
-    return dynamic_cast<Chessboard *>(chessboard_.get());
+    return static_cast<Chessboard *>(chessboard_.get());
   }
 
   void Reset() {

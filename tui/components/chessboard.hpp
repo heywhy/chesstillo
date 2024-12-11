@@ -54,10 +54,10 @@ public:
   }
 
   void OnSelect(std::uint8_t index) override {
-    Square *square = dynamic_cast<Square *>(children_[index].get());
+    Square *square = static_cast<Square *>(children_[index].get());
 
     Square *selected = selected_ >= 0
-                           ? dynamic_cast<Square *>(children_[selected_].get())
+                           ? static_cast<Square *>(children_[selected_].get())
                            : nullptr;
 
     if (selected == nullptr && square->IsEmpty()) {
@@ -94,7 +94,7 @@ public:
   void FillBoard() {
     for (ftxui::Component &component : children_) {
       char piece;
-      Square *square = dynamic_cast<Square *>(component.get());
+      Square *square = static_cast<Square *>(component.get());
 
       if (position_->PieceAt(&piece, square->GetIndex())) {
         square->SetPiece(piece);

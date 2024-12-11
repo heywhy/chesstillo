@@ -5,6 +5,9 @@
 #include <cstdint>
 #include <vector>
 
+#define COLOR 2
+#define PIECES 6
+
 struct Move;
 
 typedef std::uint64_t Bitboard;
@@ -13,6 +16,8 @@ typedef std::vector<Move> Moves;
 enum Color : uint8_t { WHITE, BLACK };
 enum CastleDir : uint8_t { LEFT, RIGHT };
 enum Piece : uint8_t { ROOK, BISHOP, KNIGHT, KING, QUEEN, PAWN, NONE };
+// exact, lower bound, upper bound
+enum NodeType : uint8_t { PV, CUT, ALL, NON_PV = ALL | CUT };
 enum Flag : uint8_t {
   CHECK,
   CAPTURE,
@@ -49,7 +54,6 @@ enum ESquare : uint8_t {
 };
 // clang-format on
 
-// TODO: Maybe find a way to avoid move copying
 struct Move {
   uint8_t from;
   uint8_t to;
@@ -57,6 +61,8 @@ struct Move {
   uint8_t flags;
   Piece captured;
   Piece promoted;
+
+  Move() {}
 
   Move(uint8_t from, uint8_t to, Piece piece)
       : from(from), to(to), piece(piece), flags(0) {}
