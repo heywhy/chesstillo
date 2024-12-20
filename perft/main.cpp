@@ -6,7 +6,6 @@
 #include <iostream>
 #include <mutex>
 #include <string>
-#include <thread>
 #include <unordered_map>
 #include <vector>
 
@@ -15,6 +14,7 @@
 #include <chesstillo/fen.hpp>
 #include <chesstillo/move_gen.hpp>
 #include <chesstillo/position.hpp>
+#include <chesstillo/scheduler.hpp>
 #include <chesstillo/types.hpp>
 #include <chesstillo/utility.hpp>
 
@@ -116,11 +116,11 @@ Stat BulkPerft(Position &position, int depth, bool divide) {
   return stat;
 }
 
-Stat ThreadedPerft(Position &position, int depth, bool divide) {
+Stat ThreadedPerft(Scheduler *scheduler, Position &position, int depth,
+                   bool divide) {
   Stat stat;
   std::mutex m;
-  std::vector<std::thread> threads;
-
+  std::vector<Status *> jobs;
   std::vector<Move> moves = GenerateMoves(position);
 
   if (depth == 1) {
@@ -148,14 +148,18 @@ Stat ThreadedPerft(Position &position, int depth, bool divide) {
   for (Move &move : moves) {
     position.Make(move);
 
-    threads.emplace_back(callback, position, depth - 1, divide, &move, &stat,
-                         &m);
+    Status *status = scheduler->Dispatch([&, position]() {
+      callback(position, depth - 1, divide, &move, &stat, &m);
+    });
+
+    jobs.push_back(status);
 
     position.Undo(move);
   }
 
-  for (std::thread &thread : threads) {
-    thread.join();
+  for (Status *s : jobs) {
+    s->Wait();
+    delete s;
   }
 
   return stat;
@@ -191,11 +195,19 @@ int main() {
   Position position;
   PerftFun perft = BulkPerft;
 
+  // TODO: allow workers count to be configurable
+  Scheduler scheduler;
+
+  scheduler.Init();
+
   ApplyFen(position, START_FEN);
   // ApplyFen(position, "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -");
 
-  perft = ThreadedPerft;
-  Run(position, perft, 8 - 2, true);
+  perft = [&scheduler](Position &position, int depth, bool divide) {
+    return ThreadedPerft(&scheduler, position, depth, divide);
+  };
+
+  Run(position, perft, 8 - 1, true);
 
   return 0;
 }
