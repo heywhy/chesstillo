@@ -6,32 +6,60 @@
 #include <cstdlib>
 #include <functional>
 #include <mutex>
-#include <set>
+#include <queue>
 #include <thread>
+#include <unordered_set>
 #include <vector>
 
 typedef std::function<void()> Callback;
 
+class Status;
 class Scheduler;
+class Worker;
+
+class Job {
+private:
+  Callback callback_;
+  bool done_;
+  Worker *worker_;
+
+  Job(Callback fun) : callback_(fun), done_(false), worker_(nullptr) {}
+
+  void Execute() {
+    if (done_) {
+      return;
+    }
+
+    callback_();
+    done_ = true;
+    worker_ = nullptr;
+  }
+
+  friend class Status;
+  friend class Worker;
+};
 
 class Worker {
 public:
-  Worker() : callback_(NULL), stopped_(false) {}
+  Worker() : job_(nullptr), id_(ID++), ready_(false), stopped_(false) {}
   ~Worker() { Stop(); }
 
 private:
-  Callback callback_;
+  Job *job_;
   std::mutex mutex_;
   std::thread thread_;
   std::condition_variable cv_;
-  std::condition_variable ready_cv_;
 
+  int id_;
+  bool ready_;
   bool stopped_;
   Scheduler *scheduler_;
 
+  static int ID;
+
   void Init(Scheduler *scheduler);
   void Stop();
-  void Run(Callback callback);
+  void Run(Job *job);
   void Wait();
 
   friend class Scheduler;
@@ -40,43 +68,42 @@ private:
 
 class Status {
 public:
-  bool Done();
   void Wait();
 
 private:
-  Worker *worker_;
-  void *scheduler_;
+  Job job_;
 
-  Status(Worker *worker, void *scheduler)
-      : worker_(worker), scheduler_(scheduler) {}
+  Status(Callback callback) : job_(callback) {}
 
   friend class Scheduler;
 };
 
 class Scheduler {
 public:
-  Scheduler(int num) : size_(num), stopped_(false), workers_(size_) {}
+  Scheduler(int num)
+      : size_(num), ready_(false), stopped_(false), workers_(size_) {}
 
   ~Scheduler() { Stop(); }
 
-  size_t Busy() { return busy_.size(); }
+  size_t Size() { return size_; }
 
   void Init();
+  size_t Busy();
   void MakeAvailable(Worker *worker);
-  Status Dispatch(Callback callback);
+  Status *Dispatch(Callback callback);
 
 private:
   int size_;
+  bool ready_;
   bool stopped_;
-  std::set<Worker *> busy_;
+  std::queue<Job *> pending_;
   std::vector<Worker> workers_;
+  std::queue<Worker *> free_;
+  std::unordered_set<int> busy_;
 
   std::mutex mutex_;
-  std::thread cleaner_;
+  std::thread thread_;
   std::condition_variable cv_;
-  std::condition_variable ready_cv_;
-
-  Worker *finished_;
 
   void Stop();
   void Monitor();

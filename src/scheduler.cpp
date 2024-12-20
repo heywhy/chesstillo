@@ -3,39 +3,59 @@
 #include <cstdlib>
 #include <mutex>
 #include <thread>
-#include <vector>
 
 #include <chesstillo/scheduler.hpp>
 
 using namespace std::chrono_literals;
 
+int Worker::ID = 1;
+
 void Scheduler::Init() {
+  std::unique_lock lock(mutex_);
+
   for (Worker &worker : workers_) {
     worker.Init(this);
   }
 
-  std::unique_lock lock(mutex_);
-  cleaner_ = std::thread(&Scheduler::Monitor, this);
+  thread_ = std::thread(&Scheduler::Monitor, this);
 
-  ready_cv_.wait(lock);
+  cv_.wait(lock, [this] { return ready_; });
   lock.unlock();
-
-  cleaner_.detach();
 }
 
 void Scheduler::Monitor() {
-  ready_cv_.notify_all();
+  std::unique_lock lock(mutex_);
+
+  ready_ = true;
+
+  lock.unlock();
+  cv_.notify_all();
 
   while (true) {
+    lock.lock();
+
     if (stopped_) {
+      lock.unlock();
       break;
     }
 
-    std::unique_lock lock(mutex_);
+    cv_.wait(lock, [this] { return !free_.empty() || stopped_; });
 
-    cv_.wait(lock);
+    while (!free_.empty()) {
+      Worker *worker = free_.front();
 
-    busy_.erase(finished_);
+      free_.pop();
+
+      if (pending_.empty()) {
+        busy_.erase(worker->id_);
+        continue;
+      }
+
+      Job *job = pending_.front();
+
+      pending_.pop();
+      worker->Run(job);
+    }
 
     lock.unlock();
     cv_.notify_all();
@@ -43,114 +63,148 @@ void Scheduler::Monitor() {
 }
 
 void Scheduler::Stop() {
+  std::unique_lock lock(mutex_);
+
   if (stopped_) {
+    lock.unlock();
     return;
   }
 
-  std::unique_lock lock(mutex_);
+  // INFO: unlock the mutex so that any busy worker can call the scheduler
+  // without leading to a deadlock
+  lock.unlock();
+
+  for (Worker &worker : workers_) {
+    worker.Stop();
+  }
+
+  lock.lock();
 
   stopped_ = true;
 
-  cv_.notify_all();
-  cv_.wait(lock);
   lock.unlock();
+  cv_.notify_all();
+  thread_.join();
 }
 
 void Scheduler::MakeAvailable(Worker *worker) {
   std::unique_lock lock(mutex_);
 
-  finished_ = worker;
+  free_.push(worker);
 
   lock.unlock();
   cv_.notify_all();
 }
 
-Status Scheduler::Dispatch(Callback callback) {
+size_t Scheduler::Busy() {
+  std::unique_lock lock(mutex_);
+
+  size_t size = busy_.size();
+
+  lock.unlock();
+
+  return size;
+}
+
+Status *Scheduler::Dispatch(Callback callback) {
   // NOTE: random selection or even distribution?!
   // TODO: lock worker to confirm actual state. instead of find, maybe push to
   // another container
+
+  std::unique_lock lock(mutex_);
+
   auto it = std::find_if(workers_.begin(), workers_.end(), [&](Worker &worker) {
-    return !busy_.contains(&worker);
+    return !worker.stopped_ && !busy_.contains(worker.id_);
   });
+
+  Status *status = new Status(callback);
 
   if (it != workers_.end()) {
     Worker *worker = &(*it);
-    Status status(worker, this);
 
-    busy_.insert(worker);
+    busy_.insert(worker->id_);
+    lock.unlock();
 
-    it->Run(callback);
+    it->Run(&status->job_);
 
     return status;
   }
 
-  return {NULL, NULL};
+  pending_.push(&status->job_);
+  lock.unlock();
+  cv_.notify_all();
+
+  return status;
 }
 
 void Status::Wait() {
-  if (worker_ == nullptr) {
-    return;
+  while (!job_.done_) {
+    Worker *worker = job_.worker_;
+
+    if (worker == nullptr) {
+      continue;
+    }
+
+    std::unique_lock lock(worker->mutex_);
+
+    worker->cv_.wait(lock, [this] { return job_.done_; });
+    lock.unlock();
   }
-
-  if (worker_->callback_ == NULL || worker_->stopped_) {
-    worker_ = nullptr;
-
-    return;
-  }
-
-  std::unique_lock lock(worker_->mutex_);
-
-  worker_->cv_.wait(lock);
-  lock.unlock();
-
-  worker_ = nullptr;
 }
 
 void Worker::Init(Scheduler *scheduler) {
-  scheduler_ = scheduler;
   std::unique_lock lock(mutex_);
+
+  scheduler_ = scheduler;
   thread_ = std::thread(&Worker::Wait, this);
 
   // wait for the ready signal
-  ready_cv_.wait(lock);
+  cv_.wait(lock, [this] { return ready_; });
   lock.unlock();
-
-  // detach so that it can run independent of the main thread
-  thread_.detach();
 }
 
 void Worker::Stop() {
+  std::unique_lock lock(mutex_);
+
   if (stopped_) {
+    lock.unlock();
     return;
   }
-
-  std::unique_lock lock(mutex_);
 
   // set this to true so that so that the thread can stop running
   stopped_ = true;
 
-  cv_.notify_all();
-  cv_.wait(lock);
   lock.unlock();
+  cv_.notify_all();
+  thread_.join();
 }
 
 void Worker::Wait() {
-  ready_cv_.notify_all();
+  std::unique_lock lock(mutex_);
+
+  ready_ = true;
+
+  lock.unlock();
+  cv_.notify_all();
 
   while (true) {
+    lock.lock();
+
     if (stopped_) {
+      lock.unlock();
       break;
     }
 
-    std::unique_lock lock(mutex_);
+    cv_.wait(lock, [this] { return job_ != nullptr || stopped_; });
 
-    cv_.wait(lock);
+    if (job_ != nullptr) {
+      job_->Execute();
 
-    if (callback_ != NULL) {
-      callback_();
-      callback_ = NULL;
+      job_ = nullptr;
 
-      if (scheduler_ != nullptr) {
+      // there is no need telling the scheduler it's free if it's asked to stop
+      // after its last job
+      if (!stopped_) {
         scheduler_->MakeAvailable(this);
       }
     }
@@ -160,10 +214,11 @@ void Worker::Wait() {
   }
 }
 
-void Worker::Run(Callback callback) {
+void Worker::Run(Job *job) {
   std::unique_lock lock(mutex_);
 
-  callback_ = callback;
+  job_ = job;
+  job_->worker_ = this;
 
   lock.unlock();
   cv_.notify_all();
