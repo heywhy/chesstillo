@@ -10,6 +10,11 @@ using namespace std::chrono_literals;
 
 int Worker::ID = 1;
 
+Scheduler::Scheduler() : Scheduler(std::thread::hardware_concurrency()) {}
+
+Scheduler::Scheduler(int workers)
+    : size_(workers), ready_(false), stopped_(false), workers_(size_) {}
+
 void Scheduler::Init() {
   std::unique_lock lock(mutex_);
 

@@ -80,8 +80,8 @@ private:
 
 class Scheduler {
 public:
-  Scheduler(int num)
-      : size_(num), ready_(false), stopped_(false), workers_(size_) {}
+  Scheduler();
+  Scheduler(int workers);
 
   ~Scheduler() { Stop(); }
 
