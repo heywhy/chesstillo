@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <tuple>
+#include <utility>
 
 #include <chesstillo/board.hpp>
 #include <chesstillo/constants.hpp>
@@ -86,7 +87,7 @@ int Evaluate(Position &position) {
       EvalPawnStructure(state);
   auto opening_king_position = EvalKingPosition(state);
 
-  auto [opening_tempo, endgame_tempo] = std::make_tuple(
+  auto [opening_tempo, endgame_tempo] = std::make_pair(
       kWeights[TEMPO][0] * side_to_move, kWeights[TEMPO][1] * side_to_move);
 
   auto [opening_passed_pawns, endgame_passed_pawns] = EvalPassedPawns(state);
@@ -100,7 +101,7 @@ int Evaluate(Position &position) {
   return TAPER_EVAL(opening, endgame, state.phase);
 }
 
-std::tuple<int, int> EvalMaterials(EvalState &state) {
+std::pair<int, int> EvalMaterials(EvalState &state) {
   int scores[2];
   int white_bishop_pair = 0;
   int black_bishop_pair = 0;
@@ -129,11 +130,11 @@ std::tuple<int, int> EvalMaterials(EvalState &state) {
         (kWeights[BISHOP_PAIR][i] * (white_bishop_pair - black_bishop_pair));
   }
 
-  return std::make_tuple(scores[0], scores[1]);
+  return std::make_pair(scores[0], scores[1]);
 }
 
 // TODO: maybe include the "candidate" property from fruits/TOGA
-std::tuple<float, float> EvalPawnStructure(EvalState &state) {
+std::pair<float, float> EvalPawnStructure(EvalState &state) {
   float scores[2];
   Bitboard white_pawns = state.white_pieces[PAWN];
   Bitboard black_pawns = state.black_pieces[PAWN];
@@ -168,11 +169,11 @@ std::tuple<float, float> EvalPawnStructure(EvalState &state) {
                 (kWeights[BACKWARD_AND_OPEN_PAWNS][i] * open_backward_pawns);
   }
 
-  return std::make_tuple(scores[0], scores[1]);
+  return std::make_pair(scores[0], scores[1]);
 }
 
 // TODO: knight outpost
-std::tuple<int, int> EvalPieces(EvalState &state) {
+std::pair<int, int> EvalPieces(EvalState &state) {
   int king_distance = EvalKingDistance(state);
   auto [opening_mobility, endgame_mobility] = EvalMobility(state);
   auto [opening_open_line, endgame_open_line] = EvalOpenFile(state);
@@ -183,10 +184,10 @@ std::tuple<int, int> EvalPieces(EvalState &state) {
   int endgame =
       endgame_mobility + endgame_open_line + endgame_7th_rank + king_distance;
 
-  return std::make_tuple(opening, endgame);
+  return std::make_pair(opening, endgame);
 }
 
-std::tuple<float, float> EvalPassedPawns(EvalState &state) {
+std::pair<float, float> EvalPassedPawns(EvalState &state) {
   auto [opening_white_passed_pawns, endgame_white_passed_pawns] =
       PassedPawns<WHITE>(state);
 
@@ -196,7 +197,7 @@ std::tuple<float, float> EvalPassedPawns(EvalState &state) {
   float opening = opening_white_passed_pawns - opening_black_passed_pawns;
   float endgame = endgame_white_passed_pawns - endgame_black_passed_pawns;
 
-  return std::make_tuple(opening, endgame);
+  return std::make_pair(opening, endgame);
 }
 
 int EvalKingPosition(EvalState &state) {
@@ -358,7 +359,7 @@ template <enum Color side> int KingPosition(EvalState &state) {
   return shelter_penalty + hostile_pawns_penalty - attackers_score;
 }
 
-std::tuple<int, int> EvalMobility(EvalState &state) {
+std::pair<int, int> EvalMobility(EvalState &state) {
   int scores[2];
 
   for (int i = 0; i < 2; i++) {
@@ -377,10 +378,10 @@ std::tuple<int, int> EvalMobility(EvalState &state) {
     scores[i] = rooks_mobility + bishop_mobility + knight_mobility;
   }
 
-  return std::make_tuple(scores[0], scores[1]);
+  return std::make_pair(scores[0], scores[1]);
 }
 
-std::tuple<int, int> EvalOpenFile(EvalState &state) {
+std::pair<int, int> EvalOpenFile(EvalState &state) {
   int scores[2];
 
   int closed_files = ClosedFiles<WHITE>(state) - ClosedFiles<BLACK>(state);
@@ -428,10 +429,10 @@ std::tuple<int, int> EvalOpenFile(EvalState &state) {
         (kWeights[OPEN_FILE_SAME_ENEMY_KING][i] * open_files_same_enemy_king);
   }
 
-  return std::make_tuple(scores[0], scores[1]);
+  return std::make_pair(scores[0], scores[1]);
 }
 
-std::tuple<int, int> EvalRank7(EvalState &state) {
+std::pair<int, int> EvalRank7(EvalState &state) {
   int scores[2];
 
   for (int i = 0; i < 2; i++) {
@@ -445,7 +446,7 @@ std::tuple<int, int> EvalRank7(EvalState &state) {
     scores[i] = rooks_on_7th + queens_on_7th;
   }
 
-  return std::make_tuple(scores[0], scores[1]);
+  return std::make_pair(scores[0], scores[1]);
 }
 
 int EvalKingDistance(EvalState &state) {
@@ -473,7 +474,7 @@ template <enum Color side> int DoublePawns(Bitboard pawns) {
 }
 
 template <enum Color side>
-std::tuple<int, int> IsolatedPawns(Bitboard pawns, Bitboard empty_sqs) {
+std::pair<int, int> IsolatedPawns(Bitboard pawns, Bitboard empty_sqs) {
   int open = 0;
   int count = 0;
 
@@ -491,11 +492,11 @@ std::tuple<int, int> IsolatedPawns(Bitboard pawns, Bitboard empty_sqs) {
     pawns ^= bb | targets;
   }
 
-  return std::make_tuple(count, open);
+  return std::make_pair(count, open);
 }
 
 template <enum Color side>
-std::tuple<int, int> BackwardPawns(Bitboard side_pawns, Bitboard enemy_pawns) {
+std::pair<int, int> BackwardPawns(Bitboard side_pawns, Bitboard enemy_pawns) {
   int open = 0;
   int count = 0;
   Bitboard pawns = side_pawns | enemy_pawns;
@@ -543,7 +544,7 @@ std::tuple<int, int> BackwardPawns(Bitboard side_pawns, Bitboard enemy_pawns) {
     side_pawns ^= bb;
   }
 
-  return std::make_tuple(count, open);
+  return std::make_pair(count, open);
 }
 
 template <enum Color side> int RooksMobility(EvalState &state) {
@@ -781,7 +782,7 @@ template <enum Color side> int KingDistance(EvalState &state) {
 
 // TODO: implement kings distance & unstoppable passed pawn scoring
 template <enum Color side>
-std::tuple<float, float> PassedPawns(EvalState &state) {
+std::pair<float, float> PassedPawns(EvalState &state) {
   int side_diff;
   Bitboard side_pawns;
   Bitboard enemy_pawns;
@@ -840,5 +841,5 @@ std::tuple<float, float> PassedPawns(EvalState &state) {
                  PP_BONUS[std::abs(rank - side_diff)];
   }
 
-  return std::make_tuple(opening_score, endgame_score);
+  return std::make_pair(opening_score, endgame_score);
 }

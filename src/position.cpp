@@ -1,5 +1,6 @@
 #include <cstdint>
 #include <tuple>
+#include <utility>
 
 #include <chesstillo/board.hpp>
 #include <chesstillo/constants.hpp>
@@ -265,9 +266,9 @@ void Position::UpdateInternals() {
   if (en_passant_target_ && (ep_rank & king) && (ep_rank & enemy_rook_queen) &&
       (ep_rank & pawns)) {
     auto [pawn_west_targets, pawn_east_targets] =
-        turn_ == WHITE ? std::make_tuple(PawnTargets<BLACK, WEST>,
+        turn_ == WHITE ? std::make_pair(PawnTargets<BLACK, WEST>,
                                          PawnTargets<BLACK, EAST>)
-                       : std::make_tuple(PawnTargets<WHITE, WEST>,
+                       : std::make_pair(PawnTargets<WHITE, WEST>,
                                          PawnTargets<WHITE, EAST>);
 
     Bitboard west_targets = pawn_west_targets(en_passant_sq_) & pawns;
@@ -307,8 +308,8 @@ void Position::UpdateKingBan() {
 
   auto [pawn_east_targets, pawn_west_targets] =
       turn_ == WHITE
-          ? std::make_tuple(PawnTargets<BLACK, EAST>, PawnTargets<BLACK, WEST>)
-          : std::make_tuple(PawnTargets<WHITE, EAST>, PawnTargets<WHITE, WEST>);
+          ? std::make_pair(PawnTargets<BLACK, EAST>, PawnTargets<BLACK, WEST>)
+          : std::make_pair(PawnTargets<WHITE, EAST>, PawnTargets<WHITE, WEST>);
 
   king_ban_ |=
       (KING_ATTACKS(board_.pieces_[opp][KING])) |

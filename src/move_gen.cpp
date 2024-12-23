@@ -513,7 +513,7 @@ Bitboard CheckMask(Position &position) {
   return mask;
 }
 
-std::tuple<Bitboard, Bitboard> PinMask(Position &position) {
+std::pair<Bitboard, Bitboard> PinMask(Position &position) {
   Color opp = OPP(position.turn_);
   Bitboard *own_pieces = position.Pieces(position.turn_);
   Bitboard *opp_pieces = position.Pieces(opp);

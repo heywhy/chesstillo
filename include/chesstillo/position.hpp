@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <stack>
 #include <string>
-#include <tuple>
+#include <utility>
 #include <vector>
 
 #include "board.hpp"
@@ -95,7 +95,7 @@ private:
   friend int Evaluate(Position &position);
   friend std::vector<Move> GenerateMoves(Position &position);
   friend Bitboard CheckMask(Position &position);
-  friend std::tuple<Bitboard, Bitboard> PinMask(Position &position);
+  friend std::pair<Bitboard, Bitboard> PinMask(Position &position);
   friend std::string PositionToFen(Position &position);
   friend void ApplyFen(Position &position, const char *fen);
 

@@ -2,6 +2,7 @@
 #define EVALUATION_HPP
 
 #include <tuple>
+#include <utility>
 
 #include "position.hpp"
 #include "types.hpp"
@@ -109,9 +110,9 @@ enum Phase : uint8_t { OPENING, ENDGAME };
 
 template <enum Color side> int DoublePawns(Bitboard pawns);
 template <enum Color side>
-std::tuple<int, int> IsolatedPawns(Bitboard pawns, Bitboard empty_sqs);
+std::pair<int, int> IsolatedPawns(Bitboard pawns, Bitboard empty_sqs);
 template <enum Color side>
-std::tuple<int, int> BackwardPawns(Bitboard side_pawns, Bitboard enemy_pawns);
+std::pair<int, int> BackwardPawns(Bitboard side_pawns, Bitboard enemy_pawns);
 
 template <enum Color side> int ClosedFiles(EvalState &state);
 template <enum Color side>
@@ -125,18 +126,18 @@ template <enum Color side> int KingDistance(EvalState &state);
 template <enum Color> int RooksMobility(EvalState &state);
 template <enum Color> int BishopsMobility(EvalState &state);
 template <enum Color> int KnightsMobility(EvalState &state);
-template <enum Color> std::tuple<float, float> PassedPawns(EvalState &state);
+template <enum Color> std::pair<float, float> PassedPawns(EvalState &state);
 
 template <enum Color> int KingPosition(EvalState &state);
 
-std::tuple<int, int> EvalPieces(EvalState &state);
+std::pair<int, int> EvalPieces(EvalState &state);
 int EvalKingDistance(EvalState &state);
-std::tuple<int, int> EvalMobility(EvalState &state);
-std::tuple<int, int> EvalOpenFile(EvalState &state);
-std::tuple<int, int> EvalRank7(EvalState &state);
-std::tuple<int, int> EvalMaterials(EvalState &state);
-std::tuple<float, float> EvalPassedPawns(EvalState &state);
-std::tuple<float, float> EvalPawnStructure(EvalState &state);
+std::pair<int, int> EvalMobility(EvalState &state);
+std::pair<int, int> EvalOpenFile(EvalState &state);
+std::pair<int, int> EvalRank7(EvalState &state);
+std::pair<int, int> EvalMaterials(EvalState &state);
+std::pair<float, float> EvalPassedPawns(EvalState &state);
+std::pair<float, float> EvalPawnStructure(EvalState &state);
 int EvalKingPosition(EvalState &state);
 
 int Evaluate(Position &position);

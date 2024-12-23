@@ -2,7 +2,7 @@
 #define MOVE_GEN_HPP
 
 #include <cstdint>
-#include <tuple>
+#include <utility>
 
 #include <chesstillo/board.hpp>
 #include <chesstillo/constants.hpp>
@@ -54,7 +54,7 @@
                 _loop_i = BIT_INDEX(_x_copy))
 
 Bitboard CheckMask(Position &position);
-std::tuple<Bitboard, Bitboard> PinMask(Position &position);
+std::pair<Bitboard, Bitboard> PinMask(Position &position);
 
 Moves GenerateMoves(Position &position);
 

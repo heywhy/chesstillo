@@ -1,7 +1,7 @@
 #ifndef TUI_SQUARE_HPP
 #define TUI_SQUARE_HPP
 
-#include <tuple>
+#include <utility>
 
 #include <chesstillo/board.hpp>
 #include <chesstillo/constants.hpp>
@@ -28,7 +28,7 @@ public:
 
   ftxui::Element Render() override {
     ftxui::Elements elements;
-    std::tuple<const char *, ftxui::Color> piece;
+    std::pair<const char *, ftxui::Color> piece;
 
     if (ContainedPiece(&piece)) {
       ftxui::Element content =
@@ -79,7 +79,7 @@ private:
   std::int8_t *selected_;
   char piece_;
 
-  bool ContainedPiece(std::tuple<const char *, ftxui::Color> *result) {
+  bool ContainedPiece(std::pair<const char *, ftxui::Color> *result) {
     switch (piece_) {
     case 'r':
       *result = {kRook, theme_->b_piece};
