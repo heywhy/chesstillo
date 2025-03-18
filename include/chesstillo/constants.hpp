@@ -6,6 +6,8 @@
 #include "magic_bits.hpp"
 #include "types.hpp"
 
+#define MAX_THREADS 256
+
 inline constexpr Bitboard kEmpty = 0;
 inline constexpr Bitboard kUniverse = -1;
 inline constexpr Bitboard kAFile = 0x0101010101010101;

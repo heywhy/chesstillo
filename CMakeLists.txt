@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(FTXUI_QUIET ON)
 
 if(NOT MSVC)
-  set(COMPILE_OPTIONS -Wall -Wextra)
+  set(COMPILE_OPTIONS -Wall -Wextra -Werror)
 else()
   set(COMPILE_OPTIONS /std:c++20)
 endif()
@@ -25,9 +25,12 @@ add_library(chesstillo_lib
   src/move_gen.cpp
   src/game.cpp
   src/evaluation.cpp
+  src/options.cpp
   src/search.cpp
   src/scheduler.cpp
+  src/threads.cpp
   src/transposition.cpp
+  src/ybwc.cpp
 )
 
 target_include_directories(chesstillo_lib PRIVATE include)
@@ -57,14 +60,14 @@ include(FetchContent)
 FetchContent_Declare(
   ftxui
   GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui.git
-  GIT_TAG daa421fa6ad97c8a6c9bd43f77c81862bfa52c77
+  GIT_TAG d75108e96058b6e00da6306a7d99c9555f645434
   GIT_SHALLOW true
 )
 
 FetchContent_Declare(
   googletest
   GIT_REPOSITORY https://github.com/google/googletest.git
-  GIT_TAG v1.15.2
+  GIT_TAG v1.16.0
   GIT_SHALLOW true
 )
 

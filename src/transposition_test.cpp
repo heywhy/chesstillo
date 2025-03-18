@@ -86,7 +86,8 @@ TEST_F(TranspositionTestSuite, ApplyAlphaCutOff) {
 
   ASSERT_TRUE(tt.CutOff(position, 2, -10, 20, &best_move, &score));
   ASSERT_EQ(best_move, move);
-  ASSERT_EQ(score, -10);
+  ASSERT_EQ(score, -25);
+  ASSERT_FALSE(tt.CutOff(position, 10, -10, 20, &best_move, &score));
 }
 
 TEST_F(TranspositionTestSuite, ApplyBetaCutOff) {
@@ -98,5 +99,6 @@ TEST_F(TranspositionTestSuite, ApplyBetaCutOff) {
 
   ASSERT_TRUE(tt.CutOff(position, 2, -50, 20, &best_move, &score));
   ASSERT_EQ(best_move, move);
-  ASSERT_EQ(score, 20);
+  ASSERT_EQ(score, 25);
+  ASSERT_FALSE(tt.CutOff(position, 8, -50, 20, &best_move, &score));
 }

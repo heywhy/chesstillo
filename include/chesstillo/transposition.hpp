@@ -1,8 +1,10 @@
 #ifndef TRANSPOSITION_HPP
 #define TRANSPOSITION_HPP
 
+#include <atomic>
 #include <cstdint>
 #include <cstdlib>
+#include <vector>
 
 #include <chesstillo/position.hpp>
 #include <chesstillo/types.hpp>
@@ -35,13 +37,7 @@ private:
 class TT {
 public:
   // INFO: check if the UCI option for TT is a size or capacity.
-  TT(uint64_t size)
-      : size_(size),
-        entries_(static_cast<TTEntry *>(std::calloc(size_, sizeof(TTEntry)))) {
-    zobrist_.Init();
-  };
-
-  ~TT() noexcept { free(entries_); }
+  TT(uint64_t size) : size_(size), entries_(size) { zobrist_.Init(); };
 
   void Add(Position &position, int depth, int score, Move best_move,
            NodeType node);
@@ -52,7 +48,7 @@ public:
 
 private:
   uint64_t size_;
-  TTEntry *entries_;
+  std::vector<std::atomic<TTEntry>> entries_;
 
   Zobrist zobrist_;
 

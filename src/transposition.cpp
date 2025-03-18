@@ -1,3 +1,4 @@
+#include <atomic>
 #include <cstdint>
 #include <utility>
 
@@ -37,7 +38,11 @@ void Zobrist::Init() {
 
 void TT::Clear() noexcept {
   for (uint64_t i = 0; i < size_; i++) {
-    entries_[i].hash = -1;
+    TTEntry entry = entries_[i].load();
+
+    entry.hash = -1;
+
+    entries_[i].store(entry);
   }
 };
 
@@ -69,28 +74,30 @@ uint64_t TT::Hash(Position &position) {
 void TT::Add(Position &position, int depth, int score, Move best_move,
              NodeType node) {
   uint64_t hash = Hash(position);
-  TTEntry *entry = &entries_[hash & size_];
+  std::atomic<TTEntry> &atomic_entry = entries_[hash & size_];
+  TTEntry entry = atomic_entry.load();
 
-  if ((entry->hash == hash && entry->depth > depth) ||
-      (entry->age > position.halfmove_clock_)) {
+  if ((entry.hash == hash && entry.depth > depth) ||
+      (entry.age > position.halfmove_clock_)) {
     return;
   }
 
-  entry->hash = hash;
-  entry->depth = depth;
-  entry->score = score;
-  entry->best_move = std::move(best_move);
-  entry->age = position.halfmove_clock_;
-  entry->node = node;
+  entry.hash = hash;
+  entry.depth = depth;
+  entry.score = score;
+  entry.best_move = std::move(best_move);
+  entry.age = position.halfmove_clock_;
+  entry.node = node;
+
+  atomic_entry.store(entry);
 };
 
 bool TT::Probe(Position &position, TTEntry *result) {
   uint64_t hash = Hash(position);
-  TTEntry *entry = &entries_[hash & size_];
+  TTEntry entry = entries_[hash & size_].load();
 
-  if (entry->hash == hash) {
-    // copy the entry to avoid data race
-    *result = *entry;
+  if (entry.hash == hash) {
+    *result = entry;
 
     return true;
   }
@@ -107,7 +114,7 @@ bool TT::CutOff(Position &position, int depth, int alpha, int beta,
     *score = entry.score;
 
     return (entry.node == PV) || (entry.node == CUT && entry.score >= beta) ||
-           (entry.node == ALL && entry.score <= alpha);
+           (entry.node == ALL && entry.score < alpha);
   }
 
   return false;

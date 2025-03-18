@@ -7,8 +7,12 @@
 
 #define COLOR 2
 #define PIECES 6
+#define MAX_SCORE INT_MAX
+#define MIN_SCORE -INT_MAX
+#define SCORE_INF INT_MAX
 
 struct Move;
+struct SplitPoint;
 
 typedef std::uint64_t Bitboard;
 typedef std::vector<Move> Moves;
@@ -17,7 +21,7 @@ enum Color : uint8_t { WHITE, BLACK };
 enum CastleDir : uint8_t { LEFT, RIGHT };
 enum Piece : uint8_t { ROOK, BISHOP, KNIGHT, KING, QUEEN, PAWN, NONE };
 // exact, lower bound, upper bound
-enum NodeType : uint8_t { PV, CUT, ALL, NON_PV = ALL | CUT };
+enum NodeType : uint8_t { PV, CUT, ALL };
 enum Flag : uint8_t {
   CHECK,
   CAPTURE,
@@ -61,6 +65,9 @@ struct Move {
   uint8_t flags;
   Piece captured;
   Piece promoted;
+
+  int cost = 0;
+  int score = 0;
 
   Move() {}
 

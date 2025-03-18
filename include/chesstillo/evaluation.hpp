@@ -37,42 +37,9 @@
 
 // INFO: opening & endgame weights
 // order of weights should corresponding with type::piece spec.
-const int kWeights[26][2] = {{500, 500},
-                             {325, 325},
-                             {325, 325},
-                             {2000, 2000},
-                             {975, 975},
-                             {70, 90},
-                             // bishop pair values
-                             {50, 50},
-                             // pawns structure
-                             {10, 20},
-                             {10, 20},
-                             {20, 20},
-                             {8, 10},
-                             {16, 10},
-                             {5, 10},
-                             // tempo
-                             {20, 10},
-                             // knight mobility
-                             {4, 4},
-                             // bishop mobility
-                             {5, 5},
-                             // rook mobility
-                             {2, 4},
-                             // file
-                             {-10, -10},
-                             {0, 0},
-                             {10, 0},
-                             {20, 0},
-                             {10, 10},
-                             {20, 10},
-                             {30, 10},
-                             // 7th rank
-                             {20, 40},
-                             {10, 20}};
 
-const float kRankBonus[] = {0, 0, 0.1, 0.3, 0.6, 1};
+extern const int kWeights[26][2];
+extern const float kRankBonus[6];
 
 struct EvalState {
   Bitboard *white_pieces;
