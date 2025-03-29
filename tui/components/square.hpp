@@ -26,7 +26,7 @@ public:
   void SetPiece(char piece) { piece_ = piece; }
   bool IsEmpty() { return piece_ == '\0'; }
 
-  ftxui::Element Render() override {
+  ftxui::Element OnRender() override {
     ftxui::Elements elements;
     std::pair<const char *, ftxui::Color> piece;
 

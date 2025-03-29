@@ -15,7 +15,7 @@ class MovesBoard : public ftxui::ComponentBase {
 public:
   MovesBoard(std::list<Move> *moves) : moves_(moves) {}
 
-  ftxui::Element Render() override {
+  ftxui::Element OnRender() override {
     ftxui::Elements elements;
 
     elements.reserve(moves_->size() / 2);

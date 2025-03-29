@@ -13,7 +13,7 @@
 
 class Home : public ftxui::ComponentBase {
 public:
-  ftxui::Element Render() override {
+  ftxui::Element OnRender() override {
     ftxui::FlexboxConfig config;
 
     config.Set(ftxui::FlexboxConfig::Direction::Column);

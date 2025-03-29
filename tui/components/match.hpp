@@ -32,7 +32,7 @@ public:
     Reset();
   }
 
-  ftxui::Element Render() override {
+  ftxui::Element OnRender() override {
     ftxui::FlexboxConfig config;
     ftxui::Dimensions dimensions = ftxui::Dimension::Full();
 

@@ -23,7 +23,7 @@ public:
     }
   }
 
-  ftxui::Element Render() override {
+  ftxui::Element OnRender() override {
     ftxui::Elements squares;
 
     for (int i = 7; i >= 0; i--) {

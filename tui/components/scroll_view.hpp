@@ -20,7 +20,7 @@ public:
     Add(child);
   }
 
-  ftxui::Element Render() override {
+  ftxui::Element OnRender() override {
     ftxui::Element background = ftxui::ComponentBase::Render();
     background->ComputeRequirement();
 
