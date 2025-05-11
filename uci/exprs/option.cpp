@@ -21,7 +21,7 @@ std::unique_ptr<Expr> Parser::Option() {
   };
 
 decide: {
-  const auto &token = Consume(WORD, "Expected 'name'.");
+  const auto &token = Consume(WORD);
   const auto &literal = std::get<std::string_view>(token.literal);
 
   if (literal == "name") {
@@ -38,7 +38,7 @@ decide: {
     goto max;
   }
 
-  throw Error(token, "Unexpected token.");
+  throw Error(token);
 }
 
 maybe_return: {
@@ -88,12 +88,12 @@ type: {
 
 def4ult: {
   if (expr->type == SPIN) {
-    const auto &token = Consume(NUMBER, "Unexpected token.");
+    const auto &token = Consume(NUMBER);
     const auto &literal = std::get<int>(token.literal);
 
     expr->def4ult = literal;
   } else if (expr->type == CHECK) {
-    const auto &token = Consume(WORD, "Unexpected token.");
+    const auto &token = Consume(WORD);
     const auto &literal = std::get<std::string_view>(token.literal);
 
     if (literal == "false") {
@@ -101,22 +101,22 @@ def4ult: {
     } else if (literal == "true") {
       expr->def4ult = true;
     } else {
-      throw Error(token, "Unexpected token.");
+      throw Error(token);
     }
   } else if (expr->type == COMBO || expr->type == STRING) {
-    const auto &token = Consume(WORD, "Unexpected token.");
+    const auto &token = Consume(WORD);
     const auto &literal = std::get<std::string_view>(token.literal);
 
     expr->def4ult = literal;
   } else {
-    throw Error(Previous(), "Unexpected token.");
+    throw Error(Previous());
   }
 
   goto maybe_return;
 }
 
 var: {
-  const auto &token = Consume(WORD, "Unexpected token.");
+  const auto &token = Consume(WORD);
   const auto &literal = std::get<std::string_view>(token.literal);
 
   expr->vars.emplace_back(literal);
@@ -125,7 +125,7 @@ var: {
 }
 
 min: {
-  const auto &token = Consume(NUMBER, "Unexpected token.");
+  const auto &token = Consume(NUMBER);
   const auto &literal = std::get<int>(token.literal);
 
   expr->min = literal;
@@ -134,7 +134,7 @@ min: {
 }
 
 max: {
-  const auto &token = Consume(NUMBER, "Unexpected token.");
+  const auto &token = Consume(NUMBER);
   const auto &literal = std::get<int>(token.literal);
 
   expr->max = literal;

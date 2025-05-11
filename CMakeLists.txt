@@ -33,7 +33,6 @@ include(GoogleTest)
 add_library(uci
   STATIC
   uci/scanner.cpp
-  uci/expr.cpp
   uci/parser.cpp
   uci/uci.cpp
   uci/exprs/go.cpp

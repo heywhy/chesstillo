@@ -91,7 +91,7 @@ bool Parser::Match(TokenType type) {
 }
 
 Tokens::const_reference Parser::Consume(TokenType type,
-                                        std::string_view message) {
+                                        const std::string_view &message) {
   if (Check(type)) {
     return Advance();
   }

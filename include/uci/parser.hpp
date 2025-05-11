@@ -44,9 +44,12 @@ private:
   bool IsAtEnd();
   bool Check(TokenType type);
   bool Match(TokenType type);
-  Tokens::const_reference Consume(TokenType type, std::string_view message);
+  Tokens::const_reference
+  Consume(TokenType type,
+          const std::string_view &message = "Unexpected token.");
 
-  ParseError Error(const Token &token, const std::string_view &message);
+  ParseError Error(const Token &token,
+                   const std::string_view &message = "Unexpected token.");
 
   // GUI to Engine
   std::unique_ptr<Expr> Position();

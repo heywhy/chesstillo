@@ -55,7 +55,7 @@ struct Command : public Expr {
 
   Command(const std::string_view &command) : input(command) {}
 
-  void Accept(Visitor &) override;
+  void Accept(Visitor &visitor) override { visitor.VisitCommand(this); };
 };
 
 struct Position : public Expr {
@@ -64,7 +64,7 @@ struct Position : public Expr {
 
   Position(const std::string_view &pos) : input(pos) {};
 
-  void Accept(Visitor &) override;
+  void Accept(Visitor &visitor) override { visitor.VisitPosition(this); };
 };
 
 struct Go : public Expr {
@@ -80,7 +80,7 @@ struct Go : public Expr {
   int mate = 0;
   bool infinite = false;
 
-  void Accept(Visitor &) override;
+  void Accept(Visitor &visitor) override { visitor.VisitGo(this); };
 };
 
 struct SetOption : public Expr {
@@ -89,7 +89,7 @@ struct SetOption : public Expr {
 
   SetOption(const std::string_view &id) : id(id) {}
 
-  void Accept(Visitor &) override;
+  void Accept(Visitor &visitor) override { visitor.VisitSetOption(this); };
 };
 
 struct Register : public Expr {
@@ -97,7 +97,7 @@ struct Register : public Expr {
   std::string name;
   std::string_view code;
 
-  void Accept(Visitor &) override;
+  void Accept(Visitor &visitor) override { visitor.VisitRegister(this); };
 };
 
 // Engine -> GUI
