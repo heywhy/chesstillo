@@ -14,55 +14,7 @@ else()
   set(COMPILE_OPTIONS /std:c++20)
 endif()
 
-add_library(chesstillo_lib
-  STATIC
-  src/initializer.cpp
-  src/utility.cpp
-  src/board.cpp
-  src/position.cpp
-  src/fen.cpp
-  src/fill.cpp
-  src/move_gen.cpp
-  src/game.cpp
-  src/evaluation.cpp
-  src/options.cpp
-  src/search.cpp
-  src/scheduler.cpp
-  src/threads.cpp
-  src/transposition.cpp
-  src/ybwc.cpp
-)
-
-target_include_directories(chesstillo_lib PRIVATE include)
-target_compile_options(chesstillo_lib PRIVATE ${COMPILE_OPTIONS})
-target_link_options(chesstillo_lib PRIVATE -O3)
-
-add_executable(chesstillo_tui tui/theme.cpp tui/utils.cpp tui/main.cpp)
-target_include_directories(chesstillo_tui PRIVATE include tui)
-target_link_libraries(chesstillo_tui PRIVATE chesstillo_lib)
-target_compile_options(chesstillo_tui PRIVATE ${COMPILE_OPTIONS})
-target_link_options(chesstillo_tui PRIVATE -O3)
-
-add_executable(chesstillo_perft perft/main.cpp)
-target_include_directories(chesstillo_perft PRIVATE include)
-target_link_libraries(chesstillo_perft PRIVATE chesstillo_lib)
-target_compile_options(chesstillo_perft PRIVATE ${COMPILE_OPTIONS})
-target_link_options(chesstillo_perft PRIVATE -O3)
-
-add_executable(chesstillo uci/main.cpp)
-target_include_directories(chesstillo PRIVATE include)
-target_link_libraries(chesstillo PRIVATE chesstillo_lib)
-target_compile_options(chesstillo PRIVATE ${COMPILE_OPTIONS})
-target_link_options(chesstillo PRIVATE -O3)
-
 include(FetchContent)
-
-FetchContent_Declare(
-  ftxui
-  GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui.git
-  GIT_TAG v6.0.1
-  GIT_SHALLOW true
-)
 
 FetchContent_Declare(
   googletest
@@ -71,43 +23,36 @@ FetchContent_Declare(
   GIT_SHALLOW true
 )
 
-FetchContent_Declare(
-  magic_bits
-  GIT_REPOSITORY https://github.com/goutham/magic-bits.git
-  GIT_TAG 3152d1bf63d7ec2ce3b69dc5b2474db7abd419fa
-  GIT_SHALLOW true
-)
-
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
-FetchContent_MakeAvailable(ftxui googletest magic_bits)
+FetchContent_MakeAvailable(googletest)
 
-add_library(magic_bits INTERFACE)
-target_include_directories(magic_bits INTERFACE ${magic_bits_SOURCE_DIR}/include)
+include(GoogleTest)
 
-target_link_libraries(chesstillo_lib PUBLIC magic_bits)
-
-target_link_libraries(
-  chesstillo_tui
-  PRIVATE ftxui::screen
-  PRIVATE ftxui::dom
-  PRIVATE ftxui::component
+add_library(uci
+  STATIC
+  uci/scanner.cpp
+  uci/expr.cpp
+  uci/parser.cpp
+  uci/exprs/go.cpp
+  uci/exprs/position.cpp
+  uci/exprs/setoption.cpp
+  uci/exprs/register.cpp
 )
 
-enable_testing()
+target_include_directories(uci PRIVATE include)
 
-file(GLOB TEST_SRC LIST_DIRECTORIES false src/*_test.cpp)
+file(GLOB UCI_TEST_SRC LIST_DIRECTORIES false uci/*_test.cpp)
 
-add_executable(chesstillo_test ${TEST_SRC})
-target_include_directories(chesstillo_test PRIVATE include)
+add_executable(uci_test ${UCI_TEST_SRC})
+target_include_directories(uci_test PRIVATE include)
+
 target_link_libraries(
-  chesstillo_test
-  PRIVATE chesstillo_lib
+  uci_test
+  PRIVATE uci
   PRIVATE GTest::gtest_main
   PRIVATE GTest::gmock
 )
 
-include(GoogleTest)
-
-gtest_discover_tests(chesstillo_test)
+gtest_discover_tests(uci_test)

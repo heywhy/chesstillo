@@ -1,0 +1,62 @@
+#ifndef UCI_PARSER_HPP
+#define UCI_PARSER_HPP
+
+#include <memory>
+#include <stdexcept>
+
+#include <uci/expr.hpp>
+#include <uci/types.hpp>
+
+#define PARSE(expr, tokens)                                                    \
+  {                                                                            \
+    uci::Parser parser(tokens);                                                \
+    auto uq = parser.Parse();                                                  \
+    decltype(expr)::pointer ptr =                                              \
+        static_cast<decltype(expr)::pointer>(uq.release());                    \
+    expr.reset(ptr);                                                           \
+  }
+
+namespace uci {
+class ParseError : public std::runtime_error {
+public:
+  ParseError(const std::string_view &message)
+      : std::runtime_error(message.data()) {}
+};
+
+class Parser {
+public:
+  Parser(const Tokens &tokens);
+
+  std::unique_ptr<Expr> Parse();
+
+private:
+  const Tokens &tokens_;
+  Tokens::size_type current_;
+
+  Tokens::const_reference &Peek();
+
+  Tokens::const_reference Advance();
+  Tokens::const_reference Previous();
+
+  static void Report(int line, const std::string_view &where,
+                     const std::string_view &message);
+
+  bool IsAtEnd();
+  bool Check(TokenType type);
+  bool Match(TokenType type);
+  Tokens::const_reference Consume(TokenType type, std::string_view message);
+
+  ParseError Error(const Token &token, const std::string_view &message);
+
+  // GUI to Engine
+  std::unique_ptr<Expr> Position();
+  std::unique_ptr<Expr> Go();
+  std::unique_ptr<Expr> SetOption();
+  std::unique_ptr<Expr> Register();
+
+  // Engine to GUI
+  Expr *Info();
+};
+} // namespace uci
+
+#endif
