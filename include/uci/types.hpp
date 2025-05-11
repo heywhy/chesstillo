@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <string_view>
+#include <unordered_map>
 #include <variant>
 #include <vector>
 
@@ -36,6 +37,11 @@ enum TokenType : uint8_t {
   WORD,
   NUMBER
 };
+
+enum Status : uint8_t { CHECKING, OK, ERROR };
+enum OptionType : uint8_t { CHECK, SPIN, COMBO, BUTTON, STRING };
+
+extern std::unordered_map<std::string_view, Status> kStatus;
 
 struct Token {
   TokenType type;

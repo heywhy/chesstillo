@@ -35,10 +35,17 @@ add_library(uci
   uci/scanner.cpp
   uci/expr.cpp
   uci/parser.cpp
+  uci/uci.cpp
   uci/exprs/go.cpp
   uci/exprs/position.cpp
   uci/exprs/setoption.cpp
   uci/exprs/register.cpp
+  uci/exprs/id.cpp
+  uci/exprs/bestmove.cpp
+  uci/exprs/copyprotection.cpp
+  uci/exprs/registration.cpp
+  uci/exprs/info.cpp
+  uci/exprs/option.cpp
 )
 
 target_include_directories(uci PRIVATE include)

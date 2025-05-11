@@ -21,6 +21,8 @@ std::unique_ptr<Expr> Parser::Parse() {
     case STOP:
     case PONDER_HIT:
     case QUIT:
+    case UCI_OK:
+    case READY_OK:
       expr.reset(new expr::Command(token.lexeme));
       break;
 
@@ -40,9 +42,29 @@ std::unique_ptr<Expr> Parser::Parse() {
       expr = Register();
       break;
 
-      // case INFO:
-      //   expr = Info();
-      //   break;
+    case uci::TokenType::ID:
+      expr = ID();
+      break;
+
+    case BEST_MOVE:
+      expr = BestMove();
+      break;
+
+    case COPY_PROTECTION:
+      expr = CopyProtection();
+      break;
+
+    case REGISTRATION:
+      expr = Registration();
+      break;
+
+    case INFO:
+      expr = Info();
+      break;
+
+    case uci::TokenType::OPTION:
+      expr = Option();
+      break;
 
     default:
       expr = nullptr;

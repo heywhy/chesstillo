@@ -55,7 +55,12 @@ private:
   std::unique_ptr<Expr> Register();
 
   // Engine to GUI
-  Expr *Info();
+  std::unique_ptr<Expr> ID();
+  std::unique_ptr<Expr> BestMove();
+  std::unique_ptr<Expr> CopyProtection();
+  std::unique_ptr<Expr> Registration();
+  std::unique_ptr<Expr> Info();
+  std::unique_ptr<Expr> Option();
 };
 } // namespace uci
 
