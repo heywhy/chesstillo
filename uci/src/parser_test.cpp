@@ -11,6 +11,7 @@ using namespace uci;
 
 struct VisitorMock : public Visitor {
   MOCK_METHOD(void, VisitInput, (command::Input *), (override));
+  MOCK_METHOD(void, VisitDebug, (command::Debug *), (override));
   MOCK_METHOD(void, VisitPosition, (command::Position *), (override));
   MOCK_METHOD(void, VisitGo, (command::Go *), (override));
   MOCK_METHOD(void, VisitSetOption, (command::SetOption *), (override));
@@ -120,6 +121,28 @@ TEST_F(UCIParserTestSuite, TestParseQuitInput) {
   ASSERT_EQ(command->input, "quit");
 
   EXPECT_CALL(mock_, VisitInput(testing::Eq(command.get()))).Times(1);
+
+  command->Accept(mock_);
+}
+
+TEST_F(UCIParserTestSuite, TestParseDebugInput) {
+  Tokens tokens;
+  VisitorMock mock;
+  std::unique_ptr<command::Debug> command;
+
+  TOKENIZE(tokens, "debug on");
+  PARSE(command, tokens);
+
+  ASSERT_NE(command.get(), nullptr);
+  ASSERT_TRUE(command->value);
+
+  TOKENIZE(tokens, "debug off");
+  PARSE(command, tokens);
+
+  ASSERT_NE(command.get(), nullptr);
+  ASSERT_FALSE(command->value);
+
+  EXPECT_CALL(mock_, VisitDebug(testing::Eq(command.get()))).Times(1);
 
   command->Accept(mock_);
 }

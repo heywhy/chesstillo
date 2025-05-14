@@ -36,6 +36,7 @@ struct Command {
 
 struct Visitor {
   virtual void VisitInput(command::Input *) = 0;
+  virtual void VisitDebug(command::Debug *) = 0;
   virtual void VisitPosition(command::Position *) = 0;
   virtual void VisitGo(command::Go *) = 0;
   virtual void VisitSetOption(command::SetOption *) = 0;
@@ -56,6 +57,14 @@ struct Input : public Command {
   Input(const std::string_view &command) : input(command) {}
 
   void Accept(Visitor &visitor) override { visitor.VisitInput(this); };
+};
+
+struct Debug : public Command {
+  const bool value;
+
+  Debug(bool value) : value(value) {}
+
+  void Accept(Visitor &visitor) override { visitor.VisitDebug(this); };
 };
 
 struct Position : public Command {

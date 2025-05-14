@@ -52,6 +52,7 @@ private:
                    const std::string_view &message = "Unexpected token.");
 
   // GUI to Engine
+  std::unique_ptr<Command> Debug();
   std::unique_ptr<Command> Position();
   std::unique_ptr<Command> Go();
   std::unique_ptr<Command> SetOption();

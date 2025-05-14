@@ -26,6 +26,10 @@ std::unique_ptr<Command> Parser::Parse() {
         command.reset(new command::Input(token.lexeme));
       break;
 
+    case DEBUG:
+      command = Debug();
+      break;
+
     case POSITION:
       command = Position();
       break;

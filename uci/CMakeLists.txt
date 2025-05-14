@@ -5,6 +5,7 @@ add_library(uci
   src/scanner.cpp
   src/parser.cpp
   src/uci.cpp
+  src/command/debug.cpp
   src/command/go.cpp
   src/command/position.cpp
   src/command/setoption.cpp
