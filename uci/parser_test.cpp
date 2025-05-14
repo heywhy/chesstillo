@@ -1,4 +1,3 @@
-#include "uci/types.hpp"
 #include <memory>
 
 #include <gmock/gmock.h>
@@ -6,6 +5,7 @@
 #include <uci/expr.hpp>
 #include <uci/parser.hpp>
 #include <uci/scanner.hpp>
+#include <uci/types.hpp>
 
 using namespace uci;
 
