@@ -1,13 +1,13 @@
 #include <memory>
 #include <string_view>
 
-#include <uci/expr.hpp>
+#include <uci/command.hpp>
 #include <uci/parser.hpp>
 #include <uci/types.hpp>
 
 using namespace uci;
 
-std::unique_ptr<Expr> Parser::CopyProtection() {
+std::unique_ptr<Command> Parser::CopyProtection() {
   const auto &token = Consume(WORD, "Expected checking, ok or error.");
   const auto &literal = std::get<std::string_view>(token.literal);
 
@@ -15,5 +15,5 @@ std::unique_ptr<Expr> Parser::CopyProtection() {
     throw Error(token, "Unexpected token.");
   }
 
-  return std::make_unique<expr::CopyProtection>(kStatus[literal]);
+  return std::make_unique<command::CopyProtection>(kStatus[literal]);
 }

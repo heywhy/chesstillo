@@ -1,7 +1,7 @@
 #include <iostream>
 #include <memory>
 
-#include <uci/expr.hpp>
+#include <uci/command.hpp>
 #include <uci/parser.hpp>
 #include <uci/types.hpp>
 
@@ -9,9 +9,9 @@ using namespace uci;
 
 Parser::Parser(const Tokens &tokens) : tokens_(tokens), current_(0) {}
 
-std::unique_ptr<Expr> Parser::Parse() {
+std::unique_ptr<Command> Parser::Parse() {
   try {
-    std::unique_ptr<Expr> expr;
+    std::unique_ptr<Command> command;
     Tokens::const_reference token = Advance();
 
     switch (token.type) {
@@ -23,51 +23,51 @@ std::unique_ptr<Expr> Parser::Parse() {
     case QUIT:
     case UCI_OK:
     case READY_OK:
-      expr.reset(new expr::Command(token.lexeme));
+        command.reset(new command::Input(token.lexeme));
       break;
 
     case POSITION:
-      expr = Position();
+      command = Position();
       break;
 
     case GO:
-      expr = Go();
+      command = Go();
       break;
 
     case SET_OPTION:
-      expr = SetOption();
+      command = SetOption();
       break;
 
     case REGISTER:
-      expr = Register();
+      command = Register();
       break;
 
     case uci::TokenType::ID:
-      expr = ID();
+      command = ID();
       break;
 
     case BEST_MOVE:
-      expr = BestMove();
+      command = BestMove();
       break;
 
     case COPY_PROTECTION:
-      expr = CopyProtection();
+      command = CopyProtection();
       break;
 
     case REGISTRATION:
-      expr = Registration();
+      command = Registration();
       break;
 
     case INFO:
-      expr = Info();
+      command = Info();
       break;
 
     case uci::TokenType::OPTION:
-      expr = Option();
+      command = Option();
       break;
 
     default:
-      expr = nullptr;
+      command = nullptr;
       break;
     }
 
@@ -75,7 +75,7 @@ std::unique_ptr<Expr> Parser::Parse() {
       throw Error(Peek(), "Unexpected token.");
     }
 
-    return expr;
+    return command;
   } catch (ParseError &) {
     return nullptr;
   }

@@ -1,17 +1,17 @@
 #include <memory>
 #include <string_view>
 
-#include <uci/expr.hpp>
+#include <uci/command.hpp>
 #include <uci/parser.hpp>
 #include <uci/types.hpp>
 
 using namespace uci;
 
-std::unique_ptr<Expr> Parser::BestMove() {
+std::unique_ptr<Command> Parser::BestMove() {
   const auto &token = Consume(WORD, "Expected best move.");
   const auto &literal = std::get<std::string_view>(token.literal);
-  std::unique_ptr<expr::BestMove> expr =
-      std::make_unique<expr::BestMove>(literal);
+  std::unique_ptr<command::BestMove> command =
+      std::make_unique<command::BestMove>(literal);
 
   if (!IsAtEnd()) {
     const std::string_view msg("Expected ponder.");
@@ -27,9 +27,9 @@ std::unique_ptr<Expr> Parser::BestMove() {
       const auto &token = Consume(WORD, "Expected move to ponder");
       const auto &literal = std::get<std::string_view>(token.literal);
 
-      expr->ponder = literal;
+      command->ponder = literal;
     }
   }
 
-  return expr;
+  return command;
 }

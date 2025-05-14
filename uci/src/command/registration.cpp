@@ -1,13 +1,13 @@
 #include <memory>
 #include <string_view>
 
-#include <uci/expr.hpp>
+#include <uci/command.hpp>
 #include <uci/parser.hpp>
 #include <uci/types.hpp>
 
 using namespace uci;
 
-std::unique_ptr<Expr> Parser::Registration() {
+std::unique_ptr<Command> Parser::Registration() {
   const auto &token = Consume(WORD, "Expected checking, ok or error.");
   const auto &literal = std::get<std::string_view>(token.literal);
 
@@ -15,5 +15,5 @@ std::unique_ptr<Expr> Parser::Registration() {
     throw Error(token, "Unexpected token.");
   }
 
-  return std::make_unique<expr::Registration>(kStatus[literal]);
+  return std::make_unique<command::Registration>(kStatus[literal]);
 }

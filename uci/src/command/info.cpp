@@ -2,7 +2,7 @@
 #include <set>
 #include <string_view>
 
-#include <uci/expr.hpp>
+#include <uci/command.hpp>
 #include <uci/parser.hpp>
 #include <uci/types.hpp>
 
@@ -22,8 +22,8 @@ using namespace uci;
     list.emplace_back(literal);                                                \
   }
 
-std::unique_ptr<Expr> Parser::Info() {
-  std::unique_ptr<expr::Info> expr = std::make_unique<expr::Info>();
+std::unique_ptr<Command> Parser::Info() {
+  std::unique_ptr<command::Info> command = std::make_unique<command::Info>();
 
   static std::set<std::string_view> M = {
       "depth",      "seldepth", "time",     "nodes",          "pv",
@@ -76,7 +76,7 @@ decide: {
 
 maybe_return: {
   if (IsAtEnd()) {
-    return expr;
+    return command;
   }
 
   goto decide;
@@ -85,7 +85,7 @@ maybe_return: {
 depth: {
   const Token &token = Consume(NUMBER, "Expect number after 'depth'.");
 
-  expr->depth = std::get<int>(token.literal);
+  command->depth = std::get<int>(token.literal);
 
   goto maybe_return;
 }
@@ -93,7 +93,7 @@ depth: {
 seldepth: {
   const Token &token = Consume(NUMBER, "Expect number after 'seldepth'.");
 
-  expr->seldepth = std::get<int>(token.literal);
+  command->seldepth = std::get<int>(token.literal);
 
   goto maybe_return;
 }
@@ -101,7 +101,7 @@ seldepth: {
 time: {
   const Token &token = Consume(NUMBER, "Expect number after 'time'.");
 
-  expr->time = std::get<int>(token.literal);
+  command->time = std::get<int>(token.literal);
 
   goto maybe_return;
 }
@@ -109,13 +109,13 @@ time: {
 nodes: {
   const Token &token = Consume(NUMBER, "Expect number after 'nodes'.");
 
-  expr->nodes = std::get<int>(token.literal);
+  command->nodes = std::get<int>(token.literal);
 
   goto maybe_return;
 }
 
 pv: {
-  CONSUME_MOVES(expr->pv, "Expect move after 'pv'.");
+  CONSUME_MOVES(command->pv, "Expect move after 'pv'.");
 
   goto maybe_return;
 }
@@ -123,7 +123,7 @@ pv: {
 multipv: {
   const Token &token = Consume(NUMBER, "Expect number after 'multipv'.");
 
-  expr->multipv = std::get<int>(token.literal);
+  command->multipv = std::get<int>(token.literal);
 
   goto maybe_return;
 }
@@ -135,17 +135,17 @@ score: {
   if (type == "cp") {
     const Token &token = Consume(NUMBER, "Expect number after 'cp'.");
 
-    expr->score.type = expr::Info::Score::CP;
-    expr->score.value = std::get<int>(token.literal);
+    command->score.type = command::Info::Score::CP;
+    command->score.value = std::get<int>(token.literal);
   } else if (type == "mate") {
     const Token &token = Consume(NUMBER, "Expect number after 'mate'.");
 
-    expr->score.type = expr::Info::Score::MATE;
-    expr->score.value = std::get<int>(token.literal);
+    command->score.type = command::Info::Score::MATE;
+    command->score.value = std::get<int>(token.literal);
   } else if (type == "lowerbound") {
-    expr->score.type = expr::Info::Score::LOWER_BOUND;
+    command->score.type = command::Info::Score::LOWER_BOUND;
   } else if (type == "upperbound") {
-    expr->score.type = expr::Info::Score::UPPER_BOUND;
+    command->score.type = command::Info::Score::UPPER_BOUND;
   } else {
     throw Error(token,
                 "Expect cp, mate, lowerbound or upperbound after 'score'.");
@@ -158,7 +158,7 @@ score: {
 currmove: {
   const Token &token = Consume(WORD, "Expect move after 'currmove'.");
 
-  expr->currmove = std::get<std::string_view>(token.literal);
+  command->currmove = std::get<std::string_view>(token.literal);
 
   goto maybe_return;
 }
@@ -166,9 +166,9 @@ currmove: {
 currmovenumber: {
   const Token &token = Consume(NUMBER, "Expect number after 'currmovenumber'.");
 
-  expr->currmovenumber = std::get<int>(token.literal);
+  command->currmovenumber = std::get<int>(token.literal);
 
-  if (expr->currmovenumber < 1) {
+  if (command->currmovenumber < 1) {
     throw Error(token, "Expect currmovenumber to be greater than 0");
   }
 
@@ -178,7 +178,7 @@ currmovenumber: {
 hashfull: {
   const Token &token = Consume(NUMBER, "Expect number after 'hashfull'.");
 
-  expr->hashfull = std::get<int>(token.literal);
+  command->hashfull = std::get<int>(token.literal);
 
   goto maybe_return;
 }
@@ -186,7 +186,7 @@ hashfull: {
 nps: {
   const Token &token = Consume(NUMBER, "Expect number after 'nps'.");
 
-  expr->nps = std::get<int>(token.literal);
+  command->nps = std::get<int>(token.literal);
 
   goto maybe_return;
 }
@@ -194,7 +194,7 @@ nps: {
 tbhits: {
   const Token &token = Consume(NUMBER, "Expect number after 'tbhits'.");
 
-  expr->tbhits = std::get<int>(token.literal);
+  command->tbhits = std::get<int>(token.literal);
 
   goto maybe_return;
 }
@@ -202,7 +202,7 @@ tbhits: {
 sbhits: {
   const Token &token = Consume(NUMBER, "Expect number after 'sbhits'.");
 
-  expr->sbhits = std::get<int>(token.literal);
+  command->sbhits = std::get<int>(token.literal);
 
   goto maybe_return;
 }
@@ -210,7 +210,7 @@ sbhits: {
 cpuload: {
   const Token &token = Consume(NUMBER, "Expect number after 'cpuload'.");
 
-  expr->cpuload = std::get<int>(token.literal);
+  command->cpuload = std::get<int>(token.literal);
 
   goto maybe_return;
 }
@@ -220,11 +220,11 @@ string: {
 
   // INFO: as per spec, rest of the line is considered the string value
   current_ = tokens_.size();
-  expr->string = token.lexeme.data();
+  command->string = token.lexeme.data();
 }
 
 refutation: {
-  CONSUME_MOVES(expr->refutation, "Expect move after 'refutation'.");
+  CONSUME_MOVES(command->refutation, "Expect move after 'refutation'.");
 
   goto maybe_return;
 }
@@ -232,16 +232,16 @@ refutation: {
 currline: {
   const Token &token = Consume(NUMBER, "Expect number after 'currline'.");
 
-  expr->currline.cpunr = std::get<int>(token.literal);
+  command->currline.cpunr = std::get<int>(token.literal);
 
-  if (expr->currline.cpunr < 1) {
+  if (command->currline.cpunr < 1) {
     throw Error(token, "Expect currline.cpunr to be greater than 0");
   }
 
-  CONSUME_MOVES(expr->currline.moves, "Expect move after cpu number.");
+  CONSUME_MOVES(command->currline.moves, "Expect move after cpu number.");
 
   goto maybe_return;
 }
 
-  return expr;
+  return command;
 }

@@ -4,7 +4,7 @@
 #include <memory>
 #include <stdexcept>
 
-#include <uci/expr.hpp>
+#include <uci/command.hpp>
 #include <uci/types.hpp>
 
 #define PARSE(expr, tokens)                                                    \
@@ -27,7 +27,7 @@ class Parser {
 public:
   Parser(const Tokens &tokens);
 
-  std::unique_ptr<Expr> Parse();
+  std::unique_ptr<Command> Parse();
 
 private:
   const Tokens &tokens_;
@@ -52,18 +52,18 @@ private:
                    const std::string_view &message = "Unexpected token.");
 
   // GUI to Engine
-  std::unique_ptr<Expr> Position();
-  std::unique_ptr<Expr> Go();
-  std::unique_ptr<Expr> SetOption();
-  std::unique_ptr<Expr> Register();
+  std::unique_ptr<Command> Position();
+  std::unique_ptr<Command> Go();
+  std::unique_ptr<Command> SetOption();
+  std::unique_ptr<Command> Register();
 
   // Engine to GUI
-  std::unique_ptr<Expr> ID();
-  std::unique_ptr<Expr> BestMove();
-  std::unique_ptr<Expr> CopyProtection();
-  std::unique_ptr<Expr> Registration();
-  std::unique_ptr<Expr> Info();
-  std::unique_ptr<Expr> Option();
+  std::unique_ptr<Command> ID();
+  std::unique_ptr<Command> BestMove();
+  std::unique_ptr<Command> CopyProtection();
+  std::unique_ptr<Command> Registration();
+  std::unique_ptr<Command> Info();
+  std::unique_ptr<Command> Option();
 };
 } // namespace uci
 

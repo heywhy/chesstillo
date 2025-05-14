@@ -4,25 +4,25 @@
 #include <string_view>
 #include <unordered_map>
 
-#include <uci/expr.hpp>
+#include <uci/command.hpp>
 #include <uci/parser.hpp>
 #include <uci/types.hpp>
 
 using namespace uci;
 
-std::unique_ptr<Expr> Parser::Go() {
-  std::unique_ptr<expr::Go> expr = std::make_unique<expr::Go>();
+std::unique_ptr<Command> Parser::Go() {
+  std::unique_ptr<command::Go> command = std::make_unique<command::Go>();
 
   std::unordered_map<std::string_view, int *> prop_map = {
-      {"wsec", &expr->wsec},           {"bsec", &expr->bsec},
-      {"winc", &expr->winc},           {"binc", &expr->binc},
-      {"movestogo", &expr->movestogo}, {"depth", &expr->depth},
-      {"nodes", &expr->nodes},         {"mate", &expr->mate},
+      {"wsec", &command->wsec},           {"bsec", &command->bsec},
+      {"winc", &command->winc},           {"binc", &command->binc},
+      {"movestogo", &command->movestogo}, {"depth", &command->depth},
+      {"nodes", &command->nodes},         {"mate", &command->mate},
   };
 
 maybe_return: {
   if (IsAtEnd()) {
-    return expr;
+    return command;
   }
 
   goto command;
@@ -36,10 +36,10 @@ command: {
   const auto &literal = std::get<std::string_view>(token.literal);
 
   if (literal == "ponder") {
-    expr->ponder = true;
+    command->ponder = true;
     goto maybe_return;
   } else if (literal == "infinite") {
-    expr->infinite = true;
+    command->infinite = true;
     goto maybe_return;
   } else if (prop_map.contains("wsec")) {
     int *address = prop_map[literal];
@@ -55,5 +55,5 @@ command: {
   throw Error(token, msg);
 }
 
-  return expr;
+  return command;
 }

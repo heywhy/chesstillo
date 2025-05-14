@@ -2,13 +2,13 @@
 #include <string>
 #include <string_view>
 
-#include <uci/expr.hpp>
+#include <uci/command.hpp>
 #include <uci/parser.hpp>
 #include <uci/types.hpp>
 
 using namespace uci;
 
-std::unique_ptr<Expr> Parser::SetOption() {
+std::unique_ptr<Command> Parser::SetOption() {
   const std::string_view msg("Expected 'name' after 'setoption'.");
 
   const auto &token = Consume(WORD, msg);
@@ -21,8 +21,8 @@ std::unique_ptr<Expr> Parser::SetOption() {
   const auto &id_token = Consume(WORD, "Expected 'id'.");
   const auto &id_literal = std::get<std::string_view>(id_token.literal);
 
-  std::unique_ptr<expr::SetOption> expr =
-      std::make_unique<expr::SetOption>(id_literal);
+  std::unique_ptr<command::SetOption> command =
+      std::make_unique<command::SetOption>(id_literal);
 
   if (!IsAtEnd()) {
     const auto &token = Consume(WORD, msg);
@@ -42,8 +42,8 @@ std::unique_ptr<Expr> Parser::SetOption() {
     // regarded as the option value
     current_ = tokens_.size();
 
-    expr->value = value_token.lexeme.data();
+    command->value = value_token.lexeme.data();
   }
 
-  return expr;
+  return command;
 }

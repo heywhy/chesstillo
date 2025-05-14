@@ -10,14 +10,14 @@
 #include "types.hpp"
 
 namespace uci {
-namespace expr {
+namespace command {
 struct Debug;
 struct SetOption;
 struct Register;
 struct Position;
 struct Go;
 
-struct Command;
+struct Input;
 
 struct ID;
 struct BestMove;
@@ -25,40 +25,40 @@ struct CopyProtection;
 struct Registration;
 struct Info;
 struct Option;
-} // namespace expr
+} // namespace command
 
 struct Visitor;
 
-struct Expr {
-  virtual ~Expr() {};
+struct Command {
+  virtual ~Command() {};
   virtual void Accept(Visitor &) = 0;
 };
 
 struct Visitor {
-  virtual void VisitCommand(expr::Command *) = 0;
-  virtual void VisitPosition(expr::Position *) = 0;
-  virtual void VisitGo(expr::Go *) = 0;
-  virtual void VisitSetOption(expr::SetOption *) = 0;
-  virtual void VisitRegister(expr::Register *) = 0;
+  virtual void VisitInput(command::Input *) = 0;
+  virtual void VisitPosition(command::Position *) = 0;
+  virtual void VisitGo(command::Go *) = 0;
+  virtual void VisitSetOption(command::SetOption *) = 0;
+  virtual void VisitRegister(command::Register *) = 0;
 
-  virtual void VisitID(expr::ID *) = 0;
-  virtual void VisitBestMove(expr::BestMove *) = 0;
-  virtual void VisitCopyProtection(expr::CopyProtection *) = 0;
-  virtual void VisitRegistration(expr::Registration *) = 0;
-  virtual void VisitInfo(expr::Info *) = 0;
-  virtual void VisitOption(expr::Option *) = 0;
+  virtual void VisitID(command::ID *) = 0;
+  virtual void VisitBestMove(command::BestMove *) = 0;
+  virtual void VisitCopyProtection(command::CopyProtection *) = 0;
+  virtual void VisitRegistration(command::Registration *) = 0;
+  virtual void VisitInfo(command::Info *) = 0;
+  virtual void VisitOption(command::Option *) = 0;
 };
 
-namespace expr {
-struct Command : public Expr {
+namespace command {
+struct Input : public Command {
   const std::string_view &input;
 
-  Command(const std::string_view &command) : input(command) {}
+  Input(const std::string_view &command) : input(command) {}
 
-  void Accept(Visitor &visitor) override { visitor.VisitCommand(this); };
+  void Accept(Visitor &visitor) override { visitor.VisitInput(this); };
 };
 
-struct Position : public Expr {
+struct Position : public Command {
   const std::string input;
   std::vector<std::string_view> moves;
 
@@ -67,7 +67,7 @@ struct Position : public Expr {
   void Accept(Visitor &visitor) override { visitor.VisitPosition(this); };
 };
 
-struct Go : public Expr {
+struct Go : public Command {
   std::vector<std::string_view> searchmoves;
   bool ponder = false;
   int wsec = -1;
@@ -83,7 +83,7 @@ struct Go : public Expr {
   void Accept(Visitor &visitor) override { visitor.VisitGo(this); };
 };
 
-struct SetOption : public Expr {
+struct SetOption : public Command {
   const std::string_view &id;
   std::string value;
 
@@ -92,7 +92,7 @@ struct SetOption : public Expr {
   void Accept(Visitor &visitor) override { visitor.VisitSetOption(this); };
 };
 
-struct Register : public Expr {
+struct Register : public Command {
   bool later = false;
   std::string name;
   std::string_view code;
@@ -102,7 +102,7 @@ struct Register : public Expr {
 
 // Engine -> GUI
 
-struct ID : Expr {
+struct ID : Command {
   enum Type : uint8_t { NAME, AUTHOR };
 
   const Type type;
@@ -113,7 +113,7 @@ struct ID : Expr {
   void Accept(Visitor &visitor) { visitor.VisitID(this); }
 };
 
-struct BestMove : public Expr {
+struct BestMove : public Command {
   const std::string_view move;
   std::string_view ponder;
 
@@ -122,7 +122,7 @@ struct BestMove : public Expr {
   void Accept(Visitor &visitor) override { visitor.VisitBestMove(this); }
 };
 
-struct CopyProtection : public Expr {
+struct CopyProtection : public Command {
   const Status status;
 
   CopyProtection(Status status) : status(status) {}
@@ -130,7 +130,7 @@ struct CopyProtection : public Expr {
   void Accept(Visitor &visitor) override { visitor.VisitCopyProtection(this); }
 };
 
-struct Registration : public Expr {
+struct Registration : public Command {
   const Status status;
 
   Registration(Status status) : status(status) {}
@@ -138,7 +138,7 @@ struct Registration : public Expr {
   void Accept(Visitor &visitor) override { visitor.VisitRegistration(this); }
 };
 
-struct Info : public Expr {
+struct Info : public Command {
 public:
   struct Score {
     enum Type { CP, MATE, LOWER_BOUND, UPPER_BOUND };
@@ -174,7 +174,7 @@ public:
   void Accept(Visitor &visitor) override { visitor.VisitInfo(this); }
 };
 
-struct Option : public Expr {
+struct Option : public Command {
   using Value = std::variant<bool, int, std::string_view>;
 
   OptionType type;
@@ -187,6 +187,6 @@ struct Option : public Expr {
   void Accept(Visitor &visitor) override { visitor.VisitOption(this); }
 };
 
-} // namespace expr
+} // namespace command
 } // namespace uci
 #endif

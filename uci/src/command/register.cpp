@@ -3,13 +3,13 @@
 #include <memory>
 #include <string_view>
 
-#include <uci/expr.hpp>
+#include <uci/command.hpp>
 #include <uci/parser.hpp>
 #include <uci/types.hpp>
 
 using namespace uci;
 
-std::unique_ptr<Expr> Parser::Register() {
+std::unique_ptr<Command> Parser::Register() {
   static std::array<std::string_view, 3> M = {"later", "name", "code"};
   const std::string_view msg("Expected later, name or code after 'register'.");
 
@@ -22,12 +22,12 @@ std::unique_ptr<Expr> Parser::Register() {
     throw Error(token, msg);
   }
 
-  std::unique_ptr<expr::Register> expr = std::make_unique<expr::Register>();
+  std::unique_ptr<command::Register> command = std::make_unique<command::Register>();
 
   if (literal == "later") {
-    expr->later = true;
+    command->later = true;
 
-    return expr;
+    return command;
   } else if (literal == "name") {
     goto set_name;
   } else if (literal == "code") {
@@ -58,7 +58,7 @@ set_name: {
       goto set_code;
     }
 
-    expr->name.append(literal).append(" ");
+    command->name.append(literal).append(" ");
   }
 
   goto maybe_return;
@@ -68,22 +68,22 @@ set_code: {
   const auto &token = Consume(WORD, msg);
   const auto &literal = std::get<std::string_view>(token.literal);
 
-  expr->code = literal;
+  command->code = literal;
 
   goto maybe_return;
 }
 
 maybe_return: {
-  if (!expr->name.empty()) {
-    expr->name.resize(expr->name.size() - 1);
+  if (!command->name.empty()) {
+    command->name.resize(command->name.size() - 1);
   }
 
   if (IsAtEnd()) {
-    return expr;
+    return command;
   }
 
   goto set_attr;
 }
 
-  return expr;
+  return command;
 }

@@ -3,14 +3,15 @@
 #include <string_view>
 #include <unordered_map>
 
-#include <uci/expr.hpp>
+#include <uci/command.hpp>
 #include <uci/parser.hpp>
 #include <uci/types.hpp>
 
 using namespace uci;
 
-std::unique_ptr<Expr> Parser::Option() {
-  std::unique_ptr<expr::Option> expr = std::make_unique<expr::Option>();
+std::unique_ptr<Command> Parser::Option() {
+  std::unique_ptr<command::Option> command =
+      std::make_unique<command::Option>();
 
   static std::set<std::string_view> M = {"name", "type", "default",
                                          "var",  "min",  "max"};
@@ -43,7 +44,7 @@ decide: {
 
 maybe_return: {
   if (IsAtEnd()) {
-    return expr;
+    return command;
   }
 
   goto decide;
@@ -67,7 +68,7 @@ name: {
 
   id.resize(id.size() - 1);
 
-  expr->id = id;
+  command->id = id;
 
   goto maybe_return;
 }
@@ -82,32 +83,32 @@ type: {
     throw Error(token, msg);
   }
 
-  expr->type = N[literal];
+  command->type = N[literal];
   goto maybe_return;
 }
 
 def4ult: {
-  if (expr->type == SPIN) {
+  if (command->type == SPIN) {
     const auto &token = Consume(NUMBER);
     const auto &literal = std::get<int>(token.literal);
 
-    expr->def4ult = literal;
-  } else if (expr->type == CHECK) {
+    command->def4ult = literal;
+  } else if (command->type == CHECK) {
     const auto &token = Consume(WORD);
     const auto &literal = std::get<std::string_view>(token.literal);
 
     if (literal == "false") {
-      expr->def4ult = false;
+      command->def4ult = false;
     } else if (literal == "true") {
-      expr->def4ult = true;
+      command->def4ult = true;
     } else {
       throw Error(token);
     }
-  } else if (expr->type == COMBO || expr->type == STRING) {
+  } else if (command->type == COMBO || command->type == STRING) {
     const auto &token = Consume(WORD);
     const auto &literal = std::get<std::string_view>(token.literal);
 
-    expr->def4ult = literal;
+    command->def4ult = literal;
   } else {
     throw Error(Previous());
   }
@@ -119,7 +120,7 @@ var: {
   const auto &token = Consume(WORD);
   const auto &literal = std::get<std::string_view>(token.literal);
 
-  expr->vars.emplace_back(literal);
+  command->vars.emplace_back(literal);
 
   goto maybe_return;
 }
@@ -128,7 +129,7 @@ min: {
   const auto &token = Consume(NUMBER);
   const auto &literal = std::get<int>(token.literal);
 
-  expr->min = literal;
+  command->min = literal;
 
   goto maybe_return;
 }
@@ -137,10 +138,10 @@ max: {
   const auto &token = Consume(NUMBER);
   const auto &literal = std::get<int>(token.literal);
 
-  expr->max = literal;
+  command->max = literal;
 
   goto maybe_return;
 }
 
-  return expr;
+  return command;
 }

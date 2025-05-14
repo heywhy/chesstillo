@@ -2,14 +2,14 @@
 #include <string>
 #include <string_view>
 
-#include <uci/expr.hpp>
+#include <uci/command.hpp>
 #include <uci/parser.hpp>
 #include <uci/types.hpp>
 
 using namespace uci;
 
-std::unique_ptr<Expr> Parser::Position() {
-  std::unique_ptr<expr::Position> expr;
+std::unique_ptr<Command> Parser::Position() {
+  std::unique_ptr<command::Position> command;
   const auto &token = Consume(WORD, "Expected 'startpos' or 'fen'.");
   const auto &literal = std::get<std::string_view>(token.literal);
 
@@ -20,10 +20,10 @@ std::unique_ptr<Expr> Parser::Position() {
   }
 
 startpos: {
-  expr = std::make_unique<expr::Position>(literal);
+  command = std::make_unique<command::Position>(literal);
 
   if (IsAtEnd()) {
-    return expr;
+    return command;
   }
 
   const std::string_view msg = "Expected 'moves'.";
@@ -60,7 +60,7 @@ fen: {
 
     if (literal == "moves") {
       fen.resize(fen.size() - 1);
-      expr = std::make_unique<expr::Position>(fen);
+      command = std::make_unique<command::Position>(fen);
       goto moves;
     } else {
       fen.append(literal).append(" ");
@@ -68,7 +68,7 @@ fen: {
   }
 
   fen.resize(fen.size() - 1);
-  expr = std::make_unique<expr::Position>(fen);
+  command = std::make_unique<command::Position>(fen);
 }
 
 moves: {
@@ -76,9 +76,9 @@ moves: {
     const auto &token = Consume(WORD, "Expected 'moves'.");
     const auto &literal = std::get<std::string_view>(token.literal);
 
-    expr->moves.emplace_back(literal);
+    command->moves.emplace_back(literal);
   }
 }
 
-  return expr;
+  return command;
 }
