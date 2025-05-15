@@ -1,11 +1,13 @@
 #include <memory>
 #include <set>
+#include <string>
 #include <string_view>
 #include <unordered_map>
 
 #include <uci/command.hpp>
 #include <uci/parser.hpp>
 #include <uci/types.hpp>
+#include <variant>
 
 using namespace uci;
 
@@ -144,4 +146,71 @@ max: {
 }
 
   return command;
+}
+
+std::string command::Option::ToString() const {
+  std::string str("option name ");
+
+  str.append(id).append(" type ");
+
+  switch (type) {
+  case CHECK: {
+    str.append("check ");
+
+    if (std::holds_alternative<bool>(def4ult)) {
+      bool value = std::get<bool>(def4ult);
+      str.append("default ").append(value ? "true" : "false");
+    }
+    break;
+  };
+
+  case SPIN: {
+    str.append("spin ");
+
+    if (std::holds_alternative<int>(def4ult)) {
+      int value = std::get<int>(def4ult);
+      str.append("default ").append(std::to_string(value));
+    }
+    break;
+  };
+
+  case COMBO: {
+    str.append("combo ");
+
+    if (std::holds_alternative<std::string_view>(def4ult)) {
+      std::string_view value = std::get<std::string_view>(def4ult);
+      str.append("default ").append(value);
+    }
+    break;
+  }
+
+  case BUTTON: {
+    str.append("button ");
+    break;
+  }
+
+  case STRING: {
+    str.append("string ");
+
+    if (std::holds_alternative<std::string_view>(def4ult)) {
+      std::string_view value = std::get<std::string_view>(def4ult);
+      str.append("default ").append(value);
+    }
+    break;
+  }
+  }
+
+  if (min > 0) {
+    str.append(" min ").append(std::to_string(min));
+  }
+
+  if (max > 0) {
+    str.append(" max ").append(std::to_string(max));
+  }
+
+  for (const auto &var : vars) {
+    str.append(" var ").append(var);
+  }
+
+  return str;
 }

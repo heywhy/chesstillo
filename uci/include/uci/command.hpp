@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <variant>
 #include <vector>
 
@@ -32,6 +33,7 @@ struct Visitor;
 struct Command {
   virtual ~Command() {};
   virtual void Accept(Visitor &) = 0;
+  virtual std::string ToString() const = 0;
 };
 
 struct Visitor {
@@ -52,17 +54,41 @@ struct Visitor {
 
 namespace command {
 struct Input : public Command {
+  const TokenType type;
   const std::string_view &input;
 
-  Input(const std::string_view &command) : input(command) {}
+  static std::unordered_map<std::string_view, TokenType> Known;
+
+  Input(const std::string_view &input) : Input(Known.at(input), input) {}
+
+  Input(TokenType type, const std::string_view &input)
+      : type(type), input(input) {}
+
+  bool IsFeedback() {
+    switch (type) {
+    case UCI:
+    case IS_READY:
+    case UCI_NEW_GAME:
+    case STOP:
+    case PONDER_HIT:
+    case QUIT:
+      return false;
+    default:
+      return true;
+    }
+  }
 
   void Accept(Visitor &visitor) override { visitor.VisitInput(this); };
+
+  std::string ToString() const override { return std::string(input); }
 };
 
 struct Debug : public Command {
   const bool value;
 
   Debug(bool value) : value(value) {}
+
+  std::string ToString() const override;
 
   void Accept(Visitor &visitor) override { visitor.VisitDebug(this); };
 };
@@ -72,6 +98,8 @@ struct Position : public Command {
   std::vector<std::string_view> moves;
 
   Position(const std::string_view &pos) : input(pos) {};
+
+  std::string ToString() const override;
 
   void Accept(Visitor &visitor) override { visitor.VisitPosition(this); };
 };
@@ -87,7 +115,10 @@ struct Go : public Command {
   int depth = 0;
   int nodes = 0;
   int mate = 0;
+  int movetime = 0;
   bool infinite = false;
+
+  std::string ToString() const override;
 
   void Accept(Visitor &visitor) override { visitor.VisitGo(this); };
 };
@@ -98,6 +129,8 @@ struct SetOption : public Command {
 
   SetOption(const std::string_view &id) : id(id) {}
 
+  std::string ToString() const override;
+
   void Accept(Visitor &visitor) override { visitor.VisitSetOption(this); };
 };
 
@@ -105,6 +138,8 @@ struct Register : public Command {
   bool later = false;
   std::string name;
   std::string_view code;
+
+  std::string ToString() const override;
 
   void Accept(Visitor &visitor) override { visitor.VisitRegister(this); };
 };
@@ -119,7 +154,9 @@ struct ID : Command {
 
   ID(Type type) : type(type) {}
 
-  void Accept(Visitor &visitor) { visitor.VisitID(this); }
+  std::string ToString() const override;
+
+  void Accept(Visitor &visitor) override { visitor.VisitID(this); }
 };
 
 struct BestMove : public Command {
@@ -127,6 +164,8 @@ struct BestMove : public Command {
   std::string_view ponder;
 
   BestMove(const std::string_view &move) : move(move) {}
+
+  std::string ToString() const override;
 
   void Accept(Visitor &visitor) override { visitor.VisitBestMove(this); }
 };
@@ -136,6 +175,8 @@ struct CopyProtection : public Command {
 
   CopyProtection(Status status) : status(status) {}
 
+  std::string ToString() const override;
+
   void Accept(Visitor &visitor) override { visitor.VisitCopyProtection(this); }
 };
 
@@ -143,6 +184,8 @@ struct Registration : public Command {
   const Status status;
 
   Registration(Status status) : status(status) {}
+
+  std::string ToString() const override;
 
   void Accept(Visitor &visitor) override { visitor.VisitRegistration(this); }
 };
@@ -154,17 +197,21 @@ public:
 
     Type type;
     int value;
+
+    std::string ToString();
   };
 
   struct Currline {
     int cpunr;
     std::vector<std::string_view> moves;
+
+    std::string ToString();
   };
 
   int depth{0};
   int seldepth{0};
   int multipv{0};
-  Score score;
+  Score *score;
   int nodes{0};
   int nps{0};
   int hashfull{0};
@@ -176,9 +223,18 @@ public:
   int currmovenumber{0};
   int cpuload{0};
   std::vector<std::string_view> refutation;
-  Currline currline;
+  Currline *currline;
 
   std::string_view string;
+
+  Info() : score(nullptr), currline(nullptr) {}
+
+  ~Info() {
+    delete score;
+    delete currline;
+  }
+
+  std::string ToString() const override;
 
   void Accept(Visitor &visitor) override { visitor.VisitInfo(this); }
 };
@@ -190,8 +246,10 @@ struct Option : public Command {
   std::string id;
   Value def4ult;
   int min = 0;
-  int max = -1;
+  int max = 0;
   std::vector<std::string_view> vars;
+
+  std::string ToString() const override;
 
   void Accept(Visitor &visitor) override { visitor.VisitOption(this); }
 };

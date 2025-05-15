@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <memory>
 
 #include <gmock/gmock.h>
@@ -207,6 +208,15 @@ TEST_F(UCIParserTestSuite, TestParseGoInput) {
   ASSERT_EQ(command->wsec, 1);
   ASSERT_EQ(command->bsec, 2);
 
+  TOKENIZE(tokens, "go infinite searchmoves e2e4 d2d4");
+  PARSE(command, tokens);
+
+  ASSERT_NE(command, nullptr);
+  ASSERT_EQ(command->infinite, true);
+  ASSERT_EQ(command->searchmoves.size(), 2);
+  ASSERT_EQ(command->searchmoves[0], "e2e4");
+  ASSERT_EQ(command->searchmoves[1], "d2d4");
+
   EXPECT_CALL(mock_, VisitGo(testing::Eq(command.get()))).Times(1);
 
   command->Accept(mock_);
@@ -400,8 +410,8 @@ TEST_F(UCIParserTestSuite, TestParseInfoInput) {
   ASSERT_EQ(command->depth, 8);
   ASSERT_EQ(command->seldepth, 14);
   ASSERT_EQ(command->multipv, 1);
-  ASSERT_EQ(command->score.type, command::Info::Score::CP);
-  ASSERT_EQ(command->score.value, -49);
+  ASSERT_EQ(command->score->type, command::Info::Score::CP);
+  ASSERT_EQ(command->score->value, -49);
   ASSERT_EQ(command->nodes, 7465);
   ASSERT_EQ(command->nps, 248833);
   ASSERT_EQ(command->hashfull, 1);
@@ -411,10 +421,10 @@ TEST_F(UCIParserTestSuite, TestParseInfoInput) {
   ASSERT_EQ(command->pv[0], "c7c5");
   ASSERT_EQ(command->refutation.size(), 1);
   ASSERT_EQ(command->refutation[0], "d1h5");
-  ASSERT_EQ(command->currline.cpunr, 8);
-  ASSERT_EQ(command->currline.moves.size(), 2);
-  ASSERT_EQ(command->currline.moves[0], "c4c5");
-  ASSERT_EQ(command->currline.moves[1], "e2f3");
+  ASSERT_EQ(command->currline->cpunr, 8);
+  ASSERT_EQ(command->currline->moves.size(), 2);
+  ASSERT_EQ(command->currline->moves[0], "c4c5");
+  ASSERT_EQ(command->currline->moves[1], "e2f3");
   ASSERT_EQ(command->string,
             "NNUE evaluation using nn-1c0000000000.nnue (133MiB, "
             "(22528, 3072, 15, 32, 1))");

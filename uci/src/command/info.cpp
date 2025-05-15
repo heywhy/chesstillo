@@ -1,5 +1,6 @@
 #include <memory>
 #include <set>
+#include <string>
 #include <string_view>
 
 #include <uci/command.hpp>
@@ -135,17 +136,25 @@ score: {
   if (type == "cp") {
     const Token &token = Consume(NUMBER, "Expect number after 'cp'.");
 
-    command->score.type = command::Info::Score::CP;
-    command->score.value = std::get<int>(token.literal);
+    command->score = new command::Info::Score;
+
+    command->score->type = command::Info::Score::CP;
+    command->score->value = std::get<int>(token.literal);
   } else if (type == "mate") {
     const Token &token = Consume(NUMBER, "Expect number after 'mate'.");
 
-    command->score.type = command::Info::Score::MATE;
-    command->score.value = std::get<int>(token.literal);
+    command->score = new command::Info::Score;
+
+    command->score->type = command::Info::Score::MATE;
+    command->score->value = std::get<int>(token.literal);
   } else if (type == "lowerbound") {
-    command->score.type = command::Info::Score::LOWER_BOUND;
+    command->score = new command::Info::Score;
+
+    command->score->type = command::Info::Score::LOWER_BOUND;
   } else if (type == "upperbound") {
-    command->score.type = command::Info::Score::UPPER_BOUND;
+    command->score = new command::Info::Score;
+
+    command->score->type = command::Info::Score::UPPER_BOUND;
   } else {
     throw Error(token,
                 "Expect cp, mate, lowerbound or upperbound after 'score'.");
@@ -232,16 +241,138 @@ refutation: {
 currline: {
   const Token &token = Consume(NUMBER, "Expect number after 'currline'.");
 
-  command->currline.cpunr = std::get<int>(token.literal);
+  command->currline = new command::Info::Currline;
 
-  if (command->currline.cpunr < 1) {
+  command->currline->cpunr = std::get<int>(token.literal);
+
+  if (command->currline->cpunr < 1) {
     throw Error(token, "Expect currline.cpunr to be greater than 0");
   }
 
-  CONSUME_MOVES(command->currline.moves, "Expect move after cpu number.");
+  CONSUME_MOVES(command->currline->moves, "Expect move after cpu number.");
 
   goto maybe_return;
 }
 
   return command;
+}
+
+std::string command::Info::ToString() const {
+  std::string str("info ");
+
+  if (depth > 0) {
+    str.append(" depth ").append(std::to_string(depth));
+  }
+
+  if (seldepth > 0) {
+    str.append(" seldepth ").append(std::to_string(seldepth));
+  }
+
+  if (time > 0) {
+    str.append(" time ").append(std::to_string(time));
+  }
+
+  if (nodes > 0) {
+    str.append(" nodes ").append(std::to_string(nodes));
+  }
+
+  if (multipv > 0) {
+    str.append(" multipv ").append(std::to_string(multipv));
+  }
+
+  if (currmovenumber > 0) {
+    str.append(" currmovenumber ").append(std::to_string(currmovenumber));
+  }
+
+  if (hashfull > 0) {
+    str.append(" hashfull ").append(std::to_string(hashfull));
+  }
+
+  if (nps > 0) {
+    str.append(" nps ").append(std::to_string(nps));
+  }
+
+  if (tbhits > 0) {
+    str.append(" tbhits ").append(std::to_string(tbhits));
+  }
+
+  if (sbhits > 0) {
+    str.append(" sbhits ").append(std::to_string(sbhits));
+  }
+
+  if (cpuload > 0) {
+    str.append(" cpuload ").append(std::to_string(cpuload));
+  }
+
+  if (!currmove.empty()) {
+    str.append(" currmove ").append(currmove);
+  }
+
+  if (!string.empty()) {
+    str.append(" string ").append(string);
+  }
+
+  if (!pv.empty()) {
+    str.append(" pv");
+  }
+
+  for (const auto &move : pv) {
+    str.append(" ").append(move);
+  }
+
+  if (!refutation.empty()) {
+    str.append(" refutation");
+  }
+
+  for (const auto &move : refutation) {
+    str.append(" ").append(move);
+  }
+
+  if (score != nullptr) {
+    str.append(" score ").append(score->ToString());
+  }
+
+  if (currline != nullptr) {
+    str.append(" currline ").append(currline->ToString());
+  }
+
+  return str;
+}
+
+std::string command::Info::Score::ToString() {
+  std::string str;
+
+  switch (type) {
+  case LOWER_BOUND:
+    str.append("lowerbound");
+    break;
+
+  case UPPER_BOUND:
+    str.append("upperbound");
+    break;
+
+  case CP:
+    str.append("cp ").append(std::to_string(value));
+    break;
+
+  case MATE:
+    str.append("mate ").append(std::to_string(value));
+    break;
+  }
+
+  return str;
+}
+
+std::string command::Info::Currline::ToString() {
+  std::string str;
+
+  if (cpunr > 1) {
+    str.append(std::to_string(cpunr));
+  }
+
+  for (const auto &move : moves) {
+    str.append(" ").append(move);
+  }
+
+  return str;
 }

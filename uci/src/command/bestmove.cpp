@@ -33,3 +33,15 @@ std::unique_ptr<Command> Parser::BestMove() {
 
   return command;
 }
+
+std::string command::BestMove::ToString() const {
+  std::string str("bestmove ");
+
+  str.append(move);
+
+  if (!ponder.empty()) {
+    str.append(" ponder ").append(ponder);
+  }
+
+  return str;
+}

@@ -31,3 +31,21 @@ std::unique_ptr<Command> Parser::ID() {
 
   return command;
 }
+
+std::string command::ID::ToString() const {
+  std::string str("id ");
+
+  switch (type) {
+  case AUTHOR:
+    str.append("author ");
+    break;
+
+  case NAME:
+    str.append("name ");
+    break;
+  }
+
+  str.append(value);
+
+  return str;
+}

@@ -1,3 +1,4 @@
+include(find_boost)
 include(find_googletest)
 
 add_library(uci
@@ -5,6 +6,7 @@ add_library(uci
   src/scanner.cpp
   src/parser.cpp
   src/uci.cpp
+  src/engine.cpp
   src/command/debug.cpp
   src/command/go.cpp
   src/command/position.cpp
@@ -19,6 +21,11 @@ add_library(uci
 )
 
 target_include_directories(uci PUBLIC include)
+
+target_link_libraries(uci
+  PUBLIC Boost::asio
+  PUBLIC Boost::process
+)
 
 file(GLOB UCI_TEST_SRC LIST_DIRECTORIES false src/*_test.cpp)
 

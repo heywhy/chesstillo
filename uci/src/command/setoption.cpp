@@ -47,3 +47,15 @@ std::unique_ptr<Command> Parser::SetOption() {
 
   return command;
 }
+
+std::string command::SetOption::ToString() const {
+  std::string str("setoption id ");
+
+  str.append(id);
+
+  if (!value.empty()) {
+    str.append(" value ").append(value);
+  }
+
+  return str;
+}

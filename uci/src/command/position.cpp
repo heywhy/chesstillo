@@ -82,3 +82,25 @@ moves: {
 
   return command;
 }
+
+std::string command::Position::ToString() const {
+  std::string str("position ");
+
+  if (input == "startpos") {
+    str.append(input);
+  } else {
+    str.append("fen ").append(input);
+  }
+
+  if (moves.empty()) {
+    return str;
+  }
+
+  str.append(" moves");
+
+  for (const auto &move : moves) {
+    str.append(" ").append(move);
+  }
+
+  return str;
+}

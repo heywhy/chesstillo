@@ -17,3 +17,23 @@ std::unique_ptr<Command> Parser::Registration() {
 
   return std::make_unique<command::Registration>(kStatus[literal]);
 }
+
+std::string command::Registration::ToString() const {
+  std::string str("registration ");
+
+  switch (status) {
+  case CHECKING:
+    str.append("checking");
+    break;
+
+  case OK:
+    str.append("ok");
+    break;
+
+  case ERROR:
+    str.append("error");
+    break;
+  }
+
+  return str;
+}

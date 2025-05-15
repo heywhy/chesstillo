@@ -22,7 +22,8 @@ std::unique_ptr<Command> Parser::Register() {
     throw Error(token, msg);
   }
 
-  std::unique_ptr<command::Register> command = std::make_unique<command::Register>();
+  std::unique_ptr<command::Register> command =
+      std::make_unique<command::Register>();
 
   if (literal == "later") {
     command->later = true;
@@ -86,4 +87,19 @@ maybe_return: {
 }
 
   return command;
+}
+
+std::string command::Register::ToString() const {
+  std::string str("register ");
+
+  if (later) {
+    str.append("later");
+
+    return str;
+  }
+
+  str.append("name ").append(name);
+  str.append("code ").append(code);
+
+  return str;
 }

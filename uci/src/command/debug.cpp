@@ -1,4 +1,5 @@
 #include <memory>
+#include <string>
 #include <string_view>
 
 #include <uci/command.hpp>
@@ -21,4 +22,10 @@ std::unique_ptr<Command> Parser::Debug() {
   }
 
   return command;
+}
+
+std::string command::Debug::ToString() const {
+  std::string str("debug ");
+
+  return value ? str.append("on") : str.append("off");
 }
