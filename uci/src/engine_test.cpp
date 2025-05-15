@@ -37,9 +37,12 @@ protected:
 TEST_F(UCIEngineTestSuite, SendCommand) {
   std::unique_lock lock(ui.mutex);
 
-  ON_CALL(ui, Handle(testing::A<command::Input *>())).WillByDefault([&]() {
-    ui.cv.notify_all();
-  });
+  ON_CALL(ui, Handle(testing::A<command::Input *>()))
+      .WillByDefault([&](command::Input *command) {
+        if (command->type == uci::UCI_OK) {
+          ui.cv.notify_all();
+        }
+      });
 
   EXPECT_CALL(ui, Handle(A<command::Input *>())).Times(1);
 
