@@ -1,9 +1,0 @@
-#ifndef TUI_UTILS_HPP
-#define TUI_UTILS_HPP
-
-#include <chesstillo/types.hpp>
-#include <ftxui/component/component_base.hpp>
-
-void HookQuitEvent(ftxui::Component &component);
-bool ToString(char *text, const Move &move, Color turn);
-#endif

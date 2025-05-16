@@ -1,5 +1,5 @@
-#ifndef TUI_CONSTANTS_HPP
-#define TUI_CONSTANTS_HPP
+#ifndef TUI_FONTS_HPP
+#define TUI_FONTS_HPP
 
 inline const char *kRook = "\ued66";
 inline const char *kKnight = "\ued63";

@@ -1,0 +1,18 @@
+#ifndef TUI_SCREEN_HOME_HPP
+#define TUI_SCREEN_HOME_HPP
+
+#include <ftxui/component/component_base.hpp>
+#include <ftxui/component/event.hpp>
+
+namespace tui {
+namespace screen {
+
+class Home : public ftxui::ComponentBase {
+public:
+  bool OnEvent(ftxui::Event) override;
+  ftxui::Element OnRender() override;
+};
+} // namespace screen
+} // namespace tui
+
+#endif
