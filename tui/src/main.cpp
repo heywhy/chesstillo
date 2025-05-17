@@ -6,7 +6,8 @@
 using namespace tui;
 
 int main() {
-  ftxui::Component home = ftxui::Make<screen::Home>();
+  Theme theme = Theme::Default;
+  ftxui::Component home = ftxui::Make<screen::Home>(theme);
 
   home |= hooks::QuitEvent();
 

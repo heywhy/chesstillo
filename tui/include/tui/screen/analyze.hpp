@@ -5,24 +5,25 @@
 
 #include <ftxui/component/component_base.hpp>
 #include <ftxui/component/event.hpp>
+#include <tui/theme.hpp>
 
 namespace tui {
 namespace screen {
 
 class Analyze : public ftxui::ComponentBase {
 public:
-  Analyze();
+  Analyze(const Theme &theme);
 
   bool OnEvent(ftxui::Event) override;
   ftxui::Element OnRender() override;
 
 private:
+  const Theme &theme_;
+
   std::string fen_;
   std::string pgn_;
 
-  ftxui::Component container_;
-
-  ftxui::Component &InitContainer();
+  ftxui::Component MakeContainer();
 };
 } // namespace screen
 } // namespace tui

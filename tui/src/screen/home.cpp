@@ -2,11 +2,14 @@
 #include <ftxui/component/event.hpp>
 #include <tui/screen/analyze.hpp>
 #include <tui/screen/home.hpp>
-#include <tui/tui.hpp>
+#include <tui/utility.hpp>
 
-using namespace tui;
+namespace tui {
+namespace screen {
 
-ftxui::Element screen::Home::OnRender() {
+Home::Home(const Theme &theme) : theme_(theme) {}
+
+ftxui::Element Home::OnRender() {
   static ftxui::FlexboxConfig config = {
       .direction = ftxui::FlexboxConfig::Direction::Column,
       .justify_content = ftxui::FlexboxConfig::JustifyContent::Center,
@@ -25,9 +28,9 @@ ftxui::Element screen::Home::OnRender() {
   return content;
 }
 
-bool screen::Home::OnEvent(ftxui::Event event) {
+bool Home::OnEvent(ftxui::Event event) {
   if (event == ftxui::Event::a) {
-    ftxui::Component component = ftxui::Make<Analyze>();
+    ftxui::Component component = ftxui::Make<Analyze>(theme_);
 
     Navigate(component);
 
@@ -36,3 +39,6 @@ bool screen::Home::OnEvent(ftxui::Event event) {
 
   return ftxui::ComponentBase::OnEvent(event);
 }
+
+} // namespace screen
+} // namespace tui
