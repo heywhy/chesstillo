@@ -5,9 +5,10 @@
 #include <ftxui/component/component.hpp>
 #include <tui/component/input.hpp>
 
-using namespace tui;
+namespace tui {
+namespace component {
 
-component::Input::Input(std::string &value, bool multiline) {
+Input::Input(std::string &value, bool multiline) {
   auto transform = std::bind(&Input::Transform, this, std::placeholders::_1);
 
   Add(ftxui::Input({.content = &value,
@@ -16,7 +17,7 @@ component::Input::Input(std::string &value, bool multiline) {
                     .cursor_position = value.length()}));
 }
 
-ftxui::Element component::Input::Transform(ftxui::InputState state) {
+ftxui::Element Input::Transform(ftxui::InputState state) {
 
   state.element |= ftxui::color(ftxui::Color::White);
 
@@ -30,3 +31,6 @@ ftxui::Element component::Input::Transform(ftxui::InputState state) {
 
   return state.element;
 }
+
+} // namespace component
+} // namespace tui

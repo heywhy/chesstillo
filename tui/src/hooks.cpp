@@ -4,9 +4,10 @@
 #include <tui/hooks.hpp>
 #include <tui/utility.hpp>
 
-using namespace tui;
+namespace tui {
+namespace hooks {
 
-ftxui::ComponentDecorator hooks::QuitEvent() {
+ftxui::ComponentDecorator QuitEvent() {
   return [](ftxui::Component child) {
     child |= ftxui::CatchEvent([&](ftxui::Event event) {
       auto screen = ActiveScreen();
@@ -23,3 +24,6 @@ ftxui::ComponentDecorator hooks::QuitEvent() {
     return child;
   };
 }
+
+} // namespace hooks
+} // namespace tui

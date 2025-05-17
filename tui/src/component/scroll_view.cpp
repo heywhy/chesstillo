@@ -2,18 +2,17 @@
 #include <ftxui/screen/box.hpp>
 #include <tui/component/scroll_view.hpp>
 
-using namespace tui;
+namespace tui {
+namespace component {
 
-component::ScrollView::ScrollView(ftxui::Component child)
-    : ScrollView(child, ALL) {}
+ScrollView::ScrollView(ftxui::Component child) : ScrollView(child, ALL) {}
 
-component::ScrollView::ScrollView(ftxui::Component child,
-                                  const Direction direction)
+ScrollView::ScrollView(ftxui::Component child, const Direction direction)
     : direction_(direction), scroll_width_(0), scroll_height_(0) {
   Add(child);
 }
 
-ftxui::Element component::ScrollView::OnRender() {
+ftxui::Element ScrollView::OnRender() {
   ftxui::Element background = ftxui::ComponentBase::Render();
   background->ComputeRequirement();
 
@@ -55,7 +54,7 @@ ftxui::Element component::ScrollView::OnRender() {
   return std::move(background) | ftxui::reflect(box_);
 }
 
-bool component::ScrollView::OnEvent(ftxui::Event event) {
+bool ScrollView::OnEvent(ftxui::Event event) {
   if (ftxui::ComponentBase::OnEvent(event)) {
     return true;
   }
@@ -129,3 +128,6 @@ bool component::ScrollView::OnEvent(ftxui::Event event) {
 
   return scrolled_width != scroll_width_ || scrolled_height != scroll_height_;
 }
+
+} // namespace component
+} // namespace tui

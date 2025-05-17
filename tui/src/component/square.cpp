@@ -1,5 +1,3 @@
-#include <array>
-
 #include <ftxui/component/event.hpp>
 #include <ftxui/screen/color.hpp>
 #include <tui/component/square.hpp>
@@ -7,7 +5,7 @@
 
 // TODO: temporary hack, use the constants from chesstillo
 // clang-format off
-static std::array<bool, 64> dark = {
+static bool dark[64] = {
   true, false, true, false, true, false, true, false,
   false, true, false, true, false, true, false, true,
   true, false, true, false, true, false, true, false,
