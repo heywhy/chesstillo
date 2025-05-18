@@ -29,14 +29,12 @@ ftxui::Element component::Square::OnRender() {
                           ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 7) |
                           ftxui::size(ftxui::HEIGHT, ftxui::EQUAL, 3);
 
-  ftxui::Color color = dark[index] ? theme_.dark_square : theme_.light_square;
+  if (Focused()) {
+    square |= ftxui::bgcolor(theme_.focused_square);
+  } else {
+    ftxui::Color color = dark[index] ? theme_.dark_square : theme_.light_square;
 
-  square |= ftxui::bgcolor(color);
-
-  if (Active()) {
-    // color = ftxui::Color::Red;
-    square |= ftxui::dim;
-    square |= ftxui::inverted;
+    square |= ftxui::bgcolor(color);
   }
 
   return square | ftxui::reflect(box_);

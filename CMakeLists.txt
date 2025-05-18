@@ -21,3 +21,4 @@ include(find_googletest)
 enable_testing()
 
 add_subdirectory(uci)
+add_subdirectory(tui)

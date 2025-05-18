@@ -1,5 +1,6 @@
 #include <functional>
 #include <string>
+#include <string_view>
 #include <utility>
 
 #include <ftxui/component/component.hpp>
@@ -8,7 +9,8 @@
 namespace tui {
 namespace component {
 
-Input::Input(std::string &value, bool multiline) {
+Input::Input(const std::string_view label, std::string &value, bool multiline)
+    : label(label) {
   auto transform = std::bind(&Input::Transform, this, std::placeholders::_1);
 
   Add(ftxui::Input({.content = &value,
@@ -17,8 +19,15 @@ Input::Input(std::string &value, bool multiline) {
                     .cursor_position = value.length()}));
 }
 
-ftxui::Element Input::Transform(ftxui::InputState state) {
+ftxui::Element Input::OnRender() {
+  ftxui::Element input =
+      ChildAt(0)->Render() | ftxui::vcenter | ftxui::xflex_grow;
 
+  return ftxui::hbox({ftxui::text(label.data()) | ftxui::vcenter,
+                      ftxui::separatorEmpty(), input});
+}
+
+ftxui::Element Input::Transform(ftxui::InputState state) {
   state.element |= ftxui::color(ftxui::Color::White);
 
   if (state.focused) {

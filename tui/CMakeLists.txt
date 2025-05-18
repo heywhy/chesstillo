@@ -16,10 +16,6 @@ add_executable(chesstillo_tui
 
 target_include_directories(chesstillo_tui PRIVATE include)
 
-target_link_libraries(chesstillo_tui
-  PRIVATE nlohmann_json::nlohmann_json
-)
-
 target_compile_options(chesstillo_tui PRIVATE ${COMPILE_OPTIONS})
 target_link_options(chesstillo_tui PRIVATE -O3)
 
@@ -29,4 +25,5 @@ target_link_libraries(
   PRIVATE ftxui::screen
   PRIVATE ftxui::dom
   PRIVATE ftxui::component
+  PRIVATE nlohmann_json::nlohmann_json
 )

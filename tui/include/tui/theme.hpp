@@ -9,6 +9,7 @@ struct Theme {
   const ftxui::Color b_piece;
   const ftxui::Color dark_square;
   const ftxui::Color light_square;
+  const ftxui::Color focused_square;
   const ftxui::Color selected_square;
 
   static const Theme Default;

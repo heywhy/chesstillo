@@ -2,6 +2,7 @@
 #define TUI_COMPONENT_INPUT_HPP
 
 #include <string>
+#include <string_view>
 
 #include <ftxui/component/component.hpp>
 
@@ -10,9 +11,16 @@ namespace component {
 
 class Input : public ftxui::ComponentBase {
 public:
-  Input(std::string &value, bool multiline = false);
+  const std::string_view label;
+
+  Input(const std::string_view label, std::string &value,
+        bool multiline = false);
+
+  ftxui::Element OnRender() override;
 
 private:
+  ftxui::Box box_;
+
   ftxui::Element Transform(ftxui::InputState state);
 };
 
