@@ -1,4 +1,3 @@
-#include <cstdio>
 #include <memory>
 
 #include <gmock/gmock.h>
@@ -397,7 +396,7 @@ TEST_F(UCIParserTestSuite, TestParseInfoInput) {
   Tokens tokens;
   std::unique_ptr<command::Info> command;
 
-  TOKENIZE(tokens, "info depth 8 seldepth 14 multipv 1 score cp -49 "
+  TOKENIZE(tokens, "info depth 8 seldepth 14 multipv 1 score cp -49 upperbound "
                    "nodes 7465 nps 248833 hashfull 1 tbhits 0 time 30 "
                    "pv c7c5 b1c3 e7e6 g1f3 b8c6 d2d4 c5d4 f3d4 "
                    "refutation d1h5 currline 8 c4c5 e2f3 "
@@ -412,6 +411,7 @@ TEST_F(UCIParserTestSuite, TestParseInfoInput) {
   ASSERT_EQ(command->multipv, 1);
   ASSERT_EQ(command->score->type, command::Info::Score::CP);
   ASSERT_EQ(command->score->value, -49);
+  ASSERT_TRUE(command->score->upperbound);
   ASSERT_EQ(command->nodes, 7465);
   ASSERT_EQ(command->nps, 248833);
   ASSERT_EQ(command->hashfull, 1);

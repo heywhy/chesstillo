@@ -3,11 +3,11 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <variant>
 
 #include <uci/command.hpp>
 #include <uci/parser.hpp>
 #include <uci/types.hpp>
-#include <variant>
 
 using namespace uci;
 

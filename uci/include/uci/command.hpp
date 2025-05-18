@@ -73,8 +73,13 @@ struct Input : public Command {
     case PONDER_HIT:
     case QUIT:
       return false;
-    default:
+
+    case UCI_OK:
+    case READY_OK:
       return true;
+
+    default:
+      return false;
     }
   }
 
@@ -128,6 +133,8 @@ struct SetOption : public Command {
   std::string value;
 
   SetOption(const std::string_view &id) : id(id) {}
+  SetOption(const std::string_view &id, const std::string_view &value)
+      : id(id), value(value) {}
 
   std::string ToString() const override;
 
@@ -193,10 +200,12 @@ struct Registration : public Command {
 struct Info : public Command {
 public:
   struct Score {
-    enum Type { CP, MATE, LOWER_BOUND, UPPER_BOUND };
+    enum Type { CP, MATE };
 
     Type type;
     int value;
+    bool lowerbound = false;
+    bool upperbound = false;
 
     std::string ToString();
   };

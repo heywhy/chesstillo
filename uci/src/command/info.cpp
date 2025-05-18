@@ -133,31 +133,32 @@ score: {
   const Token &token = Consume(WORD, "Expect word after 'score'.");
   std::string_view type = std::get<std::string_view>(token.literal);
 
+  command->score = new command::Info::Score;
+
   if (type == "cp") {
     const Token &token = Consume(NUMBER, "Expect number after 'cp'.");
-
-    command->score = new command::Info::Score;
 
     command->score->type = command::Info::Score::CP;
     command->score->value = std::get<int>(token.literal);
   } else if (type == "mate") {
     const Token &token = Consume(NUMBER, "Expect number after 'mate'.");
 
-    command->score = new command::Info::Score;
-
     command->score->type = command::Info::Score::MATE;
     command->score->value = std::get<int>(token.literal);
-  } else if (type == "lowerbound") {
-    command->score = new command::Info::Score;
+  }
 
-    command->score->type = command::Info::Score::LOWER_BOUND;
-  } else if (type == "upperbound") {
-    command->score = new command::Info::Score;
+  if (Check(WORD)) {
+    const auto &literal = std::get<std::string_view>(Peek().literal);
 
-    command->score->type = command::Info::Score::UPPER_BOUND;
-  } else {
-    throw Error(token,
-                "Expect cp, mate, lowerbound or upperbound after 'score'.");
+    if (literal == "lowerbound") {
+      const auto &token = Consume(WORD);
+
+      command->score->lowerbound = true;
+    } else if (literal == "upperbound") {
+      const auto &token = Consume(WORD);
+
+      command->score->upperbound = true;
+    }
   }
 
   goto maybe_return;
@@ -343,14 +344,6 @@ std::string command::Info::Score::ToString() {
   std::string str;
 
   switch (type) {
-  case LOWER_BOUND:
-    str.append("lowerbound");
-    break;
-
-  case UPPER_BOUND:
-    str.append("upperbound");
-    break;
-
   case CP:
     str.append("cp ").append(std::to_string(value));
     break;
@@ -358,6 +351,12 @@ std::string command::Info::Score::ToString() {
   case MATE:
     str.append("mate ").append(std::to_string(value));
     break;
+  }
+
+  if (lowerbound) {
+    str.append(" lowerbound");
+  } else if (upperbound) {
+    str.append(" upperbound");
   }
 
   return str;

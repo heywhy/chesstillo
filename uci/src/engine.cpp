@@ -3,6 +3,7 @@
 #include <string>
 #include <string_view>
 #include <thread>
+#include <utility>
 
 #include <boost/process.hpp>
 #include <boost/process/v2/environment.hpp>
@@ -13,7 +14,6 @@
 #include <uci/parser.hpp>
 #include <uci/scanner.hpp>
 #include <uci/types.hpp>
-#include <utility>
 
 using namespace uci;
 
