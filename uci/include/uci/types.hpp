@@ -35,7 +35,8 @@ enum TokenType : uint8_t {
 
   // others
   WORD,
-  NUMBER
+  NUMBER,
+  BOOLEAN
 };
 
 enum Status : uint8_t { CHECKING, OK, ERROR };
@@ -46,7 +47,7 @@ extern std::unordered_map<std::string_view, Status> kStatus;
 struct Token {
   TokenType type;
   const std::string_view lexeme;
-  std::variant<std::string_view, int> literal;
+  std::variant<std::string_view, int, bool> literal;
   int col;
   int line;
 };

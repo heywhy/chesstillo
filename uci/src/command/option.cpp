@@ -96,16 +96,8 @@ def4ult: {
 
     command->def4ult = literal;
   } else if (command->type == CHECK) {
-    const auto &token = Consume(WORD);
-    const auto &literal = std::get<std::string_view>(token.literal);
-
-    if (literal == "false") {
-      command->def4ult = false;
-    } else if (literal == "true") {
-      command->def4ult = true;
-    } else {
-      throw Error(token);
-    }
+    const auto &token = Consume(BOOLEAN);
+    command->def4ult = std::get<bool>(token.literal);
   } else if (command->type == COMBO || command->type == STRING) {
     const auto &token = Consume(WORD);
     const auto &literal = std::get<std::string_view>(token.literal);

@@ -29,6 +29,8 @@ static const std::unordered_map<std::string_view, uci::TokenType> kKeywords{
     {"registration", REGISTRATION},
     {"info", INFO},
     {"option", OPTION},
+    {"true", BOOLEAN},
+    {"false", BOOLEAN},
 };
 
 Scanner::Scanner(const std::string_view &input)
@@ -82,7 +84,11 @@ void Scanner::Word() {
   auto value = input_.substr(start_, current_ - start_);
   TokenType type = kKeywords.contains(value) ? kKeywords.at(value) : WORD;
 
-  AddToken(type, value);
+  if (type == BOOLEAN) {
+    AddToken(type, value == "true");
+  } else {
+    AddToken(type, value);
+  }
 }
 
 void Scanner::Digit() {

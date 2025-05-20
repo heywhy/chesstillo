@@ -231,7 +231,14 @@ TEST_F(UCIParserTestSuite, TestParseSetOptionInput) {
 
   ASSERT_NE(command.get(), nullptr);
   ASSERT_EQ(command->id, "Threads");
-  ASSERT_EQ(command->value, "40");
+  ASSERT_EQ(std::get<int>(command->value), 40);
+
+  TOKENIZE(tokens, "setoption name UCI_AnalyseMode value true");
+  PARSE(command, tokens);
+
+  ASSERT_NE(command.get(), nullptr);
+  ASSERT_EQ(command->id, "UCI_AnalyseMode");
+  ASSERT_TRUE(std::get<bool>(command->value));
 
   EXPECT_CALL(mock_, VisitSetOption(testing::Eq(command.get()))).Times(1);
 

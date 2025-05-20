@@ -1,6 +1,8 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <type_traits>
+#include <variant>
 
 #include <uci/command.hpp>
 #include <uci/parser.hpp>
@@ -42,7 +44,19 @@ std::unique_ptr<Command> Parser::SetOption() {
     // regarded as the option value
     current_ = tokens_.size();
 
-    command->value = value_token.lexeme.data();
+    switch (value_token.type) {
+    case NUMBER:
+      command->value = std::get<int>(value_token.literal);
+      break;
+    case BOOLEAN:
+      command->value = std::get<bool>(value_token.literal);
+      break;
+    case WORD:
+      command->value = std::get<std::string_view>(value_token.literal);
+      break;
+    default:
+      Error(value_token);
+    }
   }
 
   return command;
@@ -53,9 +67,21 @@ std::string command::SetOption::ToString() const {
 
   str.append(id);
 
-  if (!value.empty()) {
-    str.append(" value ").append(value);
-  }
+  std::visit(
+      [&str](const auto &value) {
+        using T = std::decay_t<decltype(value)>;
+
+        if constexpr (std::is_same_v<T, std::string_view>) {
+          if (!value.empty()) {
+            str.append(" value ").append(value);
+          }
+        }
+
+        if constexpr (std::is_integral_v<T>) {
+          str.append(" value ").append(std::to_string(value));
+        }
+      },
+      value);
 
   return str;
 }

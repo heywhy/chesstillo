@@ -130,11 +130,10 @@ struct Go : public Command {
 
 struct SetOption : public Command {
   const std::string_view &id;
-  std::string value;
+  std::variant<std::string_view, int, bool> value;
 
   SetOption(const std::string_view &id) : id(id) {}
-  SetOption(const std::string_view &id, const std::string_view &value)
-      : id(id), value(value) {}
+  SetOption(const std::string_view &id, auto value) : id(id), value(value) {}
 
   std::string ToString() const override;
 
