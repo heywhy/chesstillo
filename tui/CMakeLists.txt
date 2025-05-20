@@ -6,9 +6,11 @@ add_executable(chesstillo_tui
   src/hooks.cpp
   src/utility.cpp
   src/component/chessboard.cpp
+  src/component/engine_settings.cpp
   src/component/input.cpp
   src/component/scroll_view.cpp
   src/component/square.cpp
+  src/component/switch.cpp
   src/screen/analyze.cpp
   src/screen/home.cpp
   src/main.cpp

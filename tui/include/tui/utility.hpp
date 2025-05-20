@@ -11,7 +11,9 @@
   }
 
 namespace tui {
-ftxui::ScreenInteractive *ActiveScreen();
+inline ftxui::ScreenInteractive *ActiveScreen() {
+  return ftxui::ScreenInteractive::Active();
+}
 
 void Navigate(const ftxui::Component &component);
 } // namespace tui
