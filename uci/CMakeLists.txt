@@ -29,13 +29,13 @@ target_link_libraries(uci
 
 file(GLOB UCI_TEST_SRC LIST_DIRECTORIES false src/*_test.cpp)
 
-add_executable(tests ${UCI_TEST_SRC})
-target_include_directories(tests PRIVATE include)
+add_executable(uci_tests ${UCI_TEST_SRC})
+target_include_directories(uci_tests PRIVATE include)
 
-target_link_libraries(tests
+target_link_libraries(uci_tests
   PRIVATE uci
   PRIVATE GTest::gtest_main
   PRIVATE GTest::gmock
 )
 
-gtest_discover_tests(tests)
+gtest_discover_tests(uci_tests)
