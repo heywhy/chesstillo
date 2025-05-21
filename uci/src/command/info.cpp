@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <memory>
 #include <set>
 #include <string>
@@ -86,7 +87,7 @@ maybe_return: {
 depth: {
   const Token &token = Consume(NUMBER, "Expect number after 'depth'.");
 
-  command->depth = std::get<int>(token.literal);
+  command->depth = std::get<std::int64_t>(token.literal);
 
   goto maybe_return;
 }
@@ -94,7 +95,7 @@ depth: {
 seldepth: {
   const Token &token = Consume(NUMBER, "Expect number after 'seldepth'.");
 
-  command->seldepth = std::get<int>(token.literal);
+  command->seldepth = std::get<std::int64_t>(token.literal);
 
   goto maybe_return;
 }
@@ -102,7 +103,7 @@ seldepth: {
 time: {
   const Token &token = Consume(NUMBER, "Expect number after 'time'.");
 
-  command->time = std::get<int>(token.literal);
+  command->time = std::get<std::int64_t>(token.literal);
 
   goto maybe_return;
 }
@@ -110,7 +111,7 @@ time: {
 nodes: {
   const Token &token = Consume(NUMBER, "Expect number after 'nodes'.");
 
-  command->nodes = std::get<int>(token.literal);
+  command->nodes = std::get<std::int64_t>(token.literal);
 
   goto maybe_return;
 }
@@ -124,7 +125,7 @@ pv: {
 multipv: {
   const Token &token = Consume(NUMBER, "Expect number after 'multipv'.");
 
-  command->multipv = std::get<int>(token.literal);
+  command->multipv = std::get<std::int64_t>(token.literal);
 
   goto maybe_return;
 }
@@ -139,12 +140,12 @@ score: {
     const Token &token = Consume(NUMBER, "Expect number after 'cp'.");
 
     command->score->type = command::Info::Score::CP;
-    command->score->value = std::get<int>(token.literal);
+    command->score->value = std::get<std::int64_t>(token.literal);
   } else if (type == "mate") {
     const Token &token = Consume(NUMBER, "Expect number after 'mate'.");
 
     command->score->type = command::Info::Score::MATE;
-    command->score->value = std::get<int>(token.literal);
+    command->score->value = std::get<std::int64_t>(token.literal);
   }
 
   if (Check(WORD)) {
@@ -176,7 +177,7 @@ currmove: {
 currmovenumber: {
   const Token &token = Consume(NUMBER, "Expect number after 'currmovenumber'.");
 
-  command->currmovenumber = std::get<int>(token.literal);
+  command->currmovenumber = std::get<std::int64_t>(token.literal);
 
   if (command->currmovenumber < 1) {
     throw Error(token, "Expect currmovenumber to be greater than 0");
@@ -188,7 +189,7 @@ currmovenumber: {
 hashfull: {
   const Token &token = Consume(NUMBER, "Expect number after 'hashfull'.");
 
-  command->hashfull = std::get<int>(token.literal);
+  command->hashfull = std::get<std::int64_t>(token.literal);
 
   goto maybe_return;
 }
@@ -196,7 +197,7 @@ hashfull: {
 nps: {
   const Token &token = Consume(NUMBER, "Expect number after 'nps'.");
 
-  command->nps = std::get<int>(token.literal);
+  command->nps = std::get<std::int64_t>(token.literal);
 
   goto maybe_return;
 }
@@ -204,7 +205,7 @@ nps: {
 tbhits: {
   const Token &token = Consume(NUMBER, "Expect number after 'tbhits'.");
 
-  command->tbhits = std::get<int>(token.literal);
+  command->tbhits = std::get<std::int64_t>(token.literal);
 
   goto maybe_return;
 }
@@ -212,7 +213,7 @@ tbhits: {
 sbhits: {
   const Token &token = Consume(NUMBER, "Expect number after 'sbhits'.");
 
-  command->sbhits = std::get<int>(token.literal);
+  command->sbhits = std::get<std::int64_t>(token.literal);
 
   goto maybe_return;
 }
@@ -220,7 +221,7 @@ sbhits: {
 cpuload: {
   const Token &token = Consume(NUMBER, "Expect number after 'cpuload'.");
 
-  command->cpuload = std::get<int>(token.literal);
+  command->cpuload = std::get<std::int64_t>(token.literal);
 
   goto maybe_return;
 }
@@ -244,7 +245,7 @@ currline: {
 
   command->currline = new command::Info::Currline;
 
-  command->currline->cpunr = std::get<int>(token.literal);
+  command->currline->cpunr = std::get<std::int64_t>(token.literal);
 
   if (command->currline->cpunr < 1) {
     throw Error(token, "Expect currline.cpunr to be greater than 0");

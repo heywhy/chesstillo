@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -49,7 +50,7 @@ fen: {
 
   while (!IsAtEnd()) {
     if (Match(NUMBER)) {
-      const auto &literal = std::get<int>(Previous().literal);
+      const auto &literal = std::get<std::int64_t>(Previous().literal);
 
       fen.append(std::to_string(literal)).append(" ");
       continue;

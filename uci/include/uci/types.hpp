@@ -44,10 +44,12 @@ enum OptionType : uint8_t { CHECK, SPIN, COMBO, BUTTON, STRING };
 
 extern std::unordered_map<std::string_view, Status> kStatus;
 
+typedef std::variant<std::string_view, std::int64_t, bool> Literal;
+
 struct Token {
   TokenType type;
   const std::string_view lexeme;
-  std::variant<std::string_view, int, bool> literal;
+  Literal literal;
   int col;
   int line;
 };

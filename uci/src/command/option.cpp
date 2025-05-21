@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <memory>
 #include <set>
 #include <string>
@@ -92,7 +93,7 @@ type: {
 def4ult: {
   if (command->type == SPIN) {
     const auto &token = Consume(NUMBER);
-    const auto &literal = std::get<int>(token.literal);
+    const auto &literal = std::get<std::int64_t>(token.literal);
 
     command->def4ult = literal;
   } else if (command->type == CHECK) {
@@ -121,7 +122,7 @@ var: {
 
 min: {
   const auto &token = Consume(NUMBER);
-  const auto &literal = std::get<int>(token.literal);
+  const auto &literal = std::get<std::int64_t>(token.literal);
 
   command->min = literal;
 
@@ -130,7 +131,7 @@ min: {
 
 max: {
   const auto &token = Consume(NUMBER);
-  const auto &literal = std::get<int>(token.literal);
+  const auto &literal = std::get<std::int64_t>(token.literal);
 
   command->max = literal;
 
@@ -159,8 +160,8 @@ std::string command::Option::ToString() const {
   case SPIN: {
     str.append("spin ");
 
-    if (std::holds_alternative<int>(def4ult)) {
-      int value = std::get<int>(def4ult);
+    if (std::holds_alternative<std::int64_t>(def4ult)) {
+      int value = std::get<std::int64_t>(def4ult);
       str.append("default ").append(std::to_string(value));
     }
     break;

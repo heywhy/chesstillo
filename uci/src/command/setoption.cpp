@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -46,7 +47,7 @@ std::unique_ptr<Command> Parser::SetOption() {
 
     switch (value_token.type) {
     case NUMBER:
-      command->value = std::get<int>(value_token.literal);
+      command->value = std::get<std::int64_t>(value_token.literal);
       break;
     case BOOLEAN:
       command->value = std::get<bool>(value_token.literal);

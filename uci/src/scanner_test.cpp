@@ -1,3 +1,5 @@
+#include <cstdint>
+
 #include <gtest/gtest.h>
 #include <uci/scanner.hpp>
 #include <uci/types.hpp>
@@ -67,7 +69,7 @@ TEST_F(UCIScannerTestSuite, TestParseCommand) {
 
   ASSERT_EQ(tokens[4].type, NUMBER);
   ASSERT_EQ(tokens[4].lexeme, "65");
-  ASSERT_EQ(std::get<int>(tokens[4].literal), 65);
+  ASSERT_EQ(std::get<std::int64_t>(tokens[4].literal), 65);
 }
 
 TEST_F(UCIScannerTestSuite, TestParseFeedback) {
@@ -117,9 +119,9 @@ TEST_F(UCIScannerTestSuite, TestParseFeedback) {
 
   ASSERT_EQ(tokens[2].type, NUMBER);
   ASSERT_EQ(tokens[2].lexeme, "8");
-  ASSERT_EQ(std::get<int>(tokens[2].literal), 8);
+  ASSERT_EQ(std::get<std::int64_t>(tokens[2].literal), 8);
 
   ASSERT_EQ(tokens[9].type, NUMBER);
   ASSERT_EQ(tokens[9].lexeme, "-49");
-  ASSERT_EQ(std::get<int>(tokens[9].literal), -49);
+  ASSERT_EQ(std::get<std::int64_t>(tokens[9].literal), -49);
 }

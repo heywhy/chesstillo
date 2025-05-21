@@ -5,7 +5,6 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
-#include <variant>
 #include <vector>
 
 #include "types.hpp"
@@ -130,7 +129,7 @@ struct Go : public Command {
 
 struct SetOption : public Command {
   const std::string_view &id;
-  std::variant<std::string_view, int, bool> value;
+  Literal value;
 
   SetOption(const std::string_view &id) : id(id) {}
   SetOption(const std::string_view &id, auto value) : id(id), value(value) {}
@@ -248,13 +247,11 @@ public:
 };
 
 struct Option : public Command {
-  using Value = std::variant<bool, int, std::string_view>;
-
   OptionType type;
   std::string id;
-  Value def4ult;
-  int min = 0;
-  int max = 0;
+  Literal def4ult;
+  std::int64_t min = 0;
+  std::int64_t max = 0;
   std::vector<std::string_view> vars;
 
   std::string ToString() const override;

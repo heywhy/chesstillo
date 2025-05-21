@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <memory>
 
 #include <gmock/gmock.h>
@@ -231,7 +232,7 @@ TEST_F(UCIParserTestSuite, TestParseSetOptionInput) {
 
   ASSERT_NE(command.get(), nullptr);
   ASSERT_EQ(command->id, "Threads");
-  ASSERT_EQ(std::get<int>(command->value), 40);
+  ASSERT_EQ(std::get<std::int64_t>(command->value), 40);
 
   TOKENIZE(tokens, "setoption name UCI_AnalyseMode value true");
   PARSE(command, tokens);
@@ -479,7 +480,7 @@ TEST_F(UCIParserTestSuite, TestParseOptionInput) {
   ASSERT_NE(command.get(), nullptr);
   ASSERT_EQ(command->id, "Selectivity");
   ASSERT_EQ(command->type, OptionType::SPIN);
-  ASSERT_EQ(std::get<int>(command->def4ult), 2);
+  ASSERT_EQ(std::get<std::int64_t>(command->def4ult), 2);
   ASSERT_EQ(command->min, 0);
   ASSERT_EQ(command->max, 4);
 

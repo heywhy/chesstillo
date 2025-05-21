@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <format>
 #include <memory>
 #include <string>
@@ -49,7 +50,7 @@ command: {
     std::string msg = std::format("Expected number after '{}'", literal);
 
     const auto &token = Consume(NUMBER, msg);
-    const auto &literal = std::get<int>(token.literal);
+    const auto &literal = std::get<std::int64_t>(token.literal);
 
     *address = literal;
     goto maybe_return;
