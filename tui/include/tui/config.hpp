@@ -1,20 +1,20 @@
 #ifndef TUI_CONFIG_HPP
 #define TUI_CONFIG_HPP
 
+#include <cstdint>
 #include <map>
 #include <string>
+#include <variant>
 #include <vector>
 
 #include <uci/uci.hpp>
-
-using namespace uci;
 
 namespace tui {
 class Config {};
 
 struct EngineOption {
-  OptionType type;
-  command::Option::Value value;
+  uci::OptionType type;
+  std::variant<std::string, std::int64_t, bool> value;
   int min;
   int max;
   std::vector<std::string> vars;

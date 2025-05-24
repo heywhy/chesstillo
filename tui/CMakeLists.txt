@@ -3,6 +3,7 @@ include(find_tui_deps)
 
 add_library(tui
   STATIC
+  src/color.cpp
   src/theme.cpp
   src/hooks.cpp
   src/utility.cpp

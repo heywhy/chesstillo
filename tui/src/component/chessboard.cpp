@@ -30,7 +30,7 @@ ftxui::Element Chessboard::OnRender() {
     squares.push_back(ftxui::hbox(row));
   }
 
-  return ftxui::vbox(squares) | ftxui::center | ftxui::reflect(box_);
+  return ftxui::vbox(squares) | ftxui::reflect(box_);
 }
 
 bool Chessboard::OnEvent(ftxui::Event event) {
@@ -58,7 +58,7 @@ bool Chessboard::OnMouseEvent(ftxui::Event &event) {
   }
 
   if (!Focused()) {
-    Parent()->SetActiveChild(this);
+    TakeFocus();
   }
 
   return ftxui::ComponentBase::OnEvent(event);

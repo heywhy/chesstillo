@@ -10,6 +10,7 @@
 
 #include <ftxui/component/component_base.hpp>
 #include <ftxui/component/event.hpp>
+#include <tui/components.hpp>
 #include <tui/config.hpp>
 #include <tui/theme.hpp>
 #include <uci/uci.hpp>
@@ -19,16 +20,30 @@ using namespace uci;
 namespace tui {
 namespace screen {
 
-class Analyze : public ftxui::ComponentBase, public UI {
+class Analyze : public ftxui::ComponentBase {
 public:
   Analyze(const Theme &theme);
-  ~Analyze();
 
   bool OnEvent(ftxui::Event) override;
+
+private:
+  bool show_engine_settings_;
+  EngineOptions engine_options_;
+};
+
+namespace analyze {
+class Main : public ftxui::ComponentBase, public UI {
+public:
+  Main(const Theme &theme, EngineOptions &engine_options,
+       component::EngineSettings *);
+  ~Main();
+
   ftxui::Element OnRender() override;
 
 private:
   const Theme &theme_;
+  EngineOptions &engine_options_;
+  component::EngineSettings *engine_settings_;
 
   std::string fen_;
   std::string pgn_;
@@ -41,9 +56,6 @@ private:
   bool engine_is_uci_compatible_ = false;
   bool engine_is_ready_ = false;
   bool running_ = false;
-
-  bool show_engine_settings_ = false;
-  EngineOptions engine_options_;
 
   struct PV {
     int id = 0;
@@ -71,6 +83,7 @@ private:
   ftxui::Component MakeContainer();
 };
 
+} // namespace analyze
 } // namespace screen
 } // namespace tui
 

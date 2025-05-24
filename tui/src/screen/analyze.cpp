@@ -3,10 +3,13 @@
 #include <mutex>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include <ftxui/component/component.hpp>
+#include <tui/color.hpp>
 #include <tui/components.hpp>
 #include <tui/config.hpp>
 #include <tui/constants.hpp>
@@ -24,19 +27,58 @@ using namespace std::chrono_literals;
 namespace tui {
 namespace screen {
 
-Analyze::Analyze(const Theme &theme)
-    : theme_(theme), fen_(START_FEN),
-      engine_(uci::FindExecutable("stockfish"), this),
-      thread_(&Analyze::InitEngineLoop, this) {
-  Add(MakeContainer());
-  Add(ftxui::Make<component::Switch, std::array<std::string_view, 2>>(
-      {"Stop", "Run"}, running_, std::bind(&Analyze::OnRunSwitchChange, this)));
-  Add(ftxui::Make<component::EngineSettings>(engine_options_));
+Analyze::Analyze(const Theme &theme) : show_engine_settings_(false) {
+  auto engine_settings =
+      ftxui::Make<component::EngineSettings>(engine_options_);
+  auto main =
+      ftxui::Make<analyze::Main>(theme, engine_options_, engine_settings.get());
+
+  auto scroll_view = ftxui::Make<component::ScrollView>(engine_settings);
+
+  auto modal = ftxui::Renderer(scroll_view, [scroll_view]() {
+    auto content = scroll_view->Render() |
+                   ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 80) |
+                   ftxui::size(ftxui::HEIGHT, ftxui::LESS_THAN, 40);
+
+    return ftxui::window(ftxui::text("Engine Settings") | ftxui::bold, content,
+                         ftxui::BorderStyle::LIGHT) |
+           ftxui::color(ftxui::Color::GrayLight);
+  });
+
+  Add(ftxui::Modal(main, modal, &show_engine_settings_));
 }
 
-Analyze::~Analyze() { thread_.join(); }
+bool Analyze::OnEvent(ftxui::Event event) {
+  if (event == ftxui::Event::CtrlS) {
+    show_engine_settings_ = true;
 
-ftxui::Component Analyze::MakeContainer() {
+    return true;
+  }
+
+  if (event == ftxui::Event::Escape) {
+    show_engine_settings_ = false;
+
+    return true;
+  }
+
+  return ftxui::ComponentBase::OnEvent(event);
+}
+
+namespace analyze {
+Main::Main(const Theme &theme, EngineOptions &engine_options,
+           component::EngineSettings *engine_settings)
+    : theme_(theme), engine_options_(engine_options),
+      engine_settings_(engine_settings), fen_(START_FEN),
+      engine_(uci::FindExecutable("stockfish"), this),
+      thread_(&Main::InitEngineLoop, this) {
+  Add(MakeContainer());
+  Add(ftxui::Make<component::Switch, std::array<std::string_view, 2>>(
+      {"Stop", "Run"}, running_, std::bind(&Main::OnRunSwitchChange, this)));
+}
+
+Main::~Main() { thread_.join(); }
+
+ftxui::Component Main::MakeContainer() {
   auto fen_input = ftxui::Make<component::Input>("FEN", fen_);
   auto pgn_input = ftxui::Make<component::Input>("PGN", pgn_, true);
   auto chessboard = ftxui::Make<component::Chessboard>(theme_);
@@ -44,7 +86,7 @@ ftxui::Component Analyze::MakeContainer() {
   return ftxui::Container::Vertical({chessboard, fen_input, pgn_input});
 }
 
-ftxui::Element Analyze::OnRender() {
+ftxui::Element Main::OnRender() {
   static ftxui::FlexboxConfig config = {
       .direction = ftxui::FlexboxConfig::Direction::Column,
       .justify_content = ftxui::FlexboxConfig::JustifyContent::Center,
@@ -68,79 +110,83 @@ ftxui::Element Analyze::OnRender() {
     }
   }
 
-  ftxui::Element moves_block = ftxui::vbox(
-      {ftxui::hbox({ChildAt(1)->Render(), ftxui::separator(),
-                    ftxui::text(std::format("{:L}n/s", pvs_[0].nps))}),
-       // ftxui::text(engine_is_ready_ ? "engine ready" : "moves block"),
-       ftxui::separator(), ftxui::vbox(pvs_elements)});
+  ftxui::Element moves_block =
+      ftxui::vbox({ftxui::hbox({ChildAt(1)->Render()}), ftxui::separator(),
+                   ftxui::vbox(pvs_elements)});
+
+  ftxui::Element navigation_bar = ftxui::hbox({
+      ftxui::text(" e ") | ftxui::bold,
+      ftxui::text("engine settings "),
+      ftxui::separator(),
+      ftxui::text(" f ") | ftxui::bold,
+      ftxui::text("flip board "),
+      ftxui::separator(),
+      ftxui::text(" c ") | ftxui::bold,
+      ftxui::text("continue from here "),
+      ftxui::separator(),
+      ftxui::text(" q ") | ftxui::bold,
+      ftxui::text("quit "),
+  });
 
   ftxui::Element content =
       ftxui::flexbox(
-          {ftxui::text("on:top") | ftxui::bgcolor(ftxui::Color::Red) |
-               ftxui::xflex_grow,
-           ftxui::emptyElement(),
-           ftxui::gridbox(
-               {{container->ChildAt(0)->Render(),
-                 // ftxui::gaugeUp(0.5) | ftxui::color(ftxui::Color::RosyBrown)
-                 // |
-                 //     ftxui::bgcolor(ftxui::Color::GrayLight),
-                 moves_block | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 60)},
-                {ftxui::separatorEmpty()},
-                {container->ChildAt(1)->Render() |
-                 ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 62)},
-                {container->ChildAt(2)->Render() |
-                 ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 62)}})},
+          {ftxui::hbox({navigation_bar | ftxui::borderLight}) | ftxui::hcenter |  ftxui::xflex_grow,
+           ftxui::separatorEmpty(),
+           ftxui::gridbox({
+               {ftxui::vbox(
+                    {container->ChildAt(0)->Render() | ftxui::center,
+                     ftxui::separatorEmpty(),
+                     container->ChildAt(1)->Render() |
+                         ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 62),
+                     container->ChildAt(2)->Render() |
+                         ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 62)}),
+                // ftxui::gaugeUp(0.5) | ftxui::color(ftxui::Color::RosyBrown)
+                // |
+                //     ftxui::bgcolor(ftxui::Color::GrayLight),
+                ftxui::separatorEmpty(),
+                moves_block | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 60)},
+           })},
           config) |
-      ftxui::color(ftxui::Color::GrayLight) | ftxui::vscroll_indicator |
-      ftxui::frame;
-
-  if (show_engine_settings_) {
-    content = ftxui::dbox(
-        {content, ChildAt(2)->Render() | ftxui::clear_under | ftxui::center});
-  }
+      ftxui::color(color::gray400) | ftxui::vscroll_indicator | ftxui::frame;
 
   return content;
 }
 
-bool Analyze::OnEvent(ftxui::Event event) {
-  return ftxui::ComponentBase::OnEvent(event);
-}
-
-void Analyze::InitEngineLoop() {
+void Main::InitEngineLoop() {
   std::unique_lock lock(mutex_);
 
   engine_.Send(command::Input("uci"));
 
   // TODO: write to log file
-  cv_.wait_for(lock, 5s);
+  cv_.wait_for(lock, 10s);
 
   if (!engine_is_uci_compatible_) {
     throw std::runtime_error(
-        "engine wasn't ready within 5s or isn't uci compatible.");
+        "engine wasn't ready within 10s or isn't uci compatible.");
   }
 
-  static_cast<component::EngineSettings *>(ChildAt(2).get())->Refresh();
+  engine_settings_->Refresh();
 
   if (engine_options_.contains(kUCIAnalyseMode)) {
-    engine_.Send(command::SetOption(kUCIAnalyseMode, "true"));
+    engine_.Send(command::SetOption(kUCIAnalyseMode, true));
   }
 
   if (engine_options_.contains(kMultiPV)) {
-    engine_.Send(command::SetOption(kMultiPV, "5"));
+    engine_.Send(command::SetOption(kMultiPV, 5));
   }
 
   engine_.Send(command::Input("isready"));
 
-  cv_.wait_for(lock, 5s);
+  cv_.wait_for(lock, 10s);
 
   if (!engine_is_ready_) {
-    throw std::runtime_error("engine wasn't ready within 5s.");
+    throw std::runtime_error("engine wasn't ready within 10s.");
   }
 
   engine_.Send(command::Input("ucinewgame"));
 }
 
-void Analyze::OnRunSwitchChange() {
+void Main::OnRunSwitchChange() {
   if (running_) {
     engine_.Send(command::Position(fen_));
     engine_.Send(command::Go());
@@ -149,7 +195,7 @@ void Analyze::OnRunSwitchChange() {
   }
 }
 
-void Analyze::Handle(command::Input *command) {
+void Main::Handle(command::Input *command) {
   switch (command->type) {
   case uci::UCI_OK:
     engine_is_uci_compatible_ = true;
@@ -167,15 +213,15 @@ void Analyze::Handle(command::Input *command) {
   ActiveScreen()->PostEvent(ftxui::Event::Custom);
 }
 
-void Analyze::Handle(command::ID *) {}
+void Main::Handle(command::ID *) {}
 
-void Analyze::Handle(command::BestMove *) {}
+void Main::Handle(command::BestMove *) {}
 
-void Analyze::Handle(command::CopyProtection *) {}
+void Main::Handle(command::CopyProtection *) {}
 
-void Analyze::Handle(command::Registration *) {}
+void Main::Handle(command::Registration *) {}
 
-void Analyze::Handle(command::Info *command) {
+void Main::Handle(command::Info *command) {
   if (command->multipv < 1) {
     return;
   }
@@ -199,26 +245,35 @@ void Analyze::Handle(command::Info *command) {
   ActiveScreen()->PostEvent(ftxui::Event::Custom);
 }
 
-void Analyze::Handle(command::Option *command) {
+void Main::Handle(command::Option *command) {
   EngineOption option;
   std::vector<std::string> vars(command->vars.begin(), command->vars.end());
 
   option.type = command->type;
-  option.value = command->def4ult;
   option.min = command->min;
   option.max = command->max;
   option.vars = std::move(vars);
 
+  std::visit(
+      [&option](const auto &value) {
+        using T = std::decay_t<decltype(value)>;
+
+        if constexpr (std::is_same_v<T, std::string_view>) {
+          option.value.emplace<std::string>(value);
+        }
+
+        if constexpr (std::is_integral_v<T>) {
+          option.value.emplace<T>(value);
+        }
+      },
+      command->def4ult);
+
   engine_options_.emplace(std::pair(command->id, std::move(option)));
 }
 
-ftxui::Element Analyze::PV::Render() const {
-  ftxui::Elements attrs;
-
-  // attrs.push_back(ftxui::text(std::format("{:.2f} ", pv.value)));
-  // attrs.push_back(ftxui::separator());
-
+ftxui::Element Main::PV::Render() const {
   int index = 1;
+  ftxui::Elements attrs;
   auto it = moves.begin();
 
   while (it != moves.end()) {
@@ -244,16 +299,10 @@ ftxui::Element Analyze::PV::Render() const {
     attrs.push_back(ftxui::hbox(els));
   }
 
-  // for (const auto &move : pv.moves) {
-  //   attrs.push_back(ftxui::text(" "));
-  //   attrs.push_back(ftxui::text(move));
-  // }
-
-  // pvs_elements.push_back(ftxui::hflow(attrs));
-
   return ftxui::hbox({ftxui::text(std::format("{:.2f} ", value)),
                       ftxui::separator(), ftxui::hflow(attrs)});
 }
 
+} // namespace analyze
 } // namespace screen
 } // namespace tui

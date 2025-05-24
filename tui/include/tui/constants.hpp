@@ -8,4 +8,3 @@ inline const char *kUCIAnalyseMode = "UCI_AnalyseMode";
 
 } // namespace tui
 #endif
-
