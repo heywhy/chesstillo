@@ -5,6 +5,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
 #include <uci/uci.hpp>
 
 using namespace std::chrono_literals;
@@ -29,7 +30,7 @@ struct UIMock : public UI {
 static const std::string path_to_exe = FindExecutable("stockfish");
 
 class UCIEngineTestSuite : public Test {
-protected:
+ protected:
   testing::NiceMock<UIMock> ui;
   Engine engine{path_to_exe, &ui};
 };

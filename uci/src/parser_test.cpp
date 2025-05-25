@@ -3,6 +3,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
 #include <uci/command.hpp>
 #include <uci/parser.hpp>
 #include <uci/scanner.hpp>
@@ -27,7 +28,7 @@ struct VisitorMock : public Visitor {
 };
 
 class UCIParserTestSuite : public testing::Test {
-protected:
+ protected:
   VisitorMock mock_;
 };
 
@@ -404,12 +405,13 @@ TEST_F(UCIParserTestSuite, TestParseInfoInput) {
   Tokens tokens;
   std::unique_ptr<command::Info> command;
 
-  TOKENIZE(tokens, "info depth 8 seldepth 14 multipv 1 score cp -49 upperbound "
-                   "nodes 7465 nps 248833 hashfull 1 tbhits 0 time 30 "
-                   "pv c7c5 b1c3 e7e6 g1f3 b8c6 d2d4 c5d4 f3d4 "
-                   "refutation d1h5 currline 8 c4c5 e2f3 "
-                   "string NNUE evaluation using nn-1c0000000000.nnue "
-                   "(133MiB, (22528, 3072, 15, 32, 1))");
+  TOKENIZE(tokens,
+           "info depth 8 seldepth 14 multipv 1 score cp -49 upperbound "
+           "nodes 7465 nps 248833 hashfull 1 tbhits 0 time 30 "
+           "pv c7c5 b1c3 e7e6 g1f3 b8c6 d2d4 c5d4 f3d4 "
+           "refutation d1h5 currline 8 c4c5 e2f3 "
+           "string NNUE evaluation using nn-1c0000000000.nnue "
+           "(133MiB, (22528, 3072, 15, 32, 1))");
 
   PARSE(command, tokens);
 
@@ -446,8 +448,9 @@ TEST_F(UCIParserTestSuite, TestParseOptionInput) {
   Tokens tokens;
   std::unique_ptr<command::Option> command;
 
-  TOKENIZE(tokens, "option name Style type combo default Normal var Solid var "
-                   "Normal var Risky");
+  TOKENIZE(tokens,
+           "option name Style type combo default Normal var Solid var "
+           "Normal var Risky");
   PARSE(command, tokens);
 
   ASSERT_NE(command.get(), nullptr);

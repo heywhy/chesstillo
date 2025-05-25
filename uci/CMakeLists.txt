@@ -1,5 +1,10 @@
 include(find_boost)
 include(find_googletest)
+include(format)
+
+file(GLOB_RECURSE UCI_SRC LIST_DIRECTORIES false **/*.cpp **/*.hpp)
+
+format(uci "${UCI_SRC}")
 
 add_library(uci
   STATIC
@@ -19,6 +24,10 @@ add_library(uci
   src/command/info.cpp
   src/command/option.cpp
 )
+
+if(TARGET uci_format)
+  add_dependencies(uci uci_format)
+endif()
 
 target_include_directories(uci PUBLIC include)
 

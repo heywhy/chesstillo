@@ -25,7 +25,7 @@ struct CopyProtection;
 struct Registration;
 struct Info;
 struct Option;
-} // namespace command
+}  // namespace command
 
 struct Visitor;
 
@@ -65,20 +65,20 @@ struct Input : public Command {
 
   bool IsFeedback() {
     switch (type) {
-    case UCI:
-    case IS_READY:
-    case UCI_NEW_GAME:
-    case STOP:
-    case PONDER_HIT:
-    case QUIT:
-      return false;
+      case UCI:
+      case IS_READY:
+      case UCI_NEW_GAME:
+      case STOP:
+      case PONDER_HIT:
+      case QUIT:
+        return false;
 
-    case UCI_OK:
-    case READY_OK:
-      return true;
+      case UCI_OK:
+      case READY_OK:
+        return true;
 
-    default:
-      return false;
+      default:
+        return false;
     }
   }
 
@@ -196,7 +196,7 @@ struct Registration : public Command {
 };
 
 struct Info : public Command {
-public:
+ public:
   struct Score {
     enum Type { CP, MATE };
 
@@ -259,6 +259,6 @@ struct Option : public Command {
   void Accept(Visitor &visitor) override { visitor.VisitOption(this); }
 };
 
-} // namespace command
-} // namespace uci
+}  // namespace command
+}  // namespace uci
 #endif

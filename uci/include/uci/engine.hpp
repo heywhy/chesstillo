@@ -8,6 +8,7 @@
 
 #include <boost/asio.hpp>
 #include <boost/process.hpp>
+
 #include <uci/command.hpp>
 #include <uci/ui.hpp>
 
@@ -16,7 +17,7 @@ namespace process = boost::process;
 
 namespace uci {
 class Engine : Visitor {
-public:
+ public:
   Engine(const std::string_view &path, UI *ui);
   ~Engine();
 
@@ -24,7 +25,7 @@ public:
   void Send(uci::Command &command);
   void Send(uci::Command &&command);
 
-protected:
+ protected:
   void VisitInput(command::Input *) override;
   void VisitDebug(command::Debug *) override;
   void VisitPosition(command::Position *) override;
@@ -38,7 +39,7 @@ protected:
   void VisitInfo(command::Info *) override;
   void VisitOption(command::Option *) override;
 
-private:
+ private:
   UI *ui_;
   bool stop_;
 
@@ -51,6 +52,6 @@ private:
   void Loop();
   void WriteToProcess(std::string &&line);
 };
-} // namespace uci
+}  // namespace uci
 
 #endif

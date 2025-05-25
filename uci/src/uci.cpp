@@ -2,6 +2,7 @@
 #include <unordered_map>
 
 #include <boost/process/v2/environment.hpp>
+
 #include <uci/command.hpp>
 #include <uci/types.hpp>
 
@@ -24,4 +25,4 @@ std::unordered_map<std::string_view, TokenType> Input::Known = {
     {"uciok", UCI_OK}, {"readyok", READY_OK}};
 }
 
-} // namespace uci
+}  // namespace uci

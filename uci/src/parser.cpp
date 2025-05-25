@@ -15,64 +15,64 @@ std::unique_ptr<Command> Parser::Parse() {
     Tokens::const_reference token = Advance();
 
     switch (token.type) {
-    case UCI:
-    case IS_READY:
-    case UCI_NEW_GAME:
-    case STOP:
-    case PONDER_HIT:
-    case QUIT:
-    case UCI_OK:
-    case READY_OK:
+      case UCI:
+      case IS_READY:
+      case UCI_NEW_GAME:
+      case STOP:
+      case PONDER_HIT:
+      case QUIT:
+      case UCI_OK:
+      case READY_OK:
         command.reset(new command::Input(token.lexeme));
-      break;
+        break;
 
-    case DEBUG:
-      command = Debug();
-      break;
+      case DEBUG:
+        command = Debug();
+        break;
 
-    case POSITION:
-      command = Position();
-      break;
+      case POSITION:
+        command = Position();
+        break;
 
-    case GO:
-      command = Go();
-      break;
+      case GO:
+        command = Go();
+        break;
 
-    case SET_OPTION:
-      command = SetOption();
-      break;
+      case SET_OPTION:
+        command = SetOption();
+        break;
 
-    case REGISTER:
-      command = Register();
-      break;
+      case REGISTER:
+        command = Register();
+        break;
 
-    case uci::TokenType::ID:
-      command = ID();
-      break;
+      case uci::TokenType::ID:
+        command = ID();
+        break;
 
-    case BEST_MOVE:
-      command = BestMove();
-      break;
+      case BEST_MOVE:
+        command = BestMove();
+        break;
 
-    case COPY_PROTECTION:
-      command = CopyProtection();
-      break;
+      case COPY_PROTECTION:
+        command = CopyProtection();
+        break;
 
-    case REGISTRATION:
-      command = Registration();
-      break;
+      case REGISTRATION:
+        command = Registration();
+        break;
 
-    case INFO:
-      command = Info();
-      break;
+      case INFO:
+        command = Info();
+        break;
 
-    case uci::TokenType::OPTION:
-      command = Option();
-      break;
+      case uci::TokenType::OPTION:
+        command = Option();
+        break;
 
-    default:
-      command = nullptr;
-      break;
+      default:
+        command = nullptr;
+        break;
     }
 
     if (!IsAtEnd()) {

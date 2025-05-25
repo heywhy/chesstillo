@@ -36,13 +36,13 @@ std::string command::ID::ToString() const {
   std::string str("id ");
 
   switch (type) {
-  case AUTHOR:
-    str.append("author ");
-    break;
+    case AUTHOR:
+      str.append("author ");
+      break;
 
-  case NAME:
-    str.append("name ");
-    break;
+    case NAME:
+      str.append("name ");
+      break;
   }
 
   str.append(value);

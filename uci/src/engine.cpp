@@ -9,6 +9,7 @@
 #include <boost/process/v2/environment.hpp>
 #include <boost/system/system_error.hpp>
 #include <boost/throw_exception.hpp>
+
 #include <uci/command.hpp>
 #include <uci/engine.hpp>
 #include <uci/parser.hpp>
@@ -21,7 +22,9 @@ namespace asio = boost::asio;
 namespace bsystem = boost::system;
 
 Engine::Engine(const std::string_view &path, UI *ui)
-    : ui_(ui), stop_(false), instance_(context_.get_executor(), path, {}),
+    : ui_(ui),
+      stop_(false),
+      instance_(context_.get_executor(), path, {}),
       thread_(&Engine::Loop, this) {}
 
 Engine::~Engine() {

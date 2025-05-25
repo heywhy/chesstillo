@@ -5,20 +5,20 @@
 
 #include <uci/types.hpp>
 
-#define TOKENIZE(output, input)                                                \
-  {                                                                            \
-    uci::Scanner scanner(input);                                               \
-    output = std::move(scanner.Scan());                                        \
+#define TOKENIZE(output, input)         \
+  {                                     \
+    uci::Scanner scanner(input);        \
+    output = std::move(scanner.Scan()); \
   }
 
 namespace uci {
 class Scanner {
-public:
+ public:
   Scanner(const std::string_view &input);
 
   Tokens &Scan();
 
-private:
+ private:
   const std::string_view &input_;
 
   Tokens tokens_;
@@ -39,6 +39,6 @@ private:
   void AddToken(uci::TokenType type);
   void AddToken(uci::TokenType type, auto c);
 };
-} // namespace uci
+}  // namespace uci
 
 #endif

@@ -56,6 +56,6 @@ struct Token {
 
 typedef std::vector<Token> Tokens;
 
-} // namespace uci
+}  // namespace uci
 
 #endif

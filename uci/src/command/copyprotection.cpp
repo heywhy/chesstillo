@@ -22,17 +22,17 @@ std::string command::CopyProtection::ToString() const {
   std::string str("copyprotection ");
 
   switch (status) {
-  case CHECKING:
-    str.append("checking");
-    break;
+    case CHECKING:
+      str.append("checking");
+      break;
 
-  case OK:
-    str.append("ok");
-    break;
+    case OK:
+      str.append("ok");
+      break;
 
-  case ERROR:
-    str.append("error");
-    break;
+    case ERROR:
+      str.append("error");
+      break;
   }
 
   return str;

@@ -147,50 +147,50 @@ std::string command::Option::ToString() const {
   str.append(id).append(" type ");
 
   switch (type) {
-  case CHECK: {
-    str.append("check ");
+    case CHECK: {
+      str.append("check ");
 
-    if (std::holds_alternative<bool>(def4ult)) {
-      bool value = std::get<bool>(def4ult);
-      str.append("default ").append(value ? "true" : "false");
+      if (std::holds_alternative<bool>(def4ult)) {
+        bool value = std::get<bool>(def4ult);
+        str.append("default ").append(value ? "true" : "false");
+      }
+      break;
+    };
+
+    case SPIN: {
+      str.append("spin ");
+
+      if (std::holds_alternative<std::int64_t>(def4ult)) {
+        int value = std::get<std::int64_t>(def4ult);
+        str.append("default ").append(std::to_string(value));
+      }
+      break;
+    };
+
+    case COMBO: {
+      str.append("combo ");
+
+      if (std::holds_alternative<std::string_view>(def4ult)) {
+        std::string_view value = std::get<std::string_view>(def4ult);
+        str.append("default ").append(value);
+      }
+      break;
     }
-    break;
-  };
 
-  case SPIN: {
-    str.append("spin ");
-
-    if (std::holds_alternative<std::int64_t>(def4ult)) {
-      int value = std::get<std::int64_t>(def4ult);
-      str.append("default ").append(std::to_string(value));
+    case BUTTON: {
+      str.append("button ");
+      break;
     }
-    break;
-  };
 
-  case COMBO: {
-    str.append("combo ");
+    case STRING: {
+      str.append("string ");
 
-    if (std::holds_alternative<std::string_view>(def4ult)) {
-      std::string_view value = std::get<std::string_view>(def4ult);
-      str.append("default ").append(value);
+      if (std::holds_alternative<std::string_view>(def4ult)) {
+        std::string_view value = std::get<std::string_view>(def4ult);
+        str.append("default ").append(value);
+      }
+      break;
     }
-    break;
-  }
-
-  case BUTTON: {
-    str.append("button ");
-    break;
-  }
-
-  case STRING: {
-    str.append("string ");
-
-    if (std::holds_alternative<std::string_view>(def4ult)) {
-      std::string_view value = std::get<std::string_view>(def4ult);
-      str.append("default ").append(value);
-    }
-    break;
-  }
   }
 
   if (min > 0) {

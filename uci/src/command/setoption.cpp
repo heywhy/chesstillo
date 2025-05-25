@@ -46,17 +46,17 @@ std::unique_ptr<Command> Parser::SetOption() {
     current_ = tokens_.size();
 
     switch (value_token.type) {
-    case NUMBER:
-      command->value = std::get<std::int64_t>(value_token.literal);
-      break;
-    case BOOLEAN:
-      command->value = std::get<bool>(value_token.literal);
-      break;
-    case WORD:
-      command->value = std::get<std::string_view>(value_token.literal);
-      break;
-    default:
-      Error(value_token);
+      case NUMBER:
+        command->value = std::get<std::int64_t>(value_token.literal);
+        break;
+      case BOOLEAN:
+        command->value = std::get<bool>(value_token.literal);
+        break;
+      case WORD:
+        command->value = std::get<std::string_view>(value_token.literal);
+        break;
+      default:
+        Error(value_token);
     }
   }
 

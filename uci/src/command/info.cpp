@@ -10,18 +10,18 @@
 
 using namespace uci;
 
-#define IS_ATTR(token)                                                         \
+#define IS_ATTR(token) \
   token.type == WORD &&M.contains(std::get<std::string_view>(token.literal))
 
 // TODO: check if the token is a valid move string or abort
-#define CONSUME_MOVES(list, error)                                             \
-  while (!IsAtEnd()) {                                                         \
-    if (IS_ATTR(Peek())) {                                                     \
-      goto decide;                                                             \
-    }                                                                          \
-    const Token &token = Consume(WORD, error);                                 \
-    const auto &literal = std::get<std::string_view>(token.literal);           \
-    list.emplace_back(literal);                                                \
+#define CONSUME_MOVES(list, error)                                   \
+  while (!IsAtEnd()) {                                               \
+    if (IS_ATTR(Peek())) {                                           \
+      goto decide;                                                   \
+    }                                                                \
+    const Token &token = Consume(WORD, error);                       \
+    const auto &literal = std::get<std::string_view>(token.literal); \
+    list.emplace_back(literal);                                      \
   }
 
 std::unique_ptr<Command> Parser::Info() {
@@ -345,13 +345,13 @@ std::string command::Info::Score::ToString() {
   std::string str;
 
   switch (type) {
-  case CP:
-    str.append("cp ").append(std::to_string(value));
-    break;
+    case CP:
+      str.append("cp ").append(std::to_string(value));
+      break;
 
-  case MATE:
-    str.append("mate ").append(std::to_string(value));
-    break;
+    case MATE:
+      str.append("mate ").append(std::to_string(value));
+      break;
   }
 
   if (lowerbound) {

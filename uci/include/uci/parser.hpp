@@ -7,29 +7,29 @@
 #include <uci/command.hpp>
 #include <uci/types.hpp>
 
-#define PARSE(expr, tokens)                                                    \
-  {                                                                            \
-    uci::Parser parser(tokens);                                                \
-    auto uq = parser.Parse();                                                  \
-    decltype(expr)::pointer ptr =                                              \
-        static_cast<decltype(expr)::pointer>(uq.release());                    \
-    expr.reset(ptr);                                                           \
+#define PARSE(expr, tokens)                                 \
+  {                                                         \
+    uci::Parser parser(tokens);                             \
+    auto uq = parser.Parse();                               \
+    decltype(expr)::pointer ptr =                           \
+        static_cast<decltype(expr)::pointer>(uq.release()); \
+    expr.reset(ptr);                                        \
   }
 
 namespace uci {
 class ParseError : public std::runtime_error {
-public:
+ public:
   ParseError(const std::string_view &message)
       : std::runtime_error(message.data()) {}
 };
 
 class Parser {
-public:
+ public:
   Parser(const Tokens &tokens);
 
   std::unique_ptr<Command> Parse();
 
-private:
+ private:
   const Tokens &tokens_;
   Tokens::size_type current_;
 
@@ -44,9 +44,8 @@ private:
   bool IsAtEnd();
   bool Check(TokenType type);
   bool Match(TokenType type);
-  Tokens::const_reference
-  Consume(TokenType type,
-          const std::string_view &message = "Unexpected token.");
+  Tokens::const_reference Consume(
+      TokenType type, const std::string_view &message = "Unexpected token.");
 
   ParseError Error(const Token &token,
                    const std::string_view &message = "Unexpected token.");
@@ -66,6 +65,6 @@ private:
   std::unique_ptr<Command> Info();
   std::unique_ptr<Command> Option();
 };
-} // namespace uci
+}  // namespace uci
 
 #endif

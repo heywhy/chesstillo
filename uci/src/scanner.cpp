@@ -49,30 +49,30 @@ void Scanner::ScanToken() {
   char c = Advance();
 
   switch (c) {
-  case ' ':
-  case '\r':
-  case '\t':
-    break;
+    case ' ':
+    case '\r':
+    case '\t':
+      break;
 
-  case '\n':
-    line_++;
-    break;
+    case '\n':
+      line_++;
+      break;
 
-  case '-':
-    if (std::isdigit(Peek())) {
-      Digit();
-    } else {
-      Word();
-    }
-    break;
+    case '-':
+      if (std::isdigit(Peek())) {
+        Digit();
+      } else {
+        Word();
+      }
+      break;
 
-  default:
-    if (std::isdigit(c)) {
-      Digit();
-    } else {
-      Word();
-    }
-    break;
+    default:
+      if (std::isdigit(c)) {
+        Digit();
+      } else {
+        Word();
+      }
+      break;
   }
 }
 

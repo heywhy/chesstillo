@@ -13,6 +13,6 @@ struct UI {
   virtual void Handle(command::Info *) = 0;
   virtual void Handle(command::Option *) = 0;
 };
-} // namespace uci
+}  // namespace uci
 
 #endif

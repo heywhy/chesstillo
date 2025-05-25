@@ -1,6 +1,7 @@
 #include <cstdint>
 
 #include <gtest/gtest.h>
+
 #include <uci/scanner.hpp>
 #include <uci/types.hpp>
 
@@ -107,9 +108,10 @@ TEST_F(UCIScannerTestSuite, TestParseFeedback) {
   ASSERT_EQ(tokens[2].col, 9);
   ASSERT_EQ(tokens[2].line, 1);
 
-  TOKENIZE(tokens, "info depth 8 seldepth 14 multipv 1 score cp -49 "
-                   "nodes 7465 nps 248833 hashfull 1 tbhits 0 time 30 "
-                   "pv c7c5 b1c3 e7e6 g1f3 b8c6 d2d4 c5d4 f3d4");
+  TOKENIZE(tokens,
+           "info depth 8 seldepth 14 multipv 1 score cp -49 "
+           "nodes 7465 nps 248833 hashfull 1 tbhits 0 time 30 "
+           "pv c7c5 b1c3 e7e6 g1f3 b8c6 d2d4 c5d4 f3d4");
 
   ASSERT_EQ(tokens.size(), 29);
 
