@@ -11,5 +11,5 @@ inline const char *kQueen = "\ued65";
 inline const char *kPawn = "\ued64";
 inline const char *kGear = "\ueb51";
 
-} // namespace tui
+}  // namespace tui
 #endif

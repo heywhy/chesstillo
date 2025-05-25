@@ -10,7 +10,7 @@ namespace tui {
 namespace component {
 
 class Input : public ftxui::ComponentBase {
-public:
+ public:
   const std::string_view label;
 
   Input(const std::string_view label, std::string &value,
@@ -18,13 +18,13 @@ public:
 
   ftxui::Element OnRender() override;
 
-private:
+ private:
   ftxui::Box box_;
 
   ftxui::Element Transform(ftxui::InputState state);
 };
 
-} // namespace component
-} // namespace tui
+}  // namespace component
+}  // namespace tui
 
 #endif

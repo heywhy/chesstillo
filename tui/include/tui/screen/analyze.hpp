@@ -10,10 +10,11 @@
 
 #include <ftxui/component/component_base.hpp>
 #include <ftxui/component/event.hpp>
+#include <uci/uci.hpp>
+
 #include <tui/components.hpp>
 #include <tui/config.hpp>
 #include <tui/theme.hpp>
-#include <uci/uci.hpp>
 
 using namespace uci;
 
@@ -21,26 +22,26 @@ namespace tui {
 namespace screen {
 
 class Analyze : public ftxui::ComponentBase {
-public:
+ public:
   Analyze(const Theme &theme);
 
   bool OnEvent(ftxui::Event) override;
 
-private:
+ private:
   bool show_engine_settings_;
   EngineOptions engine_options_;
 };
 
 namespace analyze {
 class Main : public ftxui::ComponentBase, public UI {
-public:
+ public:
   Main(const Theme &theme, EngineOptions &engine_options,
        component::EngineSettings *);
   ~Main();
 
   ftxui::Element OnRender() override;
 
-private:
+ private:
   const Theme &theme_;
   EngineOptions &engine_options_;
   component::EngineSettings *engine_settings_;
@@ -83,8 +84,8 @@ private:
   ftxui::Component MakeContainer();
 };
 
-} // namespace analyze
-} // namespace screen
-} // namespace tui
+}  // namespace analyze
+}  // namespace screen
+}  // namespace tui
 
 #endif

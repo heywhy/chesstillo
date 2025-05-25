@@ -1,5 +1,6 @@
 #include <ftxui/component/event.hpp>
 #include <ftxui/screen/color.hpp>
+
 #include <tui/component/square.hpp>
 #include <tui/theme.hpp>
 
@@ -47,7 +48,7 @@ bool Square::OnEvent(ftxui::Event event) {
     if (mouse.motion == ftxui::Mouse::Motion::Pressed &&
         mouse.button == ftxui::Mouse::Button::Left &&
         box_.Contain(mouse.x, mouse.y)) {
-      Parent()->SetActiveChild(this);
+      TakeFocus();
 
       return true;
     }
@@ -56,5 +57,5 @@ bool Square::OnEvent(ftxui::Event event) {
   return ftxui::ComponentBase::OnEvent(event);
 }
 
-} // namespace component
-} // namespace tui
+}  // namespace component
+}  // namespace tui

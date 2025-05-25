@@ -6,5 +6,5 @@ namespace tui {
 inline const char *kMultiPV = "MultiPV";
 inline const char *kUCIAnalyseMode = "UCI_AnalyseMode";
 
-} // namespace tui
+}  // namespace tui
 #endif

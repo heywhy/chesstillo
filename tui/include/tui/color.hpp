@@ -12,6 +12,6 @@ extern const ftxui::Color gray400;
 extern const ftxui::Color slate800;
 extern const ftxui::Color slate900;
 
-} // namespace color
-} // namespace tui
+}  // namespace color
+}  // namespace tui
 #endif

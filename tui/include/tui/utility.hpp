@@ -4,10 +4,10 @@
 #include <ftxui/component/component_base.hpp>
 #include <ftxui/component/screen_interactive.hpp>
 
-#define NAVIGATE(component)                                                    \
-  {                                                                            \
-    auto screen = ftxui::ScreenInteractive::Fullscreen();                      \
-    screen.Loop(component);                                                    \
+#define NAVIGATE(component)                               \
+  {                                                       \
+    auto screen = ftxui::ScreenInteractive::Fullscreen(); \
+    screen.Loop(component);                               \
   }
 
 namespace tui {
@@ -16,6 +16,6 @@ inline ftxui::ScreenInteractive *ActiveScreen() {
 }
 
 void Navigate(const ftxui::Component &component);
-} // namespace tui
+}  // namespace tui
 
 #endif

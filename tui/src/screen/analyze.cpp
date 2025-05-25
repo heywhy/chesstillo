@@ -9,6 +9,8 @@
 #include <vector>
 
 #include <ftxui/component/component.hpp>
+#include <uci/uci.hpp>
+
 #include <tui/color.hpp>
 #include <tui/components.hpp>
 #include <tui/config.hpp>
@@ -17,7 +19,6 @@
 #include <tui/screen/analyze.hpp>
 #include <tui/theme.hpp>
 #include <tui/utility.hpp>
-#include <uci/uci.hpp>
 
 #define START_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
@@ -67,8 +68,10 @@ bool Analyze::OnEvent(ftxui::Event event) {
 namespace analyze {
 Main::Main(const Theme &theme, EngineOptions &engine_options,
            component::EngineSettings *engine_settings)
-    : theme_(theme), engine_options_(engine_options),
-      engine_settings_(engine_settings), fen_(START_FEN),
+    : theme_(theme),
+      engine_options_(engine_options),
+      engine_settings_(engine_settings),
+      fen_(START_FEN),
       engine_(uci::FindExecutable("stockfish"), this),
       thread_(&Main::InitEngineLoop, this) {
   Add(MakeContainer());
@@ -130,7 +133,8 @@ ftxui::Element Main::OnRender() {
 
   ftxui::Element content =
       ftxui::flexbox(
-          {ftxui::hbox({navigation_bar | ftxui::borderLight}) | ftxui::hcenter |  ftxui::xflex_grow,
+          {ftxui::hbox({navigation_bar | ftxui::borderLight}) | ftxui::hcenter |
+               ftxui::xflex_grow,
            ftxui::separatorEmpty(),
            ftxui::gridbox({
                {ftxui::vbox(
@@ -197,16 +201,16 @@ void Main::OnRunSwitchChange() {
 
 void Main::Handle(command::Input *command) {
   switch (command->type) {
-  case uci::UCI_OK:
-    engine_is_uci_compatible_ = true;
-    break;
+    case uci::UCI_OK:
+      engine_is_uci_compatible_ = true;
+      break;
 
-  case uci::READY_OK:
-    engine_is_ready_ = true;
-    break;
+    case uci::READY_OK:
+      engine_is_ready_ = true;
+      break;
 
-  default:
-    break;
+    default:
+      break;
   }
 
   cv_.notify_all();
@@ -303,6 +307,6 @@ ftxui::Element Main::PV::Render() const {
                       ftxui::separator(), ftxui::hflow(attrs)});
 }
 
-} // namespace analyze
-} // namespace screen
-} // namespace tui
+}  // namespace analyze
+}  // namespace screen
+}  // namespace tui

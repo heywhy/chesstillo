@@ -7,5 +7,5 @@ namespace tui {
 namespace hooks {
 ftxui::ComponentDecorator QuitEvent();
 }
-} // namespace tui
+}  // namespace tui
 #endif

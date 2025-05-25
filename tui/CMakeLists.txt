@@ -1,5 +1,10 @@
 include(find_googletest)
 include(find_tui_deps)
+include(format)
+
+file(GLOB_RECURSE TUI_SRC LIST_DIRECTORIES false **/*.cpp **/*.hpp)
+
+format(tui "${TUI_SRC}")
 
 add_library(tui
   STATIC
@@ -16,6 +21,10 @@ add_library(tui
   src/screen/analyze.cpp
   src/screen/home.cpp
 )
+
+if(TARGET tui_format)
+  add_dependencies(tui tui_format)
+endif()
 
 target_include_directories(tui PUBLIC include)
 

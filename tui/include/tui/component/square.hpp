@@ -2,12 +2,13 @@
 #define TUI_COMPONENT_SQUARE_HPP
 
 #include <ftxui/component/component_base.hpp>
+
 #include <tui/theme.hpp>
 
 namespace tui {
 namespace component {
 class Square : public ftxui::ComponentBase {
-public:
+ public:
   const int index;
 
   Square(const tui::Theme &, int index);
@@ -17,12 +18,12 @@ public:
 
   bool Focusable() const override { return true; }
 
-private:
+ private:
   ftxui::Box box_;
   const Theme &theme_;
 };
-} // namespace component
+}  // namespace component
 
-} // namespace tui
+}  // namespace tui
 
 #endif

@@ -14,6 +14,6 @@ struct Theme {
 
   static const Theme Default;
 };
-} // namespace tui
+}  // namespace tui
 
 #endif

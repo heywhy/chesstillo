@@ -5,9 +5,10 @@
 #include <string_view>
 
 #include <ftxui/component/component.hpp>
+#include <uci/uci.hpp>
+
 #include <tui/component/engine_settings.hpp>
 #include <tui/config.hpp>
-#include <uci/uci.hpp>
 
 namespace tui {
 namespace component {
@@ -61,28 +62,28 @@ ftxui::Component EngineSettings::Make(const std::string_view label,
   EngineOption &e_option = const_cast<EngineOption &>(option);
 
   switch (option.type) {
-  case uci::CHECK:
-    component = ftxui::Make<EngineSettings::Check>(label, e_option);
-    break;
+    case uci::CHECK:
+      component = ftxui::Make<EngineSettings::Check>(label, e_option);
+      break;
 
-  case uci::SPIN:
-    component = ftxui::Make<EngineSettings::Spin>(label, e_option);
-    break;
+    case uci::SPIN:
+      component = ftxui::Make<EngineSettings::Spin>(label, e_option);
+      break;
 
-  case uci::COMBO:
-    component = ftxui::Make<EngineSettings::Combo>(label, e_option);
-    break;
+    case uci::COMBO:
+      component = ftxui::Make<EngineSettings::Combo>(label, e_option);
+      break;
 
-    // case uci::BUTTON:
-    //   component = ftxui::Make<EngineSettings::Button>(label, e_option);
-    //   break;
+      // case uci::BUTTON:
+      //   component = ftxui::Make<EngineSettings::Button>(label, e_option);
+      //   break;
 
-  case uci::STRING:
-    component = ftxui::Make<EngineSettings::String>(label, e_option);
-    break;
+    case uci::STRING:
+      component = ftxui::Make<EngineSettings::String>(label, e_option);
+      break;
 
-  default:
-    break;
+    default:
+      break;
   }
 
   return component;
@@ -175,5 +176,5 @@ ftxui::Element EngineSettings::String::OnRender() {
                       ChildAt(0)->Render() | ftxui::underlined});
 }
 
-} // namespace component
-} // namespace tui
+}  // namespace component
+}  // namespace tui

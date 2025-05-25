@@ -1,6 +1,7 @@
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/event.hpp>
 #include <ftxui/component/mouse.hpp>
+
 #include <tui/component/chessboard.hpp>
 #include <tui/component/square.hpp>
 #include <tui/theme.hpp>
@@ -110,5 +111,5 @@ void Chessboard::MoveSelector(int dir) {
   }
 }
 
-} // namespace component
-} // namespace tui
+}  // namespace component
+}  // namespace tui

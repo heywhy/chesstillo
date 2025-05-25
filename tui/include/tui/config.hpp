@@ -22,6 +22,6 @@ struct EngineOption {
 
 typedef std::map<std::string, EngineOption> EngineOptions;
 
-} // namespace tui
+}  // namespace tui
 
 #endif

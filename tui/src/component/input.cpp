@@ -4,6 +4,7 @@
 #include <utility>
 
 #include <ftxui/component/component.hpp>
+
 #include <tui/component/input.hpp>
 
 namespace tui {
@@ -41,5 +42,5 @@ ftxui::Element Input::Transform(ftxui::InputState state) {
   return state.element;
 }
 
-} // namespace component
-} // namespace tui
+}  // namespace component
+}  // namespace tui

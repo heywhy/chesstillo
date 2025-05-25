@@ -11,7 +11,7 @@ namespace tui {
 namespace component {
 
 class Switch : public ftxui::ComponentBase {
-public:
+ public:
   using Labels = std::array<std::string_view, 2>;
   using OnChange = std::function<void()>;
 
@@ -21,12 +21,12 @@ public:
   Switch(bool &on, OnChange on_change);
   Switch(const Labels &labels, bool &on, const OnChange on_change = [] {});
 
-private:
+ private:
   int selected_;
   const OnChange on_change_;
 };
 
-} // namespace component
-} // namespace tui
+}  // namespace component
+}  // namespace tui
 
 #endif

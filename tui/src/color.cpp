@@ -1,4 +1,5 @@
 #include <ftxui/screen/color.hpp>
+
 #include <tui/color.hpp>
 
 namespace tui {
@@ -10,5 +11,5 @@ const ftxui::Color gray400 = ftxui::Color::RGB(156, 163, 175);
 const ftxui::Color slate800 = ftxui::Color::RGB(29, 41, 61);
 const ftxui::Color slate900 = ftxui::Color::RGB(2, 6, 24);
 
-} // namespace color
-} // namespace tui
+}  // namespace color
+}  // namespace tui

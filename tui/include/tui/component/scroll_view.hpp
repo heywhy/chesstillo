@@ -8,7 +8,7 @@
 namespace tui {
 namespace component {
 class ScrollView : public ftxui::ComponentBase {
-public:
+ public:
   enum Direction { ALL, WIDTH, HEIGHT };
 
   ScrollView(ftxui::Component child);
@@ -18,7 +18,7 @@ public:
   bool OnEvent(ftxui::Event event) override;
   bool Focusable() const override { return true; }
 
-private:
+ private:
   ftxui::Box box_;
   Direction direction_;
 
@@ -28,8 +28,8 @@ private:
   int size_width_;
   int size_height_;
 };
-} // namespace component
+}  // namespace component
 
-} // namespace tui
+}  // namespace tui
 
 #endif

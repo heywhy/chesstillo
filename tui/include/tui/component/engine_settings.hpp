@@ -7,73 +7,75 @@
 
 #include <ftxui/component/component_base.hpp>
 #include <ftxui/component/event.hpp>
+
 #include <tui/config.hpp>
 
 namespace tui {
 namespace component {
 
 class EngineSettings : public ftxui::ComponentBase {
-public:
+ public:
   EngineSettings(const EngineOptions &options);
 
   void Refresh();
   ftxui::Element OnRender() override;
 
-  template <typename T> class Option : public ftxui::ComponentBase {
-  public:
+  template <typename T>
+  class Option : public ftxui::ComponentBase {
+   public:
     Option(const std::string_view &label, EngineOption &option, T value)
         : label_(label), option_(option), value_(value) {}
 
     Option(const std::string_view &label, EngineOption &option)
         : label_(label), option_(option) {}
 
-  protected:
+   protected:
     const std::string_view label_;
     EngineOption &option_;
     T value_;
   };
 
   class Check : public Option<bool> {
-  public:
+   public:
     Check(const std::string_view &label, EngineOption &option);
   };
 
   class Spin : public Option<std::int64_t> {
-  public:
+   public:
     Spin(const std::string_view &label, EngineOption &option);
 
     ftxui::Element OnRender() override;
 
-  private:
+   private:
     ftxui::Box box_;
   };
 
   class Combo : public Option<std::string> {
-  public:
+   public:
     Combo(const std::string_view &label, EngineOption &option);
   };
 
   class Button : public Option<void *> {
-  public:
+   public:
     Button(const std::string_view &label, EngineOption &option,
            std::function<void()> on_click);
   };
 
   class String : public Option<std::string> {
-  public:
+   public:
     String(const std::string_view &label, EngineOption &option);
 
     ftxui::Element OnRender() override;
   };
 
-private:
+ private:
   const EngineOptions &options_;
 
   ftxui::Component Make(const std::string_view label,
                         const EngineOption &option);
 };
 
-} // namespace component
-} // namespace tui
+}  // namespace component
+}  // namespace tui
 
 #endif

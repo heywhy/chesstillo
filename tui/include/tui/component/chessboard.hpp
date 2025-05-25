@@ -2,13 +2,14 @@
 #define TUI_COMPONENT_CHESSBOARD_HPP
 
 #include <ftxui/component/component_base.hpp>
+
 #include <tui/component/square.hpp>
 #include <tui/theme.hpp>
 
 namespace tui {
 namespace component {
 class Chessboard : public ftxui::ComponentBase {
-public:
+ public:
   Chessboard(const Theme &theme);
 
   ftxui::Element OnRender() override;
@@ -16,7 +17,7 @@ public:
   ftxui::Component ActiveChild() override;
   void SetActiveChild(ftxui::ComponentBase *child) override;
 
-private:
+ private:
   ftxui::Box box_;
   int selector_;
 
@@ -24,7 +25,7 @@ private:
   bool OnKeyEvent(ftxui::Event &);
   bool OnMouseEvent(ftxui::Event &);
 };
-} // namespace component
-} // namespace tui
+}  // namespace component
+}  // namespace tui
 
 #endif

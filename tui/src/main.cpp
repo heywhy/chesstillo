@@ -1,7 +1,8 @@
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/screen_interactive.hpp>
-#include <tui/tui.hpp>
 #include <uci/uci.hpp>
+
+#include <tui/tui.hpp>
 
 using namespace tui;
 

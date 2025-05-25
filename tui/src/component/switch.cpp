@@ -24,5 +24,5 @@ Switch::Switch(const Labels &labels, bool &on, const OnChange on_change)
   Add(ftxui::Menu(std::move(entries), &selected_, option));
 }
 
-} // namespace component
-} // namespace tui
+}  // namespace component
+}  // namespace tui

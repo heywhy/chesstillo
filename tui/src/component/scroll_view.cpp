@@ -1,5 +1,6 @@
 #include <ftxui/component/component_base.hpp>
 #include <ftxui/screen/box.hpp>
+
 #include <tui/component/scroll_view.hpp>
 
 namespace tui {
@@ -28,23 +29,23 @@ ftxui::Element ScrollView::OnRender() {
                                      focusOffsetHeight / 2 + scroll_height_);
 
   switch (direction_) {
-  case ALL:
-    background |= ftxui::vscroll_indicator;
-    background |= ftxui::frame;
-    background |= ftxui::flex;
-    break;
+    case ALL:
+      background |= ftxui::vscroll_indicator;
+      background |= ftxui::frame;
+      background |= ftxui::flex;
+      break;
 
-  case WIDTH:
-    background |= ftxui::vscroll_indicator;
-    background |= ftxui::xframe;
-    background |= ftxui::xflex;
-    break;
+    case WIDTH:
+      background |= ftxui::vscroll_indicator;
+      background |= ftxui::xframe;
+      background |= ftxui::xflex;
+      break;
 
-  case HEIGHT:
-    background |= ftxui::vscroll_indicator;
-    background |= ftxui::yframe;
-    background |= ftxui::yflex;
-    break;
+    case HEIGHT:
+      background |= ftxui::vscroll_indicator;
+      background |= ftxui::yframe;
+      background |= ftxui::yflex;
+      break;
   }
 
   if (Focused()) {
@@ -129,5 +130,5 @@ bool ScrollView::OnEvent(ftxui::Event event) {
   return scrolled_width != scroll_width_ || scrolled_height != scroll_height_;
 }
 
-} // namespace component
-} // namespace tui
+}  // namespace component
+}  // namespace tui

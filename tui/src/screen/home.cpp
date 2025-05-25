@@ -1,5 +1,6 @@
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/event.hpp>
+
 #include <tui/screen/analyze.hpp>
 #include <tui/screen/home.hpp>
 #include <tui/utility.hpp>
@@ -40,5 +41,5 @@ bool Home::OnEvent(ftxui::Event event) {
   return ftxui::ComponentBase::OnEvent(event);
 }
 
-} // namespace screen
-} // namespace tui
+}  // namespace screen
+}  // namespace tui

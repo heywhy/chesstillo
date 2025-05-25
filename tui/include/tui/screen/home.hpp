@@ -3,21 +3,22 @@
 
 #include <ftxui/component/component_base.hpp>
 #include <ftxui/component/event.hpp>
+
 #include <tui/theme.hpp>
 
 namespace tui {
 namespace screen {
 
 class Home : public ftxui::ComponentBase {
-public:
+ public:
   Home(const Theme &theme);
   bool OnEvent(ftxui::Event) override;
   ftxui::Element OnRender() override;
 
-private:
+ private:
   const Theme &theme_;
 };
-} // namespace screen
-} // namespace tui
+}  // namespace screen
+}  // namespace tui
 
 #endif

@@ -1,4 +1,5 @@
 #include <ftxui/component/screen_interactive.hpp>
+
 #include <tui/utility.hpp>
 
 namespace tui {
@@ -7,4 +8,4 @@ void Navigate(const ftxui::Component &component) {
 
   screen.Loop(component);
 }
-} // namespace tui
+}  // namespace tui
