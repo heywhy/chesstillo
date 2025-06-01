@@ -4,6 +4,7 @@
 #include <tui/components.hpp>
 #include <tui/config.hpp>
 #include <tui/hooks.hpp>
+#include <tui/mapping.hpp>
 #include <tui/screens.hpp>
 #include <tui/theme.hpp>
 #include <tui/utility.hpp>

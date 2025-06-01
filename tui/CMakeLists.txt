@@ -11,6 +11,7 @@ add_library(tui
   src/color.cpp
   src/theme.cpp
   src/hooks.cpp
+  src/mapping.cpp
   src/utility.cpp
   src/component/chessboard.cpp
   src/component/engine_settings.cpp
@@ -48,7 +49,7 @@ target_link_libraries(chesstillo_tui
   PRIVATE tui
 )
 
-file(GLOB TUI_TEST_SRC LIST_DIRECTORIES false src/**/*_test.cpp)
+file(GLOB TUI_TEST_SRC LIST_DIRECTORIES false src/*_test.cpp src/**/*_test.cpp)
 
 add_executable(tui_tests ${TUI_TEST_SRC})
 target_include_directories(tui_tests PRIVATE include)

@@ -1,7 +1,6 @@
 #ifndef UCI_PROCESS_HPP
 #define UCI_PROCESS_HPP
 
-#include <mutex>
 #include <string>
 #include <string_view>
 #include <thread>
@@ -46,7 +45,6 @@ class Engine : Visitor {
   asio::io_context context_;
   process::popen instance_;
 
-  std::mutex mutex_;
   std::thread thread_;
 
   void Loop();
