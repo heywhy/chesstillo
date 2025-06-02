@@ -12,17 +12,17 @@
 #include <uci/uci.hpp>
 
 #include <tui/color.hpp>
-#include <tui/components.hpp>
+#include <tui/component/modal_view.hpp>
 #include <tui/config.hpp>
 #include <tui/constants.hpp>
 #include <tui/hooks.hpp>
 #include <tui/screen/analyze.hpp>
 #include <tui/theme.hpp>
+#include <tui/types.hpp>
 #include <tui/utility.hpp>
 
 #define START_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
-using namespace uci;
 using namespace std::chrono_literals;
 
 namespace tui {
@@ -31,8 +31,8 @@ namespace screen {
 Analyze::Analyze(const Theme &theme) : show_engine_settings_(false) {
   auto engine_settings =
       ftxui::Make<component::EngineSettings>(engine_options_);
-  auto main =
-      ftxui::Make<analyze::Main>(theme, engine_options_, engine_settings.get());
+  auto main = ftxui::Make<analyze::Main>(theme, this, engine_options_,
+                                         engine_settings.get());
 
   auto scroll_view = ftxui::Make<component::ScrollView>(engine_settings);
 
@@ -47,36 +47,24 @@ Analyze::Analyze(const Theme &theme) : show_engine_settings_(false) {
   });
 
   Add(ftxui::Modal(main, modal, &show_engine_settings_));
-}
 
-bool Analyze::OnEvent(ftxui::Event event) {
-  if (event == ftxui::Event::CtrlS) {
-    show_engine_settings_ = true;
-
-    return true;
-  }
-
-  if (event == ftxui::Event::Escape) {
-    show_engine_settings_ = false;
-
-    return true;
-  }
-
-  return ftxui::ComponentBase::OnEvent(event);
+  // INFO: dummy bindings
+  SetKeymap(NORMAL, "e", [this] { show_engine_settings_ = true; });
+  SetKeymap(NORMAL, "<esc>", [this] { show_engine_settings_ = false; });
 }
 
 namespace analyze {
-Main::Main(const Theme &theme, EngineOptions &engine_options,
+Main::Main(const Theme &theme, component::ModalView *modal_view,
+           EngineOptions &engine_options,
            component::EngineSettings *engine_settings)
     : theme_(theme),
+      modal_view_(modal_view),
       engine_options_(engine_options),
       engine_settings_(engine_settings),
       fen_(START_FEN),
       engine_(uci::FindExecutable("stockfish"), this),
       thread_(&Main::InitEngineLoop, this) {
   Add(MakeContainer());
-  Add(ftxui::Make<component::Switch, std::array<std::string_view, 2>>(
-      {"Stop", "Run"}, running_, std::bind(&Main::OnRunSwitchChange, this)));
 }
 
 Main::~Main() { thread_.join(); }
@@ -96,62 +84,41 @@ ftxui::Element Main::OnRender() {
       .align_content = ftxui::FlexboxConfig::AlignContent::Center,
   };
 
-  std::unique_lock lock(mutex_);
-
-  ftxui::Elements pvs_elements;
   ftxui::Component container = ChildAt(0);
+  ftxui::Element moves_block = RenderMoves();
 
-  for (const PV &pv : pvs_) {
-    if (pv.id < 1) {
-      continue;
-    }
+  ftxui::Element status_bar =
+      RenderStatusBar() | ftxui::hcenter | ftxui::xflex_grow;
 
-    pvs_elements.push_back(pv.Render());
+  moves_block |= ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 60) |
+                 ftxui::size(ftxui::HEIGHT, ftxui::GREATER_THAN, 10);
 
-    if (&pv != &pvs_.back()) {
-      pvs_elements.push_back(ftxui::separator());
-    }
-  }
+  auto decorate = ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 62);
 
-  ftxui::Element moves_block =
-      ftxui::vbox({ftxui::hbox({ChildAt(1)->Render()}), ftxui::separator(),
-                   ftxui::vbox(pvs_elements)});
+  ftxui::Element chessboard = container->ChildAt(0)->Render();
+  ftxui::Element fen_input = container->ChildAt(1)->Render() | decorate;
+  ftxui::Element pgn_input = container->ChildAt(2)->Render() | decorate;
 
-  ftxui::Element navigation_bar = ftxui::hbox({
-      ftxui::text(" e ") | ftxui::bold,
-      ftxui::text("engine settings "),
-      ftxui::separator(),
-      ftxui::text(" f ") | ftxui::bold,
-      ftxui::text("flip board "),
-      ftxui::separator(),
-      ftxui::text(" c ") | ftxui::bold,
-      ftxui::text("continue from here "),
-      ftxui::separator(),
-      ftxui::text(" q ") | ftxui::bold,
-      ftxui::text("quit "),
-  });
-
-  ftxui::Element content =
-      ftxui::flexbox(
-          {ftxui::hbox({navigation_bar | ftxui::borderLight}) | ftxui::hcenter |
-               ftxui::xflex_grow,
-           ftxui::separatorEmpty(),
-           ftxui::gridbox({
-               {ftxui::vbox(
-                    {container->ChildAt(0)->Render() | ftxui::center,
-                     ftxui::separatorEmpty(),
-                     container->ChildAt(1)->Render() |
-                         ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 62),
-                     container->ChildAt(2)->Render() |
-                         ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 62)}),
-                // ftxui::gaugeUp(0.5) | ftxui::color(ftxui::Color::RosyBrown)
-                // |
-                //     ftxui::bgcolor(ftxui::Color::GrayLight),
-                ftxui::separatorEmpty(),
-                moves_block | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 60)},
-           })},
-          config) |
-      ftxui::color(color::gray400) | ftxui::vscroll_indicator | ftxui::frame;
+  ftxui::Element content = ftxui::flexbox(
+                               {
+                                   status_bar,
+                                   ftxui::separatorEmpty(),
+                                   ftxui::gridbox({
+                                       {
+                                           ftxui::vbox({
+                                               chessboard | ftxui::center,
+                                               ftxui::separatorEmpty(),
+                                               fen_input,
+                                               pgn_input,
+                                           }),
+                                           ftxui::separatorEmpty(),
+                                           moves_block,
+                                       },
+                                   }),
+                               },
+                               config) |
+                           ftxui::color(color::gray400) |
+                           ftxui::vscroll_indicator | ftxui::frame;
 
   return content;
 }
@@ -159,12 +126,12 @@ ftxui::Element Main::OnRender() {
 void Main::InitEngineLoop() {
   std::unique_lock lock(mutex_);
 
-  engine_.Send(command::Input("uci"));
+  engine_.Send(uci::command::Input("uci"));
 
   // TODO: write to log file
   cv_.wait_for(lock, 10s);
 
-  if (!engine_is_uci_compatible_) {
+  if (!(engine_flags_ & engine::UCI)) {
     throw std::runtime_error(
         "engine wasn't ready within 10s or isn't uci compatible.");
   }
@@ -172,41 +139,48 @@ void Main::InitEngineLoop() {
   engine_settings_->Refresh();
 
   if (engine_options_.contains(kUCIAnalyseMode)) {
-    engine_.Send(command::SetOption(kUCIAnalyseMode, true));
+    engine_.Send(uci::command::SetOption(kUCIAnalyseMode, true));
   }
 
   if (engine_options_.contains(kMultiPV)) {
-    engine_.Send(command::SetOption(kMultiPV, 5));
+    engine_.Send(uci::command::SetOption(kMultiPV, 5));
   }
 
-  engine_.Send(command::Input("isready"));
+  if (engine_options_.contains("Ponder")) {
+    engine_flags_ |= engine::PONDER;
+  }
+
+  engine_.Send(uci::command::Input("isready"));
 
   cv_.wait_for(lock, 10s);
 
-  if (!engine_is_ready_) {
+  if (!(engine_flags_ & engine::READY)) {
     throw std::runtime_error("engine wasn't ready within 10s.");
   }
 
-  engine_.Send(command::Input("ucinewgame"));
+  engine_.Send(uci::command::Input("ucinewgame"));
+
+  BindPonderKeymaps();
+  BindAnalyzeKeymaps();
 }
 
 void Main::OnRunSwitchChange() {
   if (running_) {
-    engine_.Send(command::Position(fen_));
-    engine_.Send(command::Go());
+    engine_.Send(uci::command::Position(fen_));
+    engine_.Send(uci::command::Go());
   } else {
-    engine_.Send(command::Input("stop"));
+    engine_.Send(uci::command::Input("stop"));
   }
 }
 
-void Main::Handle(command::Input *command) {
+void Main::Handle(uci::command::Input *command) {
   switch (command->type) {
     case uci::UCI_OK:
-      engine_is_uci_compatible_ = true;
+      engine_flags_ |= engine::UCI;
       break;
 
     case uci::READY_OK:
-      engine_is_ready_ = true;
+      engine_flags_ |= engine::READY;
       break;
 
     default:
@@ -217,15 +191,15 @@ void Main::Handle(command::Input *command) {
   ActiveScreen()->PostEvent(ftxui::Event::Custom);
 }
 
-void Main::Handle(command::ID *) {}
+void Main::Handle(uci::command::ID *) {}
 
-void Main::Handle(command::BestMove *) {}
+void Main::Handle(uci::command::BestMove *) {}
 
-void Main::Handle(command::CopyProtection *) {}
+void Main::Handle(uci::command::CopyProtection *) {}
 
-void Main::Handle(command::Registration *) {}
+void Main::Handle(uci::command::Registration *) {}
 
-void Main::Handle(command::Info *command) {
+void Main::Handle(uci::command::Info *command) {
   if (command->multipv < 1) {
     return;
   }
@@ -249,7 +223,7 @@ void Main::Handle(command::Info *command) {
   ActiveScreen()->PostEvent(ftxui::Event::Custom);
 }
 
-void Main::Handle(command::Option *command) {
+void Main::Handle(uci::command::Option *command) {
   EngineOption option;
   std::vector<std::string> vars(command->vars.begin(), command->vars.end());
 
@@ -273,6 +247,86 @@ void Main::Handle(command::Option *command) {
       command->def4ult);
 
   engine_options_.emplace(std::pair(command->id, std::move(option)));
+}
+
+void Main::BindPonderKeymaps() {
+  if (!(engine_flags_ & engine::PONDER)) {
+    return;
+  }
+
+  modal_view_->SetKeymap(tui::NORMAL, "p", [this] {
+    if (ponder_) {
+      return;
+    }
+
+    ponder_ = true;
+  });
+
+  modal_view_->SetKeymap(tui::NORMAL, "<s-p>", [this] {
+    if (!ponder_) {
+      return;
+    }
+
+    ponder_ = false;
+  });
+}
+
+void Main::BindAnalyzeKeymaps() {
+  modal_view_->SetKeymap(tui::NORMAL, "r", [this] {
+    if (running_) {
+      return;
+    }
+
+    running_ = true;
+    OnRunSwitchChange();
+  });
+
+  modal_view_->SetKeymap(tui::NORMAL, "s", [this] {
+    if (!running_) {
+      return;
+    }
+
+    running_ = false;
+    OnRunSwitchChange();
+  });
+}
+
+ftxui::Element Main::RenderMoves() {
+  ftxui::Elements pvs;
+  std::unique_lock lock(mutex_);
+
+  for (const PV &pv : pvs_) {
+    if (pv.id < 1) {
+      continue;
+    }
+
+    pvs.push_back(pv.Render());
+
+    if (&pv != &pvs_.back()) {
+      pvs.push_back(ftxui::separator());
+    }
+  }
+
+  return ftxui::vbox({ftxui::hbox({ftxui::text("Moves")}), ftxui::separator(),
+                      ftxui::vbox(pvs)});
+}
+
+ftxui::Element Main::RenderStatusBar() {
+  component::ModalView::KeyPairs items;
+
+  if (modal_view_->Mode() == tui::NORMAL && engine_flags_ & engine::READY) {
+    running_ ? items.emplace_back("s", "stop engine")
+             : items.emplace_back("r", "run engine");
+  }
+
+  if (modal_view_->Mode() == tui::NORMAL && engine_flags_ & engine::READY) {
+    if (engine_flags_ & engine::PONDER) {
+      ponder_ ? items.emplace_back("P", "stop pondering")
+              : items.emplace_back("p", "ponder ");
+    }
+  }
+
+  return modal_view_->RenderKeymaps(items);
 }
 
 ftxui::Element Main::PV::Render() const {
