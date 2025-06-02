@@ -16,6 +16,7 @@ add_library(tui
   src/component/chessboard.cpp
   src/component/engine_settings.cpp
   src/component/input.cpp
+  src/component/modal_view.cpp
   src/component/scroll_view.cpp
   src/component/square.cpp
   src/component/switch.cpp

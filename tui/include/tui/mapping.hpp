@@ -13,7 +13,8 @@
 
 #define MAX_MAPHASH 256
 #define MAX_SEQUENCE_LEN 50
-#define MAP_HASH(mode, c) (mode & tui::NORMAL) ? c : ((c) ^ 0x80)
+#define MAP_HASH(mode, c) \
+  (mode & (tui::NORMAL | tui::VISUAL)) ? c : ((c) ^ 0x80)
 
 namespace tui {
 
