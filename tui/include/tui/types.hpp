@@ -10,7 +10,7 @@ using Flags = std::uint8_t;
 
 constexpr Flags UCI = 1 << 0;
 constexpr Flags READY = 1 << 1;
-constexpr Flags PONDER = 1 << 2;
+constexpr Flags CLEAR_HASH = 1 << 2;
 
 }  // namespace engine
 }  // namespace tui

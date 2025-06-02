@@ -5,6 +5,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <vector>
 
@@ -77,13 +78,25 @@ class Main : public ftxui::ComponentBase, public uci::UI {
   void Handle(uci::command::Info *) override;
   void Handle(uci::command::Option *) override;
 
-  void InitEngineLoop();
+  void EngineLoop();
   ftxui::Component MakeContainer();
 
   ftxui::Element RenderMoves();
   ftxui::Element RenderStatusBar();
 
   void BindKeymaps();
+
+  template <typename T>
+  void SetAndSendOption(std::string id, T value) {
+    auto &option = engine_options_[id];
+
+    option.value = value;
+
+    uci::command::SetOption command(
+        uci::command::SetOption(id, std::get<T>(option.value)));
+
+    engine_.Send(command);
+  }
 };
 
 }  // namespace analyze

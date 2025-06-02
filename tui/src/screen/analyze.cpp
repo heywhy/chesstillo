@@ -1,9 +1,11 @@
+#include <cstdint>
 #include <format>
 #include <functional>
 #include <mutex>
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <thread>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -63,7 +65,7 @@ Main::Main(const Theme &theme, component::ModalView *modal_view,
       engine_settings_(engine_settings),
       fen_(START_FEN),
       engine_(uci::FindExecutable("stockfish"), this),
-      thread_(&Main::InitEngineLoop, this) {
+      thread_(&Main::EngineLoop, this) {
   Add(MakeContainer());
 }
 
@@ -123,7 +125,7 @@ ftxui::Element Main::OnRender() {
   return content;
 }
 
-void Main::InitEngineLoop() {
+void Main::EngineLoop() {
   std::unique_lock lock(mutex_);
 
   engine_.Send(uci::command::Input("uci"));
@@ -139,17 +141,25 @@ void Main::InitEngineLoop() {
   engine_settings_->Refresh();
 
   if (engine_options_.contains("UCI_AnalyseMode")) {
-    engine_.Send(uci::command::SetOption("UCI_AnalyseMode", true));
+    SetAndSendOption("UCI_AnalyseMode", true);
   }
 
   if (engine_options_.contains("MultiPV")) {
-    engine_.Send(uci::command::SetOption("MultiPV", 5));
+    SetAndSendOption("MultiPV", std::int64_t(5));
   }
 
   if (engine_options_.contains("Ponder")) {
-    engine_flags_ |= engine::PONDER;
+    SetAndSendOption("Ponder", true);
+  }
 
-    engine_.Send(uci::command::SetOption("Ponder", true));
+  if (engine_options_.contains("Threads")) {
+    std::int64_t value = std::thread::hardware_concurrency();
+
+    SetAndSendOption("Threads", value);
+  }
+
+  if (engine_options_.contains("Clear Hash")) {
+    engine_flags_ |= engine::CLEAR_HASH;
   }
 
   engine_.Send(uci::command::Input("isready"));
@@ -242,6 +252,10 @@ void Main::Handle(uci::command::Option *command) {
 }
 
 void Main::BindKeymaps() {
+  modal_view_->SetKeymap(tui::NORMAL, "c", [this] {
+    engine_.Send(uci::command::SetOption("Clear Hash"));
+  });
+
   modal_view_->SetKeymap(tui::NORMAL, "r", [this] {
     if (running_) {
       return;
@@ -278,8 +292,11 @@ ftxui::Element Main::RenderMoves() {
     }
   }
 
-  return ftxui::vbox({ftxui::hbox({ftxui::text("Moves")}), ftxui::separator(),
-                      ftxui::vbox(pvs)});
+  return ftxui::vbox({
+      ftxui::hbox({ftxui::text("Moves")}),
+      ftxui::separator(),
+      ftxui::vbox(pvs),
+  });
 }
 
 ftxui::Element Main::RenderStatusBar() {
@@ -288,6 +305,11 @@ ftxui::Element Main::RenderStatusBar() {
   if (modal_view_->Mode() == tui::NORMAL && engine_flags_ & engine::READY) {
     running_ ? items.emplace_back("s", "stop engine")
              : items.emplace_back("r", "run engine");
+  }
+
+  if (modal_view_->Mode() == tui::NORMAL &&
+      engine_flags_ & engine::CLEAR_HASH) {
+    items.emplace_back("c", "clear hash");
   }
 
   return modal_view_->RenderStatusBar(items);
