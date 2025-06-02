@@ -46,6 +46,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install Stockfish tools for Ubuntu
+        if: ${{ contains(matrix.os, 'ubuntu') }}
+        run: sudo apt-get install -y stockfish
+
+
       - name: Install commandline tools for MacOS
         if: ${{ contains(matrix.os, 'macos') }}
         run: softwareupdate --install --install-rosetta --agree-to-license
