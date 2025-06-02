@@ -16,7 +16,7 @@ Switch::Switch(const Labels &labels, bool &on, const OnChange on_change)
   ftxui::MenuOption option = ftxui::MenuOption::Toggle();
   std::vector<std::string> entries(labels.begin(), labels.end());
 
-  option.on_change = [&] {
+  option.on_change = [this, &on] {
     on = selected_ == 1;
     on_change_();
   };

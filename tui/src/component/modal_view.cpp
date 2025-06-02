@@ -165,7 +165,7 @@ bool ModalView::HandleInteractEvent(const ftxui::Event &event) {
 
 bool ModalView::MaybeApplyKeymap(ftxui::ScreenInteractive *screen) {
   if (!buffer_.empty() && Handle(mode_, buffer_)) {
-    !screen ? buffer_.clear() : screen->Post([&] { buffer_.clear(); });
+    !screen ? buffer_.clear() : screen->Post([this] { buffer_.clear(); });
 
     return true;
   }
@@ -193,7 +193,7 @@ void ModalView::Loop() {
   std::string last_buffer(buffer_);
 
   while (loop_ready_) {
-    cv_.wait(lock, [&] {
+    cv_.wait(lock, [this, &last_buffer] {
       return (!buffer_.empty() && buffer_ != last_buffer) ||
              !wait_to_handle_mapping_;
     });
