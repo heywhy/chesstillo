@@ -133,21 +133,23 @@ void Main::InitEngineLoop() {
 
   if (!(engine_flags_ & engine::UCI)) {
     throw std::runtime_error(
-        "engine wasn't ready within 10s or isn't uci compatible.");
+        "engine didn't respond within 10s or isn't uci compatible.");
   }
 
   engine_settings_->Refresh();
 
-  if (engine_options_.contains(kUCIAnalyseMode)) {
-    engine_.Send(uci::command::SetOption(kUCIAnalyseMode, true));
+  if (engine_options_.contains("UCI_AnalyseMode")) {
+    engine_.Send(uci::command::SetOption("UCI_AnalyseMode", true));
   }
 
-  if (engine_options_.contains(kMultiPV)) {
-    engine_.Send(uci::command::SetOption(kMultiPV, 5));
+  if (engine_options_.contains("MultiPV")) {
+    engine_.Send(uci::command::SetOption("MultiPV", 5));
   }
 
   if (engine_options_.contains("Ponder")) {
     engine_flags_ |= engine::PONDER;
+
+    engine_.Send(uci::command::SetOption("Ponder", true));
   }
 
   engine_.Send(uci::command::Input("isready"));
@@ -160,17 +162,7 @@ void Main::InitEngineLoop() {
 
   engine_.Send(uci::command::Input("ucinewgame"));
 
-  BindPonderKeymaps();
-  BindAnalyzeKeymaps();
-}
-
-void Main::OnRunSwitchChange() {
-  if (running_) {
-    engine_.Send(uci::command::Position(fen_));
-    engine_.Send(uci::command::Go());
-  } else {
-    engine_.Send(uci::command::Input("stop"));
-  }
+  BindKeymaps();
 }
 
 void Main::Handle(uci::command::Input *command) {
@@ -249,36 +241,15 @@ void Main::Handle(uci::command::Option *command) {
   engine_options_.emplace(std::pair(command->id, std::move(option)));
 }
 
-void Main::BindPonderKeymaps() {
-  if (!(engine_flags_ & engine::PONDER)) {
-    return;
-  }
-
-  modal_view_->SetKeymap(tui::NORMAL, "p", [this] {
-    if (ponder_) {
-      return;
-    }
-
-    ponder_ = true;
-  });
-
-  modal_view_->SetKeymap(tui::NORMAL, "<s-p>", [this] {
-    if (!ponder_) {
-      return;
-    }
-
-    ponder_ = false;
-  });
-}
-
-void Main::BindAnalyzeKeymaps() {
+void Main::BindKeymaps() {
   modal_view_->SetKeymap(tui::NORMAL, "r", [this] {
     if (running_) {
       return;
     }
 
     running_ = true;
-    OnRunSwitchChange();
+    engine_.Send(uci::command::Position(fen_));
+    engine_.Send(uci::command::Go());
   });
 
   modal_view_->SetKeymap(tui::NORMAL, "s", [this] {
@@ -287,7 +258,7 @@ void Main::BindAnalyzeKeymaps() {
     }
 
     running_ = false;
-    OnRunSwitchChange();
+    engine_.Send(uci::command::Input("stop"));
   });
 }
 
@@ -317,13 +288,6 @@ ftxui::Element Main::RenderStatusBar() {
   if (modal_view_->Mode() == tui::NORMAL && engine_flags_ & engine::READY) {
     running_ ? items.emplace_back("s", "stop engine")
              : items.emplace_back("r", "run engine");
-  }
-
-  if (modal_view_->Mode() == tui::NORMAL && engine_flags_ & engine::READY) {
-    if (engine_flags_ & engine::PONDER) {
-      ponder_ ? items.emplace_back("P", "stop pondering")
-              : items.emplace_back("p", "ponder ");
-    }
   }
 
   return modal_view_->RenderStatusBar(items);

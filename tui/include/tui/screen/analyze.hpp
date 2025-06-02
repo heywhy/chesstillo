@@ -52,7 +52,6 @@ class Main : public ftxui::ComponentBase, public uci::UI {
   std::thread thread_;
   std::condition_variable cv_;
 
-  bool ponder_ = false;
   bool running_ = false;
 
   engine::Flags engine_flags_ = 0;
@@ -79,14 +78,12 @@ class Main : public ftxui::ComponentBase, public uci::UI {
   void Handle(uci::command::Option *) override;
 
   void InitEngineLoop();
-  void OnRunSwitchChange();
   ftxui::Component MakeContainer();
-
-  void BindPonderKeymaps();
-  void BindAnalyzeKeymaps();
 
   ftxui::Element RenderMoves();
   ftxui::Element RenderStatusBar();
+
+  void BindKeymaps();
 };
 
 }  // namespace analyze

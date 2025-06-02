@@ -3,7 +3,7 @@
 #include <ftxui/component/event.hpp>
 #include <gtest/gtest.h>
 
-#include "tui/constants.hpp"
+#include <tui/constants.hpp>
 #include <tui/mapping.hpp>
 
 using namespace tui;
