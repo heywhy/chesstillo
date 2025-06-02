@@ -31,7 +31,7 @@ class ModalView : public tui::Mapping, public ftxui::ComponentBase {
   ~ModalView();
 
   bool OnEvent(ftxui::Event) override;
-  ftxui::Element RenderKeymaps(const KeyPairs &) const;
+  ftxui::Element RenderStatusBar(const KeyPairs &) const;
 
   inline tui::Mode Mode() const { return mode_; }
 

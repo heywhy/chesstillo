@@ -326,7 +326,7 @@ ftxui::Element Main::RenderStatusBar() {
     }
   }
 
-  return modal_view_->RenderKeymaps(items);
+  return modal_view_->RenderStatusBar(items);
 }
 
 ftxui::Element Main::PV::Render() const {

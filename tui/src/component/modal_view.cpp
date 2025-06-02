@@ -65,7 +65,7 @@ bool ModalView::OnEvent(ftxui::Event event) {
   return handled ? true : ftxui::ComponentBase::OnEvent(event);
 }
 
-ftxui::Element ModalView::RenderKeymaps(const KeyPairs &pairs) const {
+ftxui::Element ModalView::RenderStatusBar(const KeyPairs &pairs) const {
   const char *mode;
   ftxui::Elements menus;
 
