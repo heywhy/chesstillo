@@ -47,7 +47,7 @@ bool Square::OnEvent(ftxui::Event event) {
 
     if (mouse.motion == ftxui::Mouse::Motion::Pressed &&
         mouse.button == ftxui::Mouse::Button::Left &&
-        box_.Contain(mouse.x, mouse.y)) {
+        box_.Contain(mouse.x, mouse.y) && CaptureMouse(event)) {
       TakeFocus();
 
       return true;
