@@ -2,6 +2,7 @@
 #define TUI_COMPONENT_MODAL_VIEW_HPP
 
 #include <condition_variable>
+#include <cstddef>
 #include <mutex>
 #include <string>
 #include <string_view>
@@ -31,13 +32,23 @@ class ModalView : public tui::Mapping, public ftxui::ComponentBase {
   ~ModalView();
 
   bool OnEvent(ftxui::Event) override;
+  bool Focusable() const override { return true; };
   ftxui::Element RenderStatusBar(const KeyPairs &) const;
+
+  void FocusView();
+  void UnfocusView();
 
   inline tui::Mode Mode() const { return mode_; }
 
+ protected:
+  ModalView *Topmost();
+
  private:
   tui::Mode mode_;
+  tui::Mode old_mode_;
   std::string buffer_;
+
+  ModalView *child_modal_view_;
 
   bool loop_ready_;
   bool wait_to_handle_mapping_;
@@ -55,6 +66,7 @@ class ModalView : public tui::Mapping, public ftxui::ComponentBase {
   bool MaybeApplyKeymap(ftxui::ScreenInteractive *screen);
 
   inline void SwitchTo(tui::Mode mode) {
+    old_mode_ = mode_;
     mode_ = mode;
     buffer_.clear();
   }

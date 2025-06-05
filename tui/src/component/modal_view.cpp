@@ -1,5 +1,7 @@
+#include <cstddef>
 #include <mutex>
 #include <thread>
+#include <utility>
 
 #include <ftxui/component/component_base.hpp>
 #include <ftxui/component/event.hpp>
@@ -18,6 +20,8 @@ ModalView::ModalView() : ModalView(NORMAL) {}
 
 ModalView::ModalView(tui::Mode mode)
     : mode_(mode),
+      old_mode_(mode),
+      child_modal_view_(nullptr),
       loop_ready_(false),
       wait_to_handle_mapping_(true),
       thread_(&ModalView::Loop, this) {
@@ -43,9 +47,48 @@ ModalView::~ModalView() {
   cv_.notify_all();
 
   thread_.join();
+
+  UnfocusView();
+}
+
+ModalView *ModalView::Topmost() {
+  ftxui::ComponentBase *child = this;
+  ModalView *topmost_modal_view = nullptr;
+
+  while (ftxui::ComponentBase *parent = child->Parent()) {
+    if (dynamic_cast<ModalView *>(parent)) {
+      topmost_modal_view = dynamic_cast<ModalView *>(parent);
+    }
+
+    child = parent;
+  }
+
+  return topmost_modal_view;
+}
+
+void ModalView::FocusView() {
+  TakeFocus();
+
+  ModalView *topmost_modal_view = Topmost();
+
+  if (topmost_modal_view) {
+    topmost_modal_view->child_modal_view_ = this;
+  }
+}
+
+void ModalView::UnfocusView() {
+  ModalView *topmost_modal_view = Topmost();
+
+  if (topmost_modal_view && topmost_modal_view->child_modal_view_ == this) {
+    topmost_modal_view->child_modal_view_ = nullptr;
+  }
 }
 
 bool ModalView::OnEvent(ftxui::Event event) {
+  if (child_modal_view_ && child_modal_view_->OnEvent(event)) {
+    return true;
+  }
+
   bool handled;
 
   switch (mode_) {
@@ -106,7 +149,7 @@ ftxui::Element ModalView::RenderStatusBar(const KeyPairs &pairs) const {
     menus.push_back(ftxui::text("quit "));
   }
 
-  return ftxui::hbox({ftxui::hbox(menus) | ftxui::borderLight});
+  return ftxui::hbox(menus) | ftxui::borderLight;
 }
 
 bool ModalView::HandleNormalEvent(const ftxui::Event &event) {
@@ -130,8 +173,6 @@ bool ModalView::HandleNormalEvent(const ftxui::Event &event) {
 
   if (event == ftxui::Event::Escape) {
     buffer_.clear();
-
-    return true;
   }
 
   return true;
@@ -139,7 +180,7 @@ bool ModalView::HandleNormalEvent(const ftxui::Event &event) {
 
 bool ModalView::HandleVisualEvent(const ftxui::Event &event) {
   if (event == ftxui::Event::Escape) {
-    SwitchTo(tui::NORMAL);
+    std::swap(old_mode_, mode_);
 
     return true;
   }
@@ -155,7 +196,7 @@ bool ModalView::HandleVisualEvent(const ftxui::Event &event) {
 
 bool ModalView::HandleInteractEvent(const ftxui::Event &event) {
   if (event == ftxui::Event::Escape) {
-    SwitchTo(tui::NORMAL);
+    std::swap(old_mode_, mode_);
 
     return true;
   }
