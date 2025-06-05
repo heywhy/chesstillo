@@ -70,9 +70,15 @@ void Mapping::SetKeymap(Mode mode, const std::string_view lhs, mapping::RHS rhs,
       continue;
     }
 
-    if ((it->lhs == new_entry.lhs && it->mode & mode) || it->mode == 0) {
-      *it = new_entry;
-      return;
+    if ((it->lhs == new_entry.lhs && it->mode & mode) || !it->mode) {
+      it->mode &= ~mode;
+
+      if (!it->mode) {
+        new_entry.mode = it->mode;
+        *it = new_entry;
+
+        return;
+      }
     }
   }
 

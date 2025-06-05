@@ -14,14 +14,9 @@ using namespace tui;
     tokens = scanner.Scan();         \
   }
 
-class TUIMappingTestSuite : public testing::Test {
- protected:
+TEST(TUIMappingTestSuite, TestReplaceSpecialKeys) {
   Mapping mapping;
 
-  void SetUp() override { GTEST_FLAG_SET(death_test_style, "threadsafe"); }
-};
-
-TEST_F(TUIMappingTestSuite, TestReplaceSpecialKeys) {
   ASSERT_EQ(mapping::ReplaceTermcodes("<UP>"), ftxui::Event::ArrowUp.input());
   ASSERT_EQ(mapping::ReplaceTermcodes("<down>"),
             ftxui::Event::ArrowDown.input());
@@ -202,12 +197,16 @@ TEST_F(TUIMappingTestSuite, TestReplaceSpecialKeys) {
             std::format("{}{}", ftxui::Event::AltB.input(), "g"));
 }
 
-TEST_F(TUIMappingTestSuite, TestFailsBindValidation) {
+TEST(TUIMappingTestSuite, TestFailsBindValidation) {
+  Mapping mapping;
+
   ASSERT_THROW(mapping.SetKeymap(tui::INTERACT, "", "<NOP>"),
                std::runtime_error);
 }
 
-TEST_F(TUIMappingTestSuite, TestBindSimpleCombo) {
+TEST(TUIMappingTestSuite, TestBindSimpleCombo) {
+  Mapping mapping;
+
   mapping.SetKeymap(tui::VISUAL, "gra", "<NOP>");
   mapping.SetKeymap(tui::VISUAL, "<UP>", "<NOP>");
   mapping.SetKeymap(tui::VISUAL, "<C-A>", "<NOP>");
@@ -220,7 +219,9 @@ TEST_F(TUIMappingTestSuite, TestBindSimpleCombo) {
   ASSERT_EQ(entries[2]->lhs, "gra");
 }
 
-TEST_F(TUIMappingTestSuite, TestUnindSimpleCombo) {
+TEST(TUIMappingTestSuite, TestUnbindSimpleCombo) {
+  Mapping mapping;
+
   mapping.SetKeymap(tui::VISUAL, "gra", "<NOP>");
   mapping.SetKeymap(tui::VISUAL, "<UP>", "<NOP>");
   mapping.SetKeymap(tui::VISUAL, "<C-A>", "<NOP>");
@@ -239,7 +240,8 @@ TEST_F(TUIMappingTestSuite, TestUnindSimpleCombo) {
   ASSERT_EQ(entries[1]->lhs, ftxui::Event::ArrowUp.input());
 }
 
-TEST_F(TUIMappingTestSuite, TestHandleMapping) {
+TEST(TUIMappingTestSuite, TestHandleMapping) {
+  Mapping mapping;
   bool called = false;
 
   mapping.SetKeymap(tui::VISUAL, "gra", [&] { called = true; });
@@ -250,4 +252,32 @@ TEST_F(TUIMappingTestSuite, TestHandleMapping) {
   ASSERT_FALSE(mapping.Handle(tui::INTERACT, "gra"));
   ASSERT_TRUE(mapping.Handle(tui::VISUAL, "gra"));
   ASSERT_TRUE(called);
+}
+
+TEST(TUIMappingTestSuite, TestMultiModeKeymap) {
+  int calls = 0;
+  Mapping mapping;
+
+  mapping.SetKeymap(tui::NORMAL | tui::VISUAL, "d", [&] { ++calls; });
+
+  mapping.Handle(tui::NORMAL, "d");
+  mapping.Handle(tui::VISUAL, "d");
+
+  ASSERT_EQ(calls, 2);
+}
+
+TEST(TUIMappingTestSuite, TestMultiModeKeymapCanBeOverriden) {
+  Mapping mapping;
+  bool override_called = false;
+
+  mapping.SetKeymap(tui::NORMAL | tui::VISUAL, "q", [] {});
+
+  ASSERT_TRUE(mapping.Handle(tui::VISUAL, "q"));
+  ASSERT_FALSE(override_called);
+
+  mapping.SetKeymap(tui::VISUAL, "q", [&] { override_called = true; });
+
+  ASSERT_TRUE(mapping.Handle(tui::VISUAL, "q"));
+
+  ASSERT_TRUE(override_called);
 }
