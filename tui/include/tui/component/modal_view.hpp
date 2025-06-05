@@ -22,6 +22,10 @@
 namespace tui {
 namespace component {
 
+// TODO:
+// * support editable attr and don't bind "i" to enter the interact mode when
+// it's false.
+// * remove default keymaps
 class ModalView : public tui::Mapping, public ftxui::ComponentBase {
  public:
   using KeyPair = std::pair<std::string_view, std::string_view>;
