@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include <tui/component/modal.hpp>
+#include <tui/utility.hpp>
 
 using namespace tui;
 
@@ -22,9 +23,9 @@ class TUIComponentModalTestSuite : public testing::Test {
 };
 
 TEST_F(TUIComponentModalTestSuite, TestDefaultRender) {
-  component::Modal modal(main, content);
+  auto modal = tui::Make<component::Modal>(main, content);
 
-  ftxui::Render(screen, modal.Render());
+  ftxui::Render(screen, modal->Render());
 
   ASSERT_THAT(screen.ToString(), testing::HasSubstr("hello"));
   ASSERT_THAT(screen.ToString(), testing::Not(testing::HasSubstr("world")));
@@ -59,23 +60,23 @@ TEST_F(TUIComponentModalTestSuite, TestHideModal) {
 }
 
 TEST_F(TUIComponentModalTestSuite, TestHideModalOnEsc) {
-  component::Modal modal(main, content);
+  auto modal = tui::Make<component::Modal>(main, content);
 
-  modal.Show();
-  modal.OnEvent(ftxui::Event::Escape);
+  modal->Show();
+  modal->OnEvent(ftxui::Event::Escape);
 
-  ftxui::Render(screen, modal.Render());
+  ftxui::Render(screen, modal->Render());
 
   ASSERT_THAT(screen.ToString(), testing::Not(testing::HasSubstr("world")));
 }
 
 TEST_F(TUIComponentModalTestSuite, TestHideModalOnQ) {
-  component::Modal modal(main, content);
+  auto modal = tui::Make<component::Modal>(main, content);
 
-  modal.Show();
-  modal.OnEvent(ftxui::Event::q);
+  modal->Show();
+  modal->OnEvent(ftxui::Event::q);
 
-  ftxui::Render(screen, modal.Render());
+  ftxui::Render(screen, modal->Render());
 
   ASSERT_THAT(screen.ToString(), testing::Not(testing::HasSubstr("world")));
 }

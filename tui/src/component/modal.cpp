@@ -9,13 +9,18 @@ namespace tui {
 namespace component {
 
 Modal::Modal(ftxui::Component main, ftxui::Component content)
-    : show_(false), main_(std::move(main)), content_(std::move(content)) {
+    : ModalView(),
+      show_(false),
+      main_(std::move(main)),
+      content_(std::move(content)) {
+  Add(ftxui::Modal(main_, content_, &show_));
+}
+
+void Modal::BindKeymaps() {
   auto hide_fn = std::bind(&Modal::Hide, this);
 
   SetKeymap(tui::NORMAL, "q", hide_fn);
   SetKeymap(tui::NORMAL, "<esc>", hide_fn);
-
-  Add(ftxui::Modal(main_, content_, &show_));
 }
 
 ftxui::Element Modal::OnRender() {

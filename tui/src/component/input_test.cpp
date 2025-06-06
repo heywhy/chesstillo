@@ -8,7 +8,7 @@
 //
 // TEST(TUIComponentInput, Render) {
 //   std::string content("hello world");
-//   ftxui::Component input = ftxui::Make<component::Input>("", content);
+//   ftxui::Component input = tui::Make<component::Input>("", content);
 //
 //   auto document = input->Render();
 //   auto screen = ftxui::Screen::Create(ftxui::Dimension::Fit(document));

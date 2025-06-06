@@ -8,7 +8,7 @@ using namespace tui;
 
 int main() {
   Theme theme = Theme::Default;
-  ftxui::Component home = ftxui::Make<screen::Home>(theme);
+  ftxui::Component home = tui::Make<screen::Home>(theme);
 
   home |= hooks::QuitEvent();
 

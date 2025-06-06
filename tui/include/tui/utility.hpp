@@ -1,8 +1,13 @@
 #ifndef TUI_UTILITY_HPP
 #define TUI_UTILITY_HPP
 
-#include <ftxui/component/component_base.hpp>
+#include <memory>
+#include <type_traits>
+
+#include <ftxui/component/component.hpp>
 #include <ftxui/component/screen_interactive.hpp>
+
+#include <tui/contracts.hpp>
 
 #define NAVIGATE(component)                               \
   {                                                       \
@@ -16,6 +21,18 @@ inline ftxui::ScreenInteractive *ActiveScreen() {
 }
 
 void Navigate(const ftxui::Component &component);
+
+template <class T, class... Args>
+std::shared_ptr<T> Make(Args &&...args) {
+  auto ptr = ftxui::Make<T>(std::forward<Args>(args)...);
+
+  if constexpr (std::is_base_of_v<tui::HasKeymaps, T>) {
+    HasKeymaps::Bind(ptr.get());
+  }
+
+  return std::move(ptr);
+}
+
 }  // namespace tui
 
 #endif

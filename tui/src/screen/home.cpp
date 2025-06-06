@@ -31,7 +31,7 @@ ftxui::Element Home::OnRender() {
 
 bool Home::OnEvent(ftxui::Event event) {
   if (event == ftxui::Event::a) {
-    ftxui::Component component = ftxui::Make<Analyze>(theme_);
+    ftxui::Component component = tui::Make<Analyze>(theme_);
 
     Navigate(component);
 

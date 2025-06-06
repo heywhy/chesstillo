@@ -36,6 +36,8 @@ class Modal : public ModalView {
   bool show_;
   ftxui::Component main_;
   ftxui::Component content_;
+
+  void BindKeymaps() override;
 };
 
 }  // namespace component

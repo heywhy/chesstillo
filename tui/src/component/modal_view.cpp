@@ -8,6 +8,7 @@
 #include <ftxui/component/screen_interactive.hpp>
 
 #include <tui/component/modal_view.hpp>
+#include <tui/contracts.hpp>
 #include <tui/mapping.hpp>
 #include <tui/utility.hpp>
 
@@ -16,7 +17,7 @@ using namespace std::chrono_literals;
 namespace tui {
 namespace component {
 
-ModalView::ModalView() : ModalView(NORMAL) {}
+ModalView::ModalView() : ModalView(tui::NORMAL) {}
 
 ModalView::ModalView(tui::Mode mode)
     : mode_(mode),
@@ -30,12 +31,6 @@ ModalView::ModalView(tui::Mode mode)
   buffer_.reserve(MAX_SEQUENCE_LEN);
 
   cv_.wait(lock, [this] { return loop_ready_; });
-
-  SetKeymap(tui::NORMAL | tui::VISUAL, "q", [] {
-    if (ActiveScreen()) {
-      ActiveScreen()->Post(ActiveScreen()->ExitLoopClosure());
-    }
-  });
 }
 
 ModalView::~ModalView() {
@@ -49,6 +44,14 @@ ModalView::~ModalView() {
   thread_.join();
 
   UnfocusView();
+}
+
+void ModalView::BindKeymaps() {
+  SetKeymap(tui::NORMAL | tui::VISUAL, "q", [] {
+    if (ActiveScreen()) {
+      ActiveScreen()->Post(ActiveScreen()->ExitLoopClosure());
+    }
+  });
 }
 
 ModalView *ModalView::Topmost() {

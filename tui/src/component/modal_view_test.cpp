@@ -4,6 +4,7 @@
 
 #include <tui/component/modal_view.hpp>
 #include <tui/mapping.hpp>
+#include <tui/utility.hpp>
 
 using namespace tui;
 
@@ -63,7 +64,7 @@ TEST_F(TUIComponentModalViewTestSuite, TestHandleVisualModeKeymap) {
 
 TEST_F(TUIComponentModalViewTestSuite, TestPassEventsToNestedModalView) {
   int child_keymap_called = 0;
-  auto child = ftxui::Make<component::ModalView>();
+  auto child = tui::Make<component::ModalView>();
 
   child->SetKeymap(tui::NORMAL, "e", [&] { child_keymap_called++; });
 

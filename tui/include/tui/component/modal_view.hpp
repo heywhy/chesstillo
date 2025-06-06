@@ -14,6 +14,7 @@
 #include <ftxui/component/event.hpp>
 #include <ftxui/component/screen_interactive.hpp>
 
+#include <tui/contracts.hpp>
 #include <tui/mapping.hpp>
 
 #define MAX_MAPHASH 256
@@ -26,7 +27,9 @@ namespace component {
 // * support editable attr and don't bind "i" to enter the interact mode when
 // it's false.
 // * remove default keymaps
-class ModalView : public tui::Mapping, public ftxui::ComponentBase {
+class ModalView : public Mapping,
+                  public HasKeymaps,
+                  public ftxui::ComponentBase {
  public:
   using KeyPair = std::pair<std::string_view, std::string_view>;
   using KeyPairs = std::vector<KeyPair>;
@@ -60,6 +63,8 @@ class ModalView : public tui::Mapping, public ftxui::ComponentBase {
   std::mutex mutex_;
   std::thread thread_;
   std::condition_variable cv_;
+
+  void BindKeymaps() override;
 
   void Loop();
   bool HandleNormalEvent(const ftxui::Event &event);
