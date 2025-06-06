@@ -49,6 +49,7 @@ class ModalView : public Mapping,
 
  protected:
   ModalView *Topmost();
+  void BindKeymaps() override;
 
  private:
   tui::Mode mode_;
@@ -63,8 +64,6 @@ class ModalView : public Mapping,
   std::mutex mutex_;
   std::thread thread_;
   std::condition_variable cv_;
-
-  void BindKeymaps() override;
 
   void Loop();
   bool HandleNormalEvent(const ftxui::Event &event);
