@@ -1,4 +1,4 @@
-#include <ftxui/component/component.hpp>
+#include <ftxui/component/component_base.hpp>
 #include <ftxui/component/event.hpp>
 
 #include <tui/screen/analyze.hpp>

@@ -1,5 +1,5 @@
 #include <ftxui/component/component_base.hpp>
-#include <ftxui/screen/box.hpp>
+#include <ftxui/component/event.hpp>
 
 #include <tui/component/scroll_view.hpp>
 

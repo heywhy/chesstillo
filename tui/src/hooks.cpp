@@ -11,7 +11,7 @@ namespace hooks {
 ftxui::ComponentDecorator QuitEvent() {
   return [](ftxui::Component child) {
     child |= ftxui::CatchEvent([&](ftxui::Event event) {
-      auto screen = ActiveScreen();
+      auto screen = ftxui::ScreenInteractive::Active();
 
       if (event == ftxui::Event::q && screen != nullptr) {
         screen->ExitLoopClosure()();

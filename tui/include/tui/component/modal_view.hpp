@@ -11,8 +11,6 @@
 #include <vector>
 
 #include <ftxui/component/component_base.hpp>
-#include <ftxui/component/event.hpp>
-#include <ftxui/component/screen_interactive.hpp>
 
 #include <tui/contracts.hpp>
 #include <tui/mapping.hpp>
@@ -70,7 +68,7 @@ class ModalView : public Mapping,
   bool HandleInteractEvent(const ftxui::Event &event);
 
   void MaybeWriteToBuffer(const ftxui::Event &event);
-  bool MaybeApplyKeymap(ftxui::ScreenInteractive *screen);
+  bool MaybeApplyKeymap(const ftxui::Event &event);
 
   inline void SwitchTo(tui::Mode mode) {
     old_mode_ = mode_;

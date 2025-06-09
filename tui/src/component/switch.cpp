@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 
+#include <ftxui/component/component.hpp>
+
 #include <tui/component/switch.hpp>
 
 namespace tui {

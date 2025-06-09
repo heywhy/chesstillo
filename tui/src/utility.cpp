@@ -1,3 +1,4 @@
+#include <ftxui/component/component_base.hpp>
 #include <ftxui/component/screen_interactive.hpp>
 
 #include <tui/utility.hpp>

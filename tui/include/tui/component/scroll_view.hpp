@@ -3,7 +3,6 @@
 #define TUI_COMPONENT_SCROLL_VIEW_HPP
 
 #include <ftxui/component/component_base.hpp>
-#include <ftxui/component/event.hpp>
 
 namespace tui {
 namespace component {

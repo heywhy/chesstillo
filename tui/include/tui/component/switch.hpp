@@ -5,7 +5,7 @@
 #include <functional>
 #include <string_view>
 
-#include <ftxui/component/component.hpp>
+#include <ftxui/component/component_base.hpp>
 
 namespace tui {
 namespace component {

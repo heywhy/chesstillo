@@ -2,7 +2,6 @@
 #define TUI_SCREEN_HOME_HPP
 
 #include <ftxui/component/component_base.hpp>
-#include <ftxui/component/event.hpp>
 
 #include <tui/theme.hpp>
 

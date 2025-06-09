@@ -139,7 +139,7 @@ bool ModalView::HandleNormalEvent(const ftxui::Event &event) {
 
   MaybeWriteToBuffer(event);
 
-  if (MaybeApplyKeymap(event.screen_)) {
+  if (MaybeApplyKeymap(event)) {
     return true;
   }
 
@@ -159,7 +159,7 @@ bool ModalView::HandleVisualEvent(const ftxui::Event &event) {
 
   MaybeWriteToBuffer(event);
 
-  if (MaybeApplyKeymap(event.screen_)) {
+  if (MaybeApplyKeymap(event)) {
     return true;
   }
 
@@ -176,9 +176,10 @@ bool ModalView::HandleInteractEvent(const ftxui::Event &event) {
   return event.is_mouse();
 }
 
-bool ModalView::MaybeApplyKeymap(ftxui::ScreenInteractive *screen) {
+bool ModalView::MaybeApplyKeymap(const ftxui::Event &event) {
   if (!buffer_.empty() && Handle(mode_, buffer_)) {
-    !screen ? buffer_.clear() : screen->Post([this] { buffer_.clear(); });
+    !event.screen_ ? buffer_.clear()
+                   : event.screen_->Post([this] { buffer_.clear(); });
 
     return true;
   }
@@ -220,7 +221,7 @@ void ModalView::Loop() {
 
     last_buffer = buffer_;
 
-    const auto screen = ActiveScreen();
+    const auto screen = ftxui::ScreenInteractive::Active();
 
     if (screen) {
       screen->PostEvent(ftxui::Event::Custom);

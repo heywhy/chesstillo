@@ -1,7 +1,6 @@
 #include <string>
 
 #include <ftxui/component/component.hpp>
-#include <ftxui/dom/elements.hpp>
 
 #include <tui/component/command_input.hpp>
 

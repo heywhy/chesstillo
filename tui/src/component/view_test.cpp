@@ -1,10 +1,10 @@
 #include <ftxui/component/component.hpp>
+#include <ftxui/component/event.hpp>
 #include <ftxui/dom/node.hpp>
 #include <ftxui/screen/screen.hpp>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "gmock/gmock.h"
 #include <tui/component/modal_view.hpp>
 #include <tui/component/view.hpp>
 #include <tui/mapping.hpp>

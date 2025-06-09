@@ -2,6 +2,7 @@
 
 #include <ftxui/component/component_base.hpp>
 #include <ftxui/component/event.hpp>
+#include <ftxui/component/screen_interactive.hpp>
 
 #include <tui/component/command_input.hpp>
 #include <tui/component/modal_view.hpp>
@@ -22,8 +23,10 @@ View::View(tui::Mode mode)
 
 void View::BindKeymaps() {
   SetKeymap(tui::NORMAL | tui::VISUAL, "q", [] {
-    if (ActiveScreen()) {
-      ActiveScreen()->Post(ActiveScreen()->ExitLoopClosure());
+    auto screen = ftxui::ScreenInteractive::Active();
+
+    if (screen) {
+      screen->Post(screen->ExitLoopClosure());
     }
   });
 }

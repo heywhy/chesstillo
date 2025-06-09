@@ -1,6 +1,5 @@
-#include <ftxui/component/component.hpp>
+#include <ftxui/component/component_base.hpp>
 #include <ftxui/component/event.hpp>
-#include <ftxui/component/mouse.hpp>
 
 #include <tui/component/chessboard.hpp>
 #include <tui/component/square.hpp>

@@ -4,7 +4,6 @@
 #include <stack>
 
 #include <ftxui/component/component_base.hpp>
-#include <ftxui/component/event.hpp>
 
 #include <tui/component/command_input.hpp>
 #include <tui/component/modal_view.hpp>

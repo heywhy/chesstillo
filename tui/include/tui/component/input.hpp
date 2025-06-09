@@ -4,7 +4,8 @@
 #include <string>
 #include <string_view>
 
-#include <ftxui/component/component.hpp>
+#include <ftxui/component/component_base.hpp>
+#include <ftxui/component/component_options.hpp>
 
 namespace tui {
 namespace component {

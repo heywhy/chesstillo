@@ -4,8 +4,7 @@
 #include <memory>
 #include <type_traits>
 
-#include <ftxui/component/component.hpp>
-#include <ftxui/component/screen_interactive.hpp>
+#include <ftxui/component/component_base.hpp>
 
 #include <tui/contracts.hpp>
 
@@ -20,15 +19,12 @@
   ftxui::Render(screen, node);
 
 namespace tui {
-inline ftxui::ScreenInteractive *ActiveScreen() {
-  return ftxui::ScreenInteractive::Active();
-}
 
 void Navigate(const ftxui::Component &component);
 
 template <class T, class... Args>
 std::shared_ptr<T> Make(Args &&...args) {
-  auto ptr = ftxui::Make<T>(std::forward<Args>(args)...);
+  auto ptr = std::make_shared<T>(std::forward<Args>(args)...);
 
   if constexpr (std::is_base_of_v<tui::HasKeymaps, T>) {
     HasKeymaps::Bind(ptr.get());
