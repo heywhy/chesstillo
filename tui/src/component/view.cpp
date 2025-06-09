@@ -160,6 +160,7 @@ void View::HideModal() {
   show_modal_ = false;
 
   modal_content_->Detach();
+  modal_content_ = nullptr;
 
   PopAndFocusTopComponent();
 }
