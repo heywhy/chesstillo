@@ -74,7 +74,6 @@ void Mapping::SetKeymap(Mode mode, const std::string_view lhs, mapping::RHS rhs,
       it->mode &= ~mode;
 
       if (!it->mode) {
-        new_entry.mode = it->mode;
         *it = new_entry;
 
         return;

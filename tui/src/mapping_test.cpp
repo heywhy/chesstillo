@@ -240,6 +240,20 @@ TEST(TUIMappingTestSuite, TestUnbindSimpleCombo) {
   ASSERT_EQ(entries[1]->lhs, ftxui::Event::ArrowUp.input());
 }
 
+TEST(TUIMappingTestSuite, TestOverrideCombo) {
+  Mapping mapping;
+
+  mapping.SetKeymap(tui::VISUAL, "gra", [] {});
+  mapping.SetKeymap(tui::VISUAL, "gra", "<NOP>");
+
+  auto entries = mapping.GetKeymaps(tui::VISUAL);
+
+  ASSERT_EQ(entries.size(), 1);
+
+  ASSERT_EQ(entries[0]->lhs, "gra");
+  ASSERT_EQ(entries[0]->mode, tui::VISUAL);
+}
+
 TEST(TUIMappingTestSuite, TestHandleMapping) {
   Mapping mapping;
   bool called = false;
@@ -280,4 +294,18 @@ TEST(TUIMappingTestSuite, TestMultiModeKeymapCanBeOverriden) {
   ASSERT_TRUE(mapping.Handle(tui::VISUAL, "q"));
 
   ASSERT_TRUE(override_called);
+
+  auto entries = mapping.GetKeymaps(tui::VISUAL);
+
+  ASSERT_EQ(entries.size(), 1);
+
+  ASSERT_EQ(entries[0]->lhs, "q");
+  ASSERT_EQ(entries[0]->mode, tui::VISUAL);
+
+  entries = mapping.GetKeymaps(tui::NORMAL);
+
+  ASSERT_EQ(entries.size(), 1);
+
+  ASSERT_EQ(entries[0]->lhs, "q");
+  ASSERT_EQ(entries[0]->mode, tui::NORMAL);
 }
