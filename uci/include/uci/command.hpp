@@ -54,7 +54,7 @@ struct Visitor {
 namespace command {
 struct Input : public Command {
   const TokenType type;
-  const std::string_view &input;
+  const std::string_view input;
 
   static std::unordered_map<std::string_view, TokenType> Known;
 
@@ -128,7 +128,7 @@ struct Go : public Command {
 };
 
 struct SetOption : public Command {
-  const std::string_view &id;
+  const std::string_view id;
   Literal value;
 
   SetOption(const std::string_view &id) : id(id) {}
