@@ -28,12 +28,13 @@ class View : public ModalView {
  protected:
   void BindKeymaps() override;
 
+  ftxui::Component main_content_;
+
  private:
   bool show_modal_;
   bool show_prompt_;
   std::string prompt_value_;
 
-  ftxui::Component main_content_;
   ftxui::Component modal_content_;
   std::shared_ptr<CommandInput> prompt_;
 

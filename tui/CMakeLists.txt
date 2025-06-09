@@ -9,6 +9,7 @@ format(tui "${TUI_SRC}")
 add_library(tui
   STATIC
   src/color.cpp
+  src/config.cpp
   src/theme.cpp
   src/hooks.cpp
   src/mapping.cpp

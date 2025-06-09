@@ -62,6 +62,8 @@ class ModalView : public Mapping,
   std::thread thread_;
   std::condition_variable cv_;
 
+  friend class View;
+
   void Loop();
   bool HandleNormalEvent(const ftxui::Event &event);
   bool HandleVisualEvent(const ftxui::Event &event);

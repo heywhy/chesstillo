@@ -3,10 +3,10 @@
 
 #include <cstdint>
 #include <functional>
+#include <map>
 #include <string_view>
 
 #include <ftxui/component/component_base.hpp>
-#include <ftxui/component/event.hpp>
 
 #include <tui/config.hpp>
 
@@ -23,16 +23,16 @@ class EngineSettings : public ftxui::ComponentBase {
   template <typename T>
   class Option : public ftxui::ComponentBase {
    public:
-    Option(const std::string_view &label, EngineOption &option, T value)
-        : label_(label), option_(option), value_(value) {}
+    Option(const std::string_view &label, EngineOption &option, T &value)
+        : label_(label), option_(option), value_(&value) {}
 
     Option(const std::string_view &label, EngineOption &option)
-        : label_(label), option_(option) {}
+        : label_(label), option_(option), value_(nullptr) {}
 
    protected:
     const std::string_view label_;
     EngineOption &option_;
-    T value_;
+    T *value_;
   };
 
   class Check : public Option<bool> {
@@ -53,6 +53,9 @@ class EngineSettings : public ftxui::ComponentBase {
   class Combo : public Option<std::string> {
    public:
     Combo(const std::string_view &label, EngineOption &option);
+
+   private:
+    int selected_;
   };
 
   class Button : public Option<void *> {
@@ -69,7 +72,8 @@ class EngineSettings : public ftxui::ComponentBase {
   };
 
  private:
-  const EngineOptions &options_;
+  EngineOptions &options_;
+  std::map<std::string, ftxui::ComponentBase *> registry_;
 
   ftxui::Component Make(const std::string_view label,
                         const EngineOption &option);

@@ -7,36 +7,38 @@
 #include <ftxui/component/component.hpp>
 #include <uci/uci.hpp>
 
+#include <tui/color.hpp>
 #include <tui/component/engine_settings.hpp>
 #include <tui/config.hpp>
+#include <tui/utility.hpp>
 
 namespace tui {
 namespace component {
 
 EngineSettings::EngineSettings(const EngineOptions &options)
-    : options_(options) {
+    : options_(const_cast<EngineOptions &>(options)) {
   Add(ftxui::Container::Vertical({}));
 }
 
 ftxui::Element EngineSettings::OnRender() {
   ftxui::Elements settings;
 
-  auto container = ChildAt(0);
-  std::size_t count = container->ChildCount();
-
-  settings.push_back(ftxui::separatorEmpty());
-
-  for (std::size_t i = 0; i < count; i++) {
-    auto &child = container->ChildAt(i);
-
-    settings.push_back(child->Render());
-
-    if (child.get() != children_.end()->get()) {
-      settings.push_back(ftxui::separatorEmpty());
-    }
+  if (registry_.contains("Threads")) {
+    settings.push_back(registry_["Threads"]->Render());
+    settings.push_back(ftxui::separatorEmpty());
   }
 
-  return ftxui::vbox(settings);
+  if (registry_.contains("MultiPV")) {
+    settings.push_back(registry_["MultiPV"]->Render());
+    settings.push_back(ftxui::separatorEmpty());
+  }
+
+  if (registry_.contains("Hash")) {
+    settings.push_back(registry_["Hash"]->Render());
+  }
+
+  return ftxui::vbox(settings) | ftxui::color(color::gray400) |
+         ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 60);
 }
 
 void EngineSettings::Refresh() {
@@ -44,13 +46,19 @@ void EngineSettings::Refresh() {
 
   ftxui::Components components;
 
-  for (const auto &[id, option] : options_) {
-    if (option.type == uci::BUTTON) {
-      // if (option.type == uci::BUTTON || option.type == uci::CHECK) {
-      continue;
-    }
+  if (options_.contains("Threads")) {
+    components.push_back(Make("Threads", options_["Threads"]));
+    registry_["Threads"] = components.back().get();
+  }
 
-    components.push_back(Make(id, option));
+  if (options_.contains("MultiPV")) {
+    components.push_back(Make("MultiPV", options_["MultiPV"]));
+    registry_["MultiPV"] = components.back().get();
+  }
+
+  if (options_.contains("Hash")) {
+    components.push_back(Make("Hash", options_["Hash"]));
+    registry_["Hash"] = components.back().get();
   }
 
   Add(ftxui::Container::Vertical(components));
@@ -63,23 +71,23 @@ ftxui::Component EngineSettings::Make(const std::string_view label,
 
   switch (option.type) {
     case uci::CHECK:
-      component = ftxui::Make<EngineSettings::Check>(label, e_option);
+      component = tui::Make<EngineSettings::Check>(label, e_option);
       break;
 
     case uci::SPIN:
-      component = ftxui::Make<EngineSettings::Spin>(label, e_option);
+      component = tui::Make<EngineSettings::Spin>(label, e_option);
       break;
 
     case uci::COMBO:
-      component = ftxui::Make<EngineSettings::Combo>(label, e_option);
+      component = tui::Make<EngineSettings::Combo>(label, e_option);
       break;
 
       // case uci::BUTTON:
-      //   component = ftxui::Make<EngineSettings::Button>(label, e_option);
+      //   component = tui::Make<EngineSettings::Button>(label, e_option);
       //   break;
 
     case uci::STRING:
-      component = ftxui::Make<EngineSettings::String>(label, e_option);
+      component = tui::Make<EngineSettings::String>(label, e_option);
       break;
 
     default:
@@ -95,8 +103,8 @@ EngineSettings::Check::Check(const std::string_view &label,
   ftxui::CheckboxOption opts = ftxui::CheckboxOption::Simple();
 
   opts.label = label.data();
-  opts.checked = &value_;
-  opts.on_change = [&]() { option.value = value_; };
+  opts.checked = value_;
+  opts.on_change = std::bind(&EngineOption::OnChange, &option);
 
   Add(ftxui::Checkbox(opts));
 }
@@ -109,8 +117,8 @@ EngineSettings::Spin::Spin(const std::string_view &label, EngineOption &option)
   opts.max = option.max;
   opts.increment = 1;
 
-  opts.value = &value_;
-  opts.on_change = [&]() { option.value = value_; };
+  opts.value = value_;
+  opts.on_change = std::bind(&EngineOption::OnChange, &option);
 
   Add(ftxui::Slider(opts));
 }
@@ -124,7 +132,7 @@ ftxui::Element EngineSettings::Spin::OnRender() {
               ftxui::text("["),
               ftxui::dbox(
                   {ComponentBase::Render() | ftxui::underlined,
-                   ftxui::text(std::format("{}", value_)) | ftxui::center}) |
+                   ftxui::text(std::format("{}", *value_)) | ftxui::center}) |
                   ftxui::xflex_grow,
               ftxui::text("]"),
           }) | ftxui::xflex,
@@ -136,10 +144,18 @@ ftxui::Element EngineSettings::Spin::OnRender() {
 
 EngineSettings::Combo::Combo(const std::string_view &label,
                              EngineOption &option)
-    : Option(label, option) {
-  value_ = std::get<std::string>(option.value);
+    : Option(label, option), selected_(0) {
+  *value_ = std::get<std::string>(option.value);
 
   ftxui::DropdownOption opts;
+
+  opts.radiobox.entries = option.vars;
+  opts.radiobox.selected = &selected_;
+  opts.radiobox.on_change = [this, &option] {
+    *value_ = option.vars[selected_];
+
+    option.OnChange();
+  };
 
   Add(ftxui::Dropdown(opts));
 }
@@ -161,12 +177,12 @@ EngineSettings::String::String(const std::string_view &label,
     : Option(label, option, std::get<std::string>(option.value)) {
   ftxui::InputOption opts = ftxui::InputOption::Default();
 
-  opts.content = &value_;
+  opts.content = value_;
   opts.placeholder = label_.data();
-  opts.cursor_position = value_.size();
+  opts.cursor_position = value_ ? value_->size() : 0;
   opts.multiline = false;
 
-  opts.on_change = [&]() { option.value = value_; };
+  opts.on_change = std::bind(&EngineOption::OnChange, &option);
 
   Add(ftxui::Input(opts));
 }

@@ -17,9 +17,9 @@ namespace component {
 
 View::View(ftxui::Component main_content, tui::Mode mode)
     : ModalView(mode),
+      main_content_(std::move(main_content)),
       show_modal_(false),
       show_prompt_(false),
-      main_content_(std::move(main_content)),
       prompt_(tui::Make<CommandInput>(prompt_value_)) {
   Add(prompt_);
   Add(main_content_);
@@ -77,6 +77,13 @@ ftxui::Element View::RenderStatusBar(const KeyPairs &pairs) const {
     menus.push_back(ftxui::separator());
     menus.push_back(ftxui::text(" q ") | ftxui::bold);
     menus.push_back(ftxui::text("quit "));
+
+    if (!buffer_.empty()) {
+      menus.push_back(ftxui::separator());
+      menus.push_back(ftxui::text(" ") | ftxui::bold);
+      menus.push_back(ftxui::text(buffer_) | ftxui::bold);
+      menus.push_back(ftxui::text(" "));
+    }
   }
 
   return ftxui::hbox(menus) | ftxui::borderLight;

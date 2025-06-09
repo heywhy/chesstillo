@@ -1,6 +1,6 @@
+#include <algorithm>
 #include <cstdint>
 #include <format>
-#include <functional>
 #include <mutex>
 #include <stdexcept>
 #include <string>
@@ -11,13 +11,16 @@
 #include <vector>
 
 #include <ftxui/component/component.hpp>
+#include <ftxui/component/event.hpp>
+#include <ftxui/component/screen_interactive.hpp>
 #include <uci/uci.hpp>
 
 #include <tui/color.hpp>
 #include <tui/component/modal_view.hpp>
 #include <tui/config.hpp>
 #include <tui/constants.hpp>
-#include <tui/hooks.hpp>
+#include <tui/contracts.hpp>
+#include <tui/mapping.hpp>
 #include <tui/screen/analyze.hpp>
 #include <tui/theme.hpp>
 #include <tui/types.hpp>
@@ -30,51 +33,30 @@ using namespace std::chrono_literals;
 namespace tui {
 namespace screen {
 
-Analyze::Analyze(const Theme &theme) : show_engine_settings_(false) {
-  auto engine_settings =
-      ftxui::Make<component::EngineSettings>(engine_options_);
-  auto main = ftxui::Make<analyze::Main>(theme, this, engine_options_,
-                                         engine_settings.get());
-
-  auto scroll_view = ftxui::Make<component::ScrollView>(engine_settings);
-
-  auto modal = ftxui::Renderer(scroll_view, [scroll_view]() {
-    auto content = scroll_view->Render() |
-                   ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 80) |
-                   ftxui::size(ftxui::HEIGHT, ftxui::LESS_THAN, 40);
-
-    return ftxui::window(ftxui::text("Engine Settings") | ftxui::bold, content,
-                         ftxui::BorderStyle::LIGHT) |
-           ftxui::color(ftxui::Color::GrayLight);
-  });
-
-  Add(ftxui::Modal(main, modal, &show_engine_settings_));
-
-  // INFO: dummy bindings
-  SetKeymap(NORMAL, "e", [this] { show_engine_settings_ = true; });
-  SetKeymap(NORMAL, "<esc>", [this] { show_engine_settings_ = false; });
+Analyze::Analyze(const Theme &theme)
+    : component::View(tui::Make<analyze::Main>(theme, this, engine_options_)) {
+  // INFO: had to bind manually because of undefined behavior
+  tui::HasKeymaps::Bind(dynamic_cast<HasKeymaps *>(main_content_.get()));
 }
 
 namespace analyze {
-Main::Main(const Theme &theme, component::ModalView *modal_view,
-           EngineOptions &engine_options,
-           component::EngineSettings *engine_settings)
+Main::Main(const Theme &theme, component::View *view,
+           EngineOptions &engine_options)
     : theme_(theme),
-      modal_view_(modal_view),
+      view_(view),
       engine_options_(engine_options),
-      engine_settings_(engine_settings),
       fen_(START_FEN),
       engine_(uci::FindExecutable("stockfish"), this),
-      thread_(&Main::EngineLoop, this) {
+      thread_(&Main::InitEngine, this) {
   Add(MakeContainer());
 }
 
 Main::~Main() { thread_.join(); }
 
 ftxui::Component Main::MakeContainer() {
-  auto fen_input = ftxui::Make<component::Input>("FEN", fen_);
-  auto pgn_input = ftxui::Make<component::Input>("PGN", pgn_, true);
-  auto chessboard = ftxui::Make<component::Chessboard>(theme_);
+  auto fen_input = tui::Make<component::Input>("FEN", fen_);
+  auto pgn_input = tui::Make<component::Input>("PGN", pgn_, true);
+  auto chessboard = tui::Make<component::Chessboard>(theme_);
 
   return ftxui::Container::Vertical({chessboard, fen_input, pgn_input});
 }
@@ -125,7 +107,7 @@ ftxui::Element Main::OnRender() {
   return content;
 }
 
-void Main::EngineLoop() {
+void Main::InitEngine() {
   std::unique_lock lock(mutex_);
 
   engine_.Send(uci::command::Input("uci"));
@@ -138,14 +120,18 @@ void Main::EngineLoop() {
         "engine didn't respond within 10s or isn't uci compatible.");
   }
 
-  engine_settings_->Refresh();
-
   if (engine_options_.contains("UCI_AnalyseMode")) {
     SetAndSendOption("UCI_AnalyseMode", true);
   }
 
   if (engine_options_.contains("MultiPV")) {
-    SetAndSendOption("MultiPV", std::int64_t(5));
+    std::int64_t max(5);
+    auto &option = engine_options_["MultiPV"];
+
+    option.max = std::min(max, option.max);
+    std::int64_t value = option.max;
+
+    SetAndSendOption("MultiPV", value);
   }
 
   if (engine_options_.contains("Ponder")) {
@@ -153,9 +139,25 @@ void Main::EngineLoop() {
   }
 
   if (engine_options_.contains("Threads")) {
-    std::int64_t value = std::thread::hardware_concurrency();
+    auto &option = engine_options_["Threads"];
+    std::int64_t cpus(std::thread::hardware_concurrency());
+
+    option.max = std::min(cpus, option.max);
+
+    std::int64_t value = std::min(cpus, option.max);
 
     SetAndSendOption("Threads", value);
+  }
+
+  if (engine_options_.contains("Hash")) {
+    std::int64_t max(512);
+    auto &option = engine_options_["Hash"];
+
+    option.max = std::min(max, option.max);
+    std::int64_t value = std::min(std::get<std::int64_t>(option.value),
+                                  std::min(max, option.max));
+
+    SetAndSendOption("Hash", value);
   }
 
   if (engine_options_.contains("Clear Hash")) {
@@ -171,8 +173,6 @@ void Main::EngineLoop() {
   }
 
   engine_.Send(uci::command::Input("ucinewgame"));
-
-  BindKeymaps();
 }
 
 void Main::Handle(uci::command::Input *command) {
@@ -190,10 +190,24 @@ void Main::Handle(uci::command::Input *command) {
   }
 
   cv_.notify_all();
-  ActiveScreen()->PostEvent(ftxui::Event::Custom);
+  ftxui::ScreenInteractive::Active()->PostEvent(ftxui::Event::Custom);
 }
 
-void Main::Handle(uci::command::ID *) {}
+void Main::Handle(uci::command::ID *command) {
+  switch (command->type) {
+    case uci::command::ID::NAME:
+      engine_name_ = command->value;
+
+      tui::trim(engine_name_);
+      break;
+
+    case uci::command::ID::AUTHOR:
+      engine_author_ = command->value;
+
+      tui::trim(engine_author_);
+      break;
+  }
+}
 
 void Main::Handle(uci::command::BestMove *) {}
 
@@ -222,13 +236,36 @@ void Main::Handle(uci::command::Info *command) {
     pv.moves.emplace_back(move);
   }
 
-  ActiveScreen()->PostEvent(ftxui::Event::Custom);
+  ftxui::ScreenInteractive::Active()->PostEvent(ftxui::Event::Custom);
 }
 
 void Main::Handle(uci::command::Option *command) {
-  EngineOption option;
+  auto on_change = [this](uci::command::SetOption &command) {
+    if (running_) {
+      running_ = false;
+      engine_.Send(uci::command::Input("stop"));
+    }
+
+    if (command.id == "MultiPV") {
+      std::unique_lock lock(mutex_);
+      auto it = pvs_.begin() + std::get<std::int64_t>(command.value);
+
+      for (; it != pvs_.end(); it++) {
+        if (it->id < 1) {
+          break;
+        }
+
+        it->Unset();
+      }
+    }
+
+    engine_.Send(command);
+  };
+
+  EngineOption option(on_change);
   std::vector<std::string> vars(command->vars.begin(), command->vars.end());
 
+  option.id = command->id;
   option.type = command->type;
   option.min = command->min;
   option.max = command->max;
@@ -248,31 +285,56 @@ void Main::Handle(uci::command::Option *command) {
       },
       command->def4ult);
 
-  engine_options_.emplace(std::pair(command->id, std::move(option)));
+  engine_options_.emplace(std::pair(option.id, std::move(option)));
 }
 
 void Main::BindKeymaps() {
-  modal_view_->SetKeymap(tui::NORMAL, "c", [this] {
+  view_->SetKeymap(tui::NORMAL, "a", [this] {
+    auto component = ftxui::Renderer([this] {
+      return ftxui::vbox({
+                 ftxui::text("About Engine") | ftxui::hcenter,
+                 ftxui::separator(),
+                 ftxui::separatorEmpty(),
+                 ftxui::text(engine_name_) | ftxui::center,
+                 ftxui::separatorEmpty(),
+                 ftxui::text(engine_author_) | ftxui::center,
+             }) |
+             ftxui::borderEmpty | ftxui::color(color::gray400);
+    });
+
+    view_->ShowModal(component);
+  });
+
+  view_->SetKeymap(tui::NORMAL, "s", [this] {
+    auto engine_settings =
+        tui::Make<component::EngineSettings>(engine_options_);
+
+    auto content = ftxui::Renderer(engine_settings, [engine_settings] {
+      return engine_settings->Render() | ftxui::borderEmpty;
+    });
+
+    engine_settings->Refresh();
+
+    view_->ShowModal(content);
+  });
+
+  view_->SetKeymap(tui::NORMAL, "c", [this] {
     engine_.Send(uci::command::SetOption("Clear Hash"));
   });
 
-  modal_view_->SetKeymap(tui::NORMAL, "r", [this] {
-    if (running_) {
-      return;
+  view_->SetKeymap(tui::NORMAL, "r", [this] {
+    if (!running_) {
+      running_ = true;
+      engine_.Send(uci::command::Position(fen_));
+      engine_.Send(uci::command::Go());
     }
-
-    running_ = true;
-    engine_.Send(uci::command::Position(fen_));
-    engine_.Send(uci::command::Go());
   });
 
-  modal_view_->SetKeymap(tui::NORMAL, "s", [this] {
-    if (!running_) {
-      return;
+  view_->SetKeymap(tui::NORMAL, "R", [this] {
+    if (running_) {
+      running_ = false;
+      engine_.Send(uci::command::Input("stop"));
     }
-
-    running_ = false;
-    engine_.Send(uci::command::Input("stop"));
   });
 }
 
@@ -302,17 +364,21 @@ ftxui::Element Main::RenderMoves() {
 ftxui::Element Main::RenderStatusBar() {
   component::ModalView::KeyPairs items;
 
-  if (modal_view_->Mode() == tui::NORMAL && engine_flags_ & engine::READY) {
-    running_ ? items.emplace_back("s", "stop engine")
+  if (view_->Mode() == tui::NORMAL && engine_flags_ & engine::READY) {
+    running_ ? items.emplace_back("R", "stop engine")
              : items.emplace_back("r", "run engine");
   }
 
-  if (modal_view_->Mode() == tui::NORMAL &&
-      engine_flags_ & engine::CLEAR_HASH) {
+  if (view_->Mode() == tui::NORMAL && engine_flags_ & engine::CLEAR_HASH) {
     items.emplace_back("c", "clear hash");
   }
 
-  return modal_view_->RenderStatusBar(items);
+  if (view_->Mode() == tui::NORMAL && engine_flags_ & engine::UCI) {
+    items.emplace_back("s", "settings");
+    items.emplace_back("a", "engine info");
+  }
+
+  return view_->RenderStatusBar(items);
 }
 
 ftxui::Element Main::PV::Render() const {

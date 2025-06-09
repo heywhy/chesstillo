@@ -151,8 +151,14 @@ bool ModalView::HandleNormalEvent(const ftxui::Event &event) {
 }
 
 bool ModalView::HandleVisualEvent(const ftxui::Event &event) {
-  if (event == ftxui::Event::Escape) {
+  if (buffer_.empty() && event == ftxui::Event::Escape) {
     std::swap(old_mode_, mode_);
+
+    return true;
+  }
+
+  if (event == ftxui::Event::Escape) {
+    buffer_.clear();
 
     return true;
   }
