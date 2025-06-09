@@ -14,7 +14,7 @@ namespace component {
 
 class View : public ModalView {
  public:
-  View(tui::Mode mode = tui::NORMAL);
+  View(ftxui::Component main_content, tui::Mode mode = tui::NORMAL);
 
   ftxui::Element OnRender() override;
   bool OnEvent(ftxui::Event event) override;
@@ -33,8 +33,9 @@ class View : public ModalView {
   bool show_prompt_;
   std::string prompt_value_;
 
-  std::shared_ptr<CommandInput> prompt_;
+  ftxui::Component main_content_;
   ftxui::Component modal_content_;
+  std::shared_ptr<CommandInput> prompt_;
 
   std::stack<ftxui::ComponentBase *> focus_history_;
 

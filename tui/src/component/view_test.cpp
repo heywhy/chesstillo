@@ -12,6 +12,9 @@
 
 using namespace tui;
 
+static ftxui::Component main_content =
+    ftxui::Renderer([] { return ftxui::emptyElement(); });
+
 class Child : public component::ModalView {
  public:
   Child() : component::ModalView(tui::NORMAL) {}
@@ -20,7 +23,7 @@ class Child : public component::ModalView {
 };
 
 TEST(TUIComponentViewTestSuite, TestSwitchToInteractMode) {
-  component::View view;
+  component::View view(main_content);
 
   ASSERT_EQ(view.Mode(), tui::NORMAL);
 
@@ -30,7 +33,7 @@ TEST(TUIComponentViewTestSuite, TestSwitchToInteractMode) {
 }
 
 TEST(TUIComponentViewTestSuite, TestSwitchToVisualMode) {
-  component::View view;
+  component::View view(main_content);
 
   view.OnEvent(ftxui::Event::v);
 
@@ -42,7 +45,7 @@ TEST(TUIComponentViewTestSuite, TestSwitchToVisualMode) {
 }
 
 TEST(TUIComponentViewTestSuite, TestHandleNormalModeKeymap) {
-  component::View view;
+  component::View view(main_content);
 
   int count = 0;
   auto fun = [&] { count++; };
@@ -61,7 +64,7 @@ TEST(TUIComponentViewTestSuite, TestHandleNormalModeKeymap) {
 TEST(TUIComponentViewTestSuite, TestHandleVisualModeKeymap) {
   int count = 0;
   auto fun = [&] { count++; };
-  component::View view(tui::VISUAL);
+  component::View view(main_content, tui::VISUAL);
 
   view.SetKeymap(tui::VISUAL, "f", fun);
   view.SetKeymap(tui::VISUAL, "<s-d>", fun);
@@ -73,8 +76,8 @@ TEST(TUIComponentViewTestSuite, TestHandleVisualModeKeymap) {
 }
 
 TEST(TUIComponentViewTestSuite, TestCommandPrompt) {
-  component::View view;
   ftxui::Screen screen(10, 10);
+  component::View view(main_content);
 
   RENDER(screen, view.Render());
 
@@ -94,8 +97,8 @@ TEST(TUIComponentViewTestSuite, TestCommandPrompt) {
 }
 
 TEST(TUIComponentViewTestSuite, TestSendEventToCommandPromptWhenIsVisible) {
-  component::View view;
   ftxui::Screen screen(10, 10);
+  component::View view(main_content);
 
   view.OnEvent(ftxui::Event::Character(":"));
   view.OnEvent(ftxui::Event::e);
@@ -109,7 +112,7 @@ TEST(TUIComponentViewTestSuite, TestSendEventToCommandPromptWhenIsVisible) {
 }
 
 TEST(TUIComponentViewTestSuite, TestPassEventsToNestedModalView) {
-  component::View view;
+  component::View view(main_content);
 
   int child_keymap_called = 0;
   auto child = tui::Make<Child>();
@@ -134,14 +137,11 @@ TEST(TUIComponentViewTestSuite, TestPassEventsToNestedModalView) {
 }
 
 TEST(TUIComponentViewTestSuite, TestModal) {
-  component::View view;
   ftxui::Screen screen(20, 10);
   auto main = ftxui::Renderer([] { return ftxui::text("main content"); });
   auto modal = ftxui::Renderer([] { return ftxui::text("modal content"); });
 
-  view.Add(main);
-
-  main->TakeFocus();
+  component::View view(main);
 
   view.ShowModal(modal);
 

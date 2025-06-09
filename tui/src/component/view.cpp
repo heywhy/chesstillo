@@ -1,5 +1,7 @@
 #include <cstddef>
+#include <utility>
 
+#include <ftxui/component/component.hpp>
 #include <ftxui/component/component_base.hpp>
 #include <ftxui/component/event.hpp>
 #include <ftxui/component/screen_interactive.hpp>
@@ -13,12 +15,16 @@
 namespace tui {
 namespace component {
 
-View::View(tui::Mode mode)
+View::View(ftxui::Component main_content, tui::Mode mode)
     : ModalView(mode),
       show_modal_(false),
       show_prompt_(false),
+      main_content_(std::move(main_content)),
       prompt_(tui::Make<CommandInput>(prompt_value_)) {
   Add(prompt_);
+  Add(main_content_);
+
+  main_content_->TakeFocus();
 }
 
 void View::BindKeymaps() {
@@ -166,7 +172,7 @@ void View::ShowModal(ftxui::Component content) {
 
 ftxui::Element View::OnRender() {
   ftxui::Elements elements;
-  auto node = ChildCount() > 1 ? ChildAt(1)->Render() : ftxui::emptyElement();
+  auto node = main_content_->Render();
 
   if (show_modal_) {
     elements.push_back(modal_content_->Render() | ftxui::clear_under |
