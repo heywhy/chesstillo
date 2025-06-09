@@ -10,7 +10,7 @@
 #include <utility>
 #include <vector>
 
-#include <ftxui/component/component.hpp>
+#include <ftxui/component/component_base.hpp>
 #include <ftxui/component/event.hpp>
 #include <ftxui/component/screen_interactive.hpp>
 
@@ -26,7 +26,6 @@ namespace component {
 // TODO:
 // * support editable attr and don't bind "i" to enter the interact mode when
 // it's false.
-// * remove default keymaps
 class ModalView : public Mapping,
                   public HasKeymaps,
                   public ftxui::ComponentBase {
@@ -34,13 +33,13 @@ class ModalView : public Mapping,
   using KeyPair = std::pair<std::string_view, std::string_view>;
   using KeyPairs = std::vector<KeyPair>;
 
-  ModalView();
   ModalView(tui::Mode mode);
   ~ModalView();
 
   bool OnEvent(ftxui::Event) override;
   bool Focusable() const override { return true; };
-  ftxui::Element RenderStatusBar(const KeyPairs &) const;
+  ftxui::Component ActiveChild() override;
+  void SetActiveChild(ftxui::ComponentBase *child) override;
 
   void FocusView();
   void UnfocusView();
@@ -49,11 +48,11 @@ class ModalView : public Mapping,
 
  protected:
   ModalView *Topmost();
-  void BindKeymaps() override;
 
  private:
   tui::Mode mode_;
   tui::Mode old_mode_;
+  std::size_t focused_;
   std::string buffer_;
 
   ModalView *child_modal_view_;

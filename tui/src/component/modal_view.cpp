@@ -17,11 +17,10 @@ using namespace std::chrono_literals;
 namespace tui {
 namespace component {
 
-ModalView::ModalView() : ModalView(tui::NORMAL) {}
-
 ModalView::ModalView(tui::Mode mode)
     : mode_(mode),
       old_mode_(mode),
+      focused_(0),
       child_modal_view_(nullptr),
       loop_ready_(false),
       wait_to_handle_mapping_(true),
@@ -46,14 +45,6 @@ ModalView::~ModalView() {
   UnfocusView();
 }
 
-void ModalView::BindKeymaps() {
-  SetKeymap(tui::NORMAL | tui::VISUAL, "q", [] {
-    if (ActiveScreen()) {
-      ActiveScreen()->Post(ActiveScreen()->ExitLoopClosure());
-    }
-  });
-}
-
 ModalView *ModalView::Topmost() {
   ftxui::ComponentBase *child = this;
   ModalView *topmost_modal_view = nullptr;
@@ -70,8 +61,6 @@ ModalView *ModalView::Topmost() {
 }
 
 void ModalView::FocusView() {
-  TakeFocus();
-
   ModalView *topmost_modal_view = Topmost();
 
   if (topmost_modal_view) {
@@ -87,8 +76,32 @@ void ModalView::UnfocusView() {
   }
 }
 
+void ModalView::SetActiveChild(ftxui::ComponentBase *child) {
+  for (std::size_t i = 0; i < children_.size(); i++) {
+    if (children_[i].get() == child) {
+      focused_ = i;
+      auto modal_view = dynamic_cast<ModalView *>(child);
+
+      if (modal_view) {
+        modal_view->FocusView();
+      }
+
+      break;
+    }
+  }
+}
+
+ftxui::Component ModalView::ActiveChild() {
+  if (focused_ >= children_.size()) {
+    return nullptr;
+  }
+
+  return children_[focused_];
+}
+
 bool ModalView::OnEvent(ftxui::Event event) {
-  if (child_modal_view_ && child_modal_view_->OnEvent(event)) {
+  if (child_modal_view_ && child_modal_view_ == ActiveChild().get() &&
+      child_modal_view_->OnEvent(event)) {
     return true;
   }
 
@@ -108,51 +121,7 @@ bool ModalView::OnEvent(ftxui::Event event) {
       break;
   }
 
-  return handled ? true : ftxui::ComponentBase::OnEvent(event);
-}
-
-ftxui::Element ModalView::RenderStatusBar(const KeyPairs &pairs) const {
-  const char *mode;
-  ftxui::Elements menus;
-
-  switch (mode_) {
-    case tui::NORMAL:
-      mode = " NORMAL ";
-      break;
-
-    case tui::VISUAL:
-      mode = " VISUAL ";
-      break;
-
-    case tui::INTERACT:
-      mode = " INTERACT ";
-      break;
-  }
-
-  menus.push_back(ftxui::text(mode) | ftxui::bold);
-
-  if (mode_ != tui::NORMAL) {
-    menus.push_back(ftxui::separator());
-    menus.push_back(ftxui::text(" <esc> ") | ftxui::bold);
-    menus.push_back(ftxui::text("exit mode "));
-  }
-
-  for (const auto &pair : pairs) {
-    menus.push_back(ftxui::separator());
-    menus.push_back(ftxui::text(" "));
-    menus.push_back(ftxui::text(pair.first.data()) | ftxui::bold);
-    menus.push_back(ftxui::text(" "));
-    menus.push_back(ftxui::text(pair.second.data()));
-    menus.push_back(ftxui::text(" "));
-  }
-
-  if (mode_ & (tui::NORMAL | tui::VISUAL)) {
-    menus.push_back(ftxui::separator());
-    menus.push_back(ftxui::text(" q ") | ftxui::bold);
-    menus.push_back(ftxui::text("quit "));
-  }
-
-  return ftxui::hbox(menus) | ftxui::borderLight;
+  return handled;
 }
 
 bool ModalView::HandleNormalEvent(const ftxui::Event &event) {

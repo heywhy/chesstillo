@@ -14,6 +14,7 @@ add_library(tui
   src/mapping.cpp
   src/utility.cpp
   src/component/chessboard.cpp
+  src/component/command_input.cpp
   src/component/engine_settings.cpp
   src/component/input.cpp
   src/component/modal.cpp
@@ -21,6 +22,7 @@ add_library(tui
   src/component/scroll_view.cpp
   src/component/square.cpp
   src/component/switch.cpp
+  src/component/view.cpp
   src/screen/analyze.cpp
   src/screen/home.cpp
 )

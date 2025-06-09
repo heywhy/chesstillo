@@ -15,6 +15,10 @@
     screen.Loop(component);                               \
   }
 
+#define RENDER(screen, node) \
+  screen.Clear();            \
+  ftxui::Render(screen, node);
+
 namespace tui {
 inline ftxui::ScreenInteractive *ActiveScreen() {
   return ftxui::ScreenInteractive::Active();
