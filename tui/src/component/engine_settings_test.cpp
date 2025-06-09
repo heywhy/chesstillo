@@ -7,13 +7,16 @@
 
 using namespace tui;
 
+static tui::component::EngineSettings::OnChange NOOP =
+    [](const tui::EngineOption *) {};
+
 TEST(TUIComponentEngineSettingsTestSuite, RenderCheck) {
   EngineOption option;
 
   option.value = true;
 
   ftxui::Component check =
-      tui::Make<component::EngineSettings::Check>("Ponder", option);
+      tui::Make<component::EngineSettings::Check>("Ponder", option, NOOP);
 
   auto document = check->Render();
   auto screen = ftxui::Screen::Create(ftxui::Dimension::Fit(document));
@@ -32,7 +35,7 @@ TEST(TUIComponentEngineSettingsTestSuite, RenderSpin) {
   option.max = 1024;
 
   ftxui::Component spin =
-      tui::Make<component::EngineSettings::Spin>(label, option);
+      tui::Make<component::EngineSettings::Spin>(label, option, NOOP);
 
   auto document = spin->Render();
   auto screen = ftxui::Screen::Create(ftxui::Dimension::Fit(document));

@@ -24,21 +24,21 @@ class Analyze : public component::View {
  public:
   Analyze(const Theme &theme);
 
+ protected:
+  void BindKeymaps() override;
+
  private:
   EngineOptions engine_options_;
 };
 
 namespace analyze {
-class Main : public ftxui::ComponentBase, public HasKeymaps, public uci::UI {
+class Main : public ftxui::ComponentBase, public uci::UI {
  public:
   Main(const Theme &theme, component::View *view,
        EngineOptions &engine_options);
   ~Main();
 
   ftxui::Element OnRender() override;
-
- protected:
-  void BindKeymaps() override;
 
  private:
   const Theme &theme_;
@@ -78,6 +78,8 @@ class Main : public ftxui::ComponentBase, public HasKeymaps, public uci::UI {
 
   std::array<PV, 256> pvs_;
 
+  friend class tui::screen::Analyze;
+
   void Handle(uci::command::Input *) override;
   void Handle(uci::command::ID *) override;
   void Handle(uci::command::BestMove *) override;
@@ -91,6 +93,14 @@ class Main : public ftxui::ComponentBase, public HasKeymaps, public uci::UI {
 
   ftxui::Element RenderMoves();
   ftxui::Element RenderStatusBar();
+
+  void Stop();
+  void Start();
+  void ClearHash();
+  void ShowSettings();
+  void ShowEngineInfo();
+
+  void OnChange(const tui::EngineOption *);
 
   template <typename T>
   void SetAndSendOption(std::string id, T value) {

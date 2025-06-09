@@ -7,17 +7,9 @@
 
 namespace tui {
 
-EngineOption::EngineOption() : EngineOption(nullptr) {}
+EngineOption::EngineOption() : min(0), max(0) {}
 
-EngineOption::EngineOption(
-    std::function<void(uci::command::SetOption &)> send_command)
-    : min(0), max(0), send_command_(send_command) {}
-
-void EngineOption::OnChange() {
-  if (!send_command_) {
-    return;
-  }
-
+uci::command::SetOption EngineOption::ToCommand() const {
   auto command = uci::command::SetOption(id);
 
   switch (type) {
@@ -41,7 +33,7 @@ void EngineOption::OnChange() {
       break;
   }
 
-  send_command_(command);
+  return command;
 }
 
 }  // namespace tui

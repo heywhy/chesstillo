@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <format>
+#include <functional>
 #include <mutex>
 #include <stdexcept>
 #include <string>
@@ -34,9 +35,18 @@ namespace tui {
 namespace screen {
 
 Analyze::Analyze(const Theme &theme)
-    : component::View(tui::Make<analyze::Main>(theme, this, engine_options_)) {
-  // INFO: had to bind manually because of undefined behavior
-  tui::HasKeymaps::Bind(dynamic_cast<HasKeymaps *>(main_content_.get()));
+    : component::View(tui::Make<analyze::Main>(theme, this, engine_options_)) {}
+
+void Analyze::BindKeymaps() {
+  View::BindKeymaps();
+
+  auto *main = dynamic_cast<analyze::Main *>(main_content_.get());
+
+  SetKeymap(tui::NORMAL, "R", std::bind(&analyze::Main::Stop, main));
+  SetKeymap(tui::NORMAL, "r", std::bind(&analyze::Main::Start, main));
+  SetKeymap(tui::NORMAL, "c", std::bind(&analyze::Main::ClearHash, main));
+  SetKeymap(tui::NORMAL, "s", std::bind(&analyze::Main::ShowSettings, main));
+  SetKeymap(tui::NORMAL, "a", std::bind(&analyze::Main::ShowEngineInfo, main));
 }
 
 namespace analyze {
@@ -240,29 +250,7 @@ void Main::Handle(uci::command::Info *command) {
 }
 
 void Main::Handle(uci::command::Option *command) {
-  auto on_change = [this](uci::command::SetOption &command) {
-    if (running_) {
-      running_ = false;
-      engine_.Send(uci::command::Input("stop"));
-    }
-
-    if (command.id == "MultiPV") {
-      std::unique_lock lock(mutex_);
-      auto it = pvs_.begin() + std::get<std::int64_t>(command.value);
-
-      for (; it != pvs_.end(); it++) {
-        if (it->id < 1) {
-          break;
-        }
-
-        it->Unset();
-      }
-    }
-
-    engine_.Send(command);
-  };
-
-  EngineOption option(on_change);
+  EngineOption option;
   std::vector<std::string> vars(command->vars.begin(), command->vars.end());
 
   option.id = command->id;
@@ -285,57 +273,79 @@ void Main::Handle(uci::command::Option *command) {
       },
       command->def4ult);
 
-  engine_options_.emplace(std::pair(option.id, std::move(option)));
+  engine_options_.emplace(command->id, std::move(option));
 }
 
-void Main::BindKeymaps() {
-  view_->SetKeymap(tui::NORMAL, "a", [this] {
-    auto component = ftxui::Renderer([this] {
-      return ftxui::vbox({
-                 ftxui::text("About Engine") | ftxui::hcenter,
-                 ftxui::separator(),
-                 ftxui::separatorEmpty(),
-                 ftxui::text(engine_name_) | ftxui::center,
-                 ftxui::separatorEmpty(),
-                 ftxui::text(engine_author_) | ftxui::center,
-             }) |
-             ftxui::borderEmpty | ftxui::color(color::gray400);
-    });
+void Main::OnChange(const tui::EngineOption *option) {
+  if (running_) {
+    running_ = false;
+    engine_.Send(uci::command::Input("stop"));
+  }
 
-    view_->ShowModal(component);
-  });
+  auto command = option->ToCommand();
 
-  view_->SetKeymap(tui::NORMAL, "s", [this] {
-    auto engine_settings =
-        tui::Make<component::EngineSettings>(engine_options_);
+  if (command.id == "MultiPV") {
+    std::unique_lock lock(mutex_);
+    auto it = pvs_.begin() + std::get<std::int64_t>(command.value);
 
-    auto content = ftxui::Renderer(engine_settings, [engine_settings] {
-      return engine_settings->Render() | ftxui::borderEmpty;
-    });
+    for (; it != pvs_.end(); it++) {
+      if (it->id < 1) {
+        break;
+      }
 
-    engine_settings->Refresh();
-
-    view_->ShowModal(content);
-  });
-
-  view_->SetKeymap(tui::NORMAL, "c", [this] {
-    engine_.Send(uci::command::SetOption("Clear Hash"));
-  });
-
-  view_->SetKeymap(tui::NORMAL, "r", [this] {
-    if (!running_) {
-      running_ = true;
-      engine_.Send(uci::command::Position(fen_));
-      engine_.Send(uci::command::Go());
+      it->Unset();
     }
+  }
+
+  engine_.Send(command);
+}
+
+void Main::Start() {
+  if (!running_) {
+    running_ = true;
+    engine_.Send(uci::command::Position(fen_));
+    engine_.Send(uci::command::Go());
+  }
+}
+
+void Main::Stop() {
+  if (running_) {
+    running_ = false;
+    engine_.Send(uci::command::Input("stop"));
+  }
+}
+
+void Main::ClearHash() { engine_.Send(uci::command::SetOption("Clear Hash")); }
+
+void Main::ShowSettings() {
+  auto on_change = std::bind(&Main::OnChange, this, std::placeholders::_1);
+
+  auto engine_settings =
+      tui::Make<component::EngineSettings>(engine_options_, on_change);
+
+  auto content = ftxui::Renderer(engine_settings, [engine_settings] {
+    return engine_settings->Render() | ftxui::borderEmpty;
   });
 
-  view_->SetKeymap(tui::NORMAL, "R", [this] {
-    if (running_) {
-      running_ = false;
-      engine_.Send(uci::command::Input("stop"));
-    }
+  engine_settings->Refresh();
+
+  view_->ShowModal(content);
+}
+
+void Main::ShowEngineInfo() {
+  auto component = ftxui::Renderer([this] {
+    return ftxui::vbox({
+               ftxui::text("About Engine") | ftxui::hcenter,
+               ftxui::separator(),
+               ftxui::separatorEmpty(),
+               ftxui::text(engine_name_) | ftxui::center,
+               ftxui::separatorEmpty(),
+               ftxui::text(engine_author_) | ftxui::center,
+           }) |
+           ftxui::borderEmpty | ftxui::color(color::gray400);
   });
+
+  view_->ShowModal(component);
 }
 
 ftxui::Element Main::RenderMoves() {

@@ -15,8 +15,8 @@
 namespace tui {
 namespace component {
 
-EngineSettings::EngineSettings(const EngineOptions &options)
-    : options_(const_cast<EngineOptions &>(options)) {
+EngineSettings::EngineSettings(const EngineOptions &options, OnChange on_change)
+    : options_(const_cast<EngineOptions &>(options)), on_change_(on_change) {
   Add(ftxui::Container::Vertical({}));
 }
 
@@ -71,15 +71,15 @@ ftxui::Component EngineSettings::Make(const std::string_view label,
 
   switch (option.type) {
     case uci::CHECK:
-      component = tui::Make<EngineSettings::Check>(label, e_option);
+      component = tui::Make<EngineSettings::Check>(label, e_option, on_change_);
       break;
 
     case uci::SPIN:
-      component = tui::Make<EngineSettings::Spin>(label, e_option);
+      component = tui::Make<EngineSettings::Spin>(label, e_option, on_change_);
       break;
 
     case uci::COMBO:
-      component = tui::Make<EngineSettings::Combo>(label, e_option);
+      component = tui::Make<EngineSettings::Combo>(label, e_option, on_change_);
       break;
 
       // case uci::BUTTON:
@@ -87,7 +87,8 @@ ftxui::Component EngineSettings::Make(const std::string_view label,
       //   break;
 
     case uci::STRING:
-      component = tui::Make<EngineSettings::String>(label, e_option);
+      component =
+          tui::Make<EngineSettings::String>(label, e_option, on_change_);
       break;
 
     default:
@@ -98,27 +99,28 @@ ftxui::Component EngineSettings::Make(const std::string_view label,
 }
 
 EngineSettings::Check::Check(const std::string_view &label,
-                             EngineOption &option)
+                             EngineOption &option, OnChange &on_change)
     : Option(label, option, std::get<bool>(option.value)) {
   ftxui::CheckboxOption opts = ftxui::CheckboxOption::Simple();
 
   opts.label = label.data();
   opts.checked = value_;
-  opts.on_change = std::bind(&EngineOption::OnChange, &option);
+  opts.on_change = std::bind(on_change, &option_);
 
   Add(ftxui::Checkbox(opts));
 }
 
-EngineSettings::Spin::Spin(const std::string_view &label, EngineOption &option)
+EngineSettings::Spin::Spin(const std::string_view &label, EngineOption &option,
+                           OnChange &on_change)
     : Option(label, option, std::get<std::int64_t>(option.value)) {
   ftxui::SliderOption<std::int64_t> opts;
 
-  opts.min = option.min;
-  opts.max = option.max;
+  opts.min = option_.min;
+  opts.max = option_.max;
   opts.increment = 1;
 
   opts.value = value_;
-  opts.on_change = std::bind(&EngineOption::OnChange, &option);
+  opts.on_change = std::bind(on_change, &option_);
 
   Add(ftxui::Slider(opts));
 }
@@ -137,13 +139,13 @@ ftxui::Element EngineSettings::Spin::OnRender() {
               ftxui::text("]"),
           }) | ftxui::xflex,
       }) |
-      ftxui::xflex | ftxui::reflect(box_);
+      ftxui::xflex;
 
   return element;
 }
 
 EngineSettings::Combo::Combo(const std::string_view &label,
-                             EngineOption &option)
+                             EngineOption &option, OnChange &on_change)
     : Option(label, option), selected_(0) {
   *value_ = std::get<std::string>(option.value);
 
@@ -151,10 +153,10 @@ EngineSettings::Combo::Combo(const std::string_view &label,
 
   opts.radiobox.entries = option.vars;
   opts.radiobox.selected = &selected_;
-  opts.radiobox.on_change = [this, &option] {
-    *value_ = option.vars[selected_];
+  opts.radiobox.on_change = [this, on_change] {
+    *value_ = option_.vars[selected_];
 
-    option.OnChange();
+    on_change(&option_);
   };
 
   Add(ftxui::Dropdown(opts));
@@ -173,7 +175,7 @@ EngineSettings::Button::Button(const std::string_view &label,
 }
 
 EngineSettings::String::String(const std::string_view &label,
-                               EngineOption &option)
+                               EngineOption &option, OnChange &on_change)
     : Option(label, option, std::get<std::string>(option.value)) {
   ftxui::InputOption opts = ftxui::InputOption::Default();
 
@@ -182,7 +184,7 @@ EngineSettings::String::String(const std::string_view &label,
   opts.cursor_position = value_ ? value_->size() : 0;
   opts.multiline = false;
 
-  opts.on_change = std::bind(&EngineOption::OnChange, &option);
+  opts.on_change = std::bind(on_change, &option_);
 
   Add(ftxui::Input(opts));
 }

@@ -15,7 +15,9 @@ namespace component {
 
 class EngineSettings : public ftxui::ComponentBase {
  public:
-  EngineSettings(const EngineOptions &options);
+  using OnChange = std::function<void(const EngineOption *)>;
+
+  EngineSettings(const EngineOptions &options, OnChange on_change);
 
   void Refresh();
   ftxui::Element OnRender() override;
@@ -24,10 +26,13 @@ class EngineSettings : public ftxui::ComponentBase {
   class Option : public ftxui::ComponentBase {
    public:
     Option(const std::string_view &label, EngineOption &option, T &value)
-        : label_(label), option_(option), value_(&value) {}
+        : Option(label, option, &value) {}
 
     Option(const std::string_view &label, EngineOption &option)
-        : label_(label), option_(option), value_(nullptr) {}
+        : Option(label, option, nullptr) {}
+
+    Option(const std::string_view &label, EngineOption &option, T *value)
+        : label_(label), option_(option), value_(value) {}
 
    protected:
     const std::string_view label_;
@@ -37,22 +42,22 @@ class EngineSettings : public ftxui::ComponentBase {
 
   class Check : public Option<bool> {
    public:
-    Check(const std::string_view &label, EngineOption &option);
+    Check(const std::string_view &label, EngineOption &option,
+          OnChange &on_change);
   };
 
   class Spin : public Option<std::int64_t> {
    public:
-    Spin(const std::string_view &label, EngineOption &option);
+    Spin(const std::string_view &label, EngineOption &option,
+         OnChange &on_change);
 
     ftxui::Element OnRender() override;
-
-   private:
-    ftxui::Box box_;
   };
 
   class Combo : public Option<std::string> {
    public:
-    Combo(const std::string_view &label, EngineOption &option);
+    Combo(const std::string_view &label, EngineOption &option,
+          OnChange &on_change);
 
    private:
     int selected_;
@@ -66,13 +71,15 @@ class EngineSettings : public ftxui::ComponentBase {
 
   class String : public Option<std::string> {
    public:
-    String(const std::string_view &label, EngineOption &option);
+    String(const std::string_view &label, EngineOption &option,
+           OnChange &on_change);
 
     ftxui::Element OnRender() override;
   };
 
  private:
   EngineOptions &options_;
+  OnChange on_change_;
   std::map<std::string, ftxui::ComponentBase *> registry_;
 
   ftxui::Component Make(const std::string_view label,
