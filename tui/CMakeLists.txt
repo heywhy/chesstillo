@@ -17,7 +17,6 @@ add_library(tui
   src/component/command_input.cpp
   src/component/engine_settings.cpp
   src/component/input.cpp
-  src/component/modal.cpp
   src/component/modal_view.cpp
   src/component/scroll_view.cpp
   src/component/square.cpp
