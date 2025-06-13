@@ -22,3 +22,4 @@ enable_testing()
 
 add_subdirectory(uci)
 add_subdirectory(tui)
+add_subdirectory(engine)
