@@ -25,7 +25,7 @@ struct EngineOption {
   uci::command::SetOption ToCommand() const;
 };
 
-typedef std::map<std::string, EngineOption> EngineOptions;
+using EngineOptions = std::map<std::string, EngineOption>;
 
 }  // namespace tui
 

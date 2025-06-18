@@ -44,7 +44,7 @@ enum OptionType : uint8_t { CHECK, SPIN, COMBO, BUTTON, STRING };
 
 extern std::unordered_map<std::string_view, Status> kStatus;
 
-typedef std::variant<std::string_view, std::int64_t, bool> Literal;
+using Literal = std::variant<std::string_view, std::int64_t, bool>;
 
 struct Token {
   TokenType type;
@@ -54,7 +54,7 @@ struct Token {
   int line;
 };
 
-typedef std::vector<Token> Tokens;
+using Tokens = std::vector<Token>;
 
 }  // namespace uci
 
