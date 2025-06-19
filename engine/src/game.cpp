@@ -1,12 +1,3 @@
-#include <condition_variable>
-#include <format>
-#include <fstream>
-#include <mutex>
-#include <string>
-#include <string_view>
-#include <thread>
-#include <variant>
-
 #include <boost/asio.hpp>
 #include <boost/log/core.hpp>
 #include <boost/log/sinks.hpp>
@@ -14,10 +5,18 @@
 #include <boost/log/sources/record_ostream.hpp>
 #include <boost/process.hpp>
 #include <boost/smart_ptr.hpp>
-#include <chesstillo/fen.hpp>
-#include <chesstillo/game.hpp>
-#include <chesstillo/move.hpp>
-#include <chesstillo/types.hpp>
+#include <condition_variable>
+#include <engine/fen.hpp>
+#include <engine/game.hpp>
+#include <engine/move.hpp>
+#include <engine/types.hpp>
+#include <format>
+#include <fstream>
+#include <mutex>
+#include <string>
+#include <string_view>
+#include <thread>
+#include <variant>
 
 namespace asio = boost::asio;
 namespace log = boost::log;
@@ -44,8 +43,12 @@ void UI::Bind(UIBindFn fn) { callback_ = fn; }
 void UI::Bind(UIBindPtr fn) { callback_ = fn; }
 
 Game::Game(Player &white, Player &black, std::string_view start_pos)
-    : start_pos(start_pos), white_(white), black_(black), stop_(true),
-      ready_(false), thread_(&Game::Loop, this) {}
+    : start_pos(start_pos),
+      white_(white),
+      black_(black),
+      stop_(true),
+      ready_(false),
+      thread_(&Game::Loop, this) {}
 
 // TODO: don't accept a pointer?
 void Game::Init(UI *ui) {

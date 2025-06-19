@@ -1,18 +1,16 @@
 #include <cstdarg>
 #include <cstddef>
 #include <cstdint>
+#include <engine/board.hpp>
+#include <engine/constants.hpp>
+#include <engine/move.hpp>
+#include <engine/move_gen.hpp>
+#include <engine/position.hpp>
+#include <engine/types.hpp>
+#include <engine/utility.hpp>
+#include <magic_bits.hpp>
 #include <tuple>
 #include <utility>
-
-#include <magic_bits.hpp>
-
-#include <chesstillo/board.hpp>
-#include <chesstillo/constants.hpp>
-#include <chesstillo/move.hpp>
-#include <chesstillo/move_gen.hpp>
-#include <chesstillo/position.hpp>
-#include <chesstillo/types.hpp>
-#include <chesstillo/utility.hpp>
 
 inline bool PieceAt(Piece *piece, Piece *mailbox, uint8_t square) {
   *piece = mailbox[square];

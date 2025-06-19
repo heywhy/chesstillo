@@ -4,11 +4,11 @@
 #include <cstdint>
 #include <utility>
 
-#include <chesstillo/board.hpp>
-#include <chesstillo/constants.hpp>
-#include <chesstillo/move.hpp>
-#include <chesstillo/position.hpp>
-#include <chesstillo/types.hpp>
+#include "board.hpp"
+#include "constants.hpp"
+#include "move.hpp"
+#include "position.hpp"
+#include "types.hpp"
 
 // The max number of squares any piece can travel to is that of the queen
 #define MAX_PIECE_MOVES 27
@@ -36,22 +36,22 @@
 #define MOVE_SOUTH_WEST_WEST(bitboard) (bitboard >> 10) & ~(kGFile | kHFile)
 #define MOVE_SOUTH_SOUTH_WEST(bitboard) (bitboard >> 17) & ~kHFile
 
-#define KNIGHT_ATTACKS(bitboard)                                               \
-  (MOVE_NORTH_NORTH_EAST(bitboard) | MOVE_NORTH_EAST_EAST(bitboard) |          \
-   MOVE_SOUTH_EAST_EAST(bitboard) | MOVE_SOUTH_SOUTH_EAST(bitboard) |          \
-   MOVE_NORTH_NORTH_WEST(bitboard) | MOVE_NORTH_WEST_WEST(bitboard) |          \
+#define KNIGHT_ATTACKS(bitboard)                                      \
+  (MOVE_NORTH_NORTH_EAST(bitboard) | MOVE_NORTH_EAST_EAST(bitboard) | \
+   MOVE_SOUTH_EAST_EAST(bitboard) | MOVE_SOUTH_SOUTH_EAST(bitboard) | \
+   MOVE_NORTH_NORTH_WEST(bitboard) | MOVE_NORTH_WEST_WEST(bitboard) | \
    MOVE_SOUTH_WEST_WEST(bitboard) | MOVE_SOUTH_SOUTH_WEST(bitboard))
 
-#define KING_ATTACKS(bitboard)                                                 \
-  (MOVE_NORTH(bitboard) | MOVE_EAST(bitboard) | MOVE_SOUTH(bitboard) |         \
-   MOVE_WEST(bitboard) | MOVE_NORTH_EAST(bitboard) |                           \
-   MOVE_NORTH_WEST(bitboard) | MOVE_SOUTH_EAST(bitboard) |                     \
+#define KING_ATTACKS(bitboard)                                         \
+  (MOVE_NORTH(bitboard) | MOVE_EAST(bitboard) | MOVE_SOUTH(bitboard) | \
+   MOVE_WEST(bitboard) | MOVE_NORTH_EAST(bitboard) |                   \
+   MOVE_NORTH_WEST(bitboard) | MOVE_SOUTH_EAST(bitboard) |             \
    MOVE_SOUTH_WEST(bitboard))
 
 #define LOOP_INDEX static_cast<uint8_t>(_loop_i)
-#define BITLOOP(X)                                                             \
-  for (Bitboard _x_copy = X, _loop_i = BIT_INDEX(_x_copy); _x_copy;            \
-       _x_copy ^= BITBOARD_FOR_SQUARE(LOOP_INDEX),                             \
+#define BITLOOP(X)                                                  \
+  for (Bitboard _x_copy = X, _loop_i = BIT_INDEX(_x_copy); _x_copy; \
+       _x_copy ^= BITBOARD_FOR_SQUARE(LOOP_INDEX),                  \
                 _loop_i = BIT_INDEX(_x_copy))
 
 Bitboard CheckMask(Position &position);
@@ -59,8 +59,8 @@ std::pair<Bitboard, Bitboard> PinMask(Position &position);
 
 MoveList GenerateMoves(Position &position);
 
-void AddMovesToList(MoveList &moves, uint8_t from, Bitboard targets, Piece piece,
-                    Piece *mailbox, Bitboard enemy_bb);
+void AddMovesToList(MoveList &moves, uint8_t from, Bitboard targets,
+                    Piece piece, Piece *mailbox, Bitboard enemy_bb);
 
 constexpr Bitboard RankMask(uint8_t square) { return kRank1 << (square & 56); }
 
@@ -112,7 +112,8 @@ constexpr Bitboard RookXRayAttacks(Bitboard attacks, Bitboard occupied_sqs,
          kSlidingAttacks.Rook(occupied_sqs ^ (blockers & attacks), square);
 }
 
-template <enum Color side> constexpr Bitboard PushPawn(Bitboard b) {
+template <enum Color side>
+constexpr Bitboard PushPawn(Bitboard b) {
   if constexpr (side == WHITE) {
     return MOVE_NORTH(b);
   }
@@ -162,7 +163,8 @@ constexpr inline Bitboard PawnTargets(Bitboard b) {
   }
 }
 
-template <enum Color side> constexpr Bitboard PawnTargets(Bitboard b) {
+template <enum Color side>
+constexpr Bitboard PawnTargets(Bitboard b) {
   return PawnTargets<side, EAST>(b) | PawnTargets<side, WEST>(b);
 }
 #endif

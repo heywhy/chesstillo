@@ -1,6 +1,5 @@
 #include <atomic>
-
-#include <chesstillo/threads.hpp>
+#include <engine/threads.hpp>
 
 void SpinLock::Lock() {
   while (atomic_flag_.test_and_set(std::memory_order_acquire)) {

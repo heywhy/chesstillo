@@ -1,33 +1,32 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
-
-#include <chesstillo/board.hpp>
-#include <chesstillo/types.hpp>
-#include <chesstillo/utility.hpp>
+#include <engine/board.hpp>
+#include <engine/types.hpp>
+#include <engine/utility.hpp>
 
 bool PieceToChar(char *c, Piece piece) {
   switch (piece) {
-  case ROOK:
-    *c = 'r';
-    break;
-  case KNIGHT:
-    *c = 'n';
-    break;
-  case BISHOP:
-    *c = 'b';
-    break;
-  case QUEEN:
-    *c = 'q';
-    break;
-  case KING:
-    *c = 'k';
-    break;
-  case PAWN:
-    *c = 'p';
-    break;
-  default:
-    return false;
+    case ROOK:
+      *c = 'r';
+      break;
+    case KNIGHT:
+      *c = 'n';
+      break;
+    case BISHOP:
+      *c = 'b';
+      break;
+    case QUEEN:
+      *c = 'q';
+      break;
+    case KING:
+      *c = 'k';
+      break;
+    case PAWN:
+      *c = 'p';
+      break;
+    default:
+      return false;
   }
 
   return true;

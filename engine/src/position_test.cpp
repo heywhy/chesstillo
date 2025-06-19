@@ -1,12 +1,12 @@
 #include <gtest/gtest.h>
 
 #include <array>
-#include <chesstillo/board.hpp>
-#include <chesstillo/fen.hpp>
-#include <chesstillo/position.hpp>
-#include <chesstillo/types.hpp>
-#include <chesstillo/utility.hpp>
 #include <cstdint>
+#include <engine/board.hpp>
+#include <engine/fen.hpp>
+#include <engine/position.hpp>
+#include <engine/types.hpp>
+#include <engine/utility.hpp>
 #include <utility>
 
 class PositionTestSuite : public ::testing::Test {

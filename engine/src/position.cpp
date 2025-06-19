@@ -1,12 +1,12 @@
-#include <chesstillo/board.hpp>
-#include <chesstillo/constants.hpp>
-#include <chesstillo/fen.hpp>
-#include <chesstillo/fill.hpp>
-#include <chesstillo/move_gen.hpp>
-#include <chesstillo/position.hpp>
-#include <chesstillo/types.hpp>
-#include <chesstillo/utility.hpp>
 #include <cstdint>
+#include <engine/board.hpp>
+#include <engine/constants.hpp>
+#include <engine/fen.hpp>
+#include <engine/fill.hpp>
+#include <engine/move_gen.hpp>
+#include <engine/position.hpp>
+#include <engine/types.hpp>
+#include <engine/utility.hpp>
 #include <tuple>
 #include <utility>
 

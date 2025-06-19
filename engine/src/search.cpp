@@ -1,20 +1,23 @@
 #include <cassert>
 #include <cstdio>
-
-#include <chesstillo/constants.hpp>
-#include <chesstillo/evaluation.hpp>
-#include <chesstillo/move.hpp>
-#include <chesstillo/move_gen.hpp>
-#include <chesstillo/search.hpp>
-#include <chesstillo/types.hpp>
-#include <chesstillo/utility.hpp>
-#include <chesstillo/ybwc.hpp>
+#include <engine/constants.hpp>
+#include <engine/evaluation.hpp>
+#include <engine/move.hpp>
+#include <engine/move_gen.hpp>
+#include <engine/search.hpp>
+#include <engine/types.hpp>
+#include <engine/utility.hpp>
+#include <engine/ybwc.hpp>
 
 Search::Search() : Search(0) {}
 
 Search::Search(int n_tasks)
-    : tasks(nullptr), allow_node_splitting(n_tasks > 1), stop(STOP_END),
-      nodes_(0), result_(new Result()), children_(0) {
+    : tasks(nullptr),
+      allow_node_splitting(n_tasks > 1),
+      stop(STOP_END),
+      nodes_(0),
+      result_(new Result()),
+      children_(0) {
   if (n_tasks) {
     tasks = new TaskStack(n_tasks);
   }
@@ -203,7 +206,6 @@ int Search::NWS_Midgame(int alpha, int depth, Node *parent) {
     node.FirstMove(move_list);
     node.best_score_ = Quiesce(*position, alpha, beta);
   } else {
-
     for (move = node.FirstMove(move_list); move; move = node.NextMove()) {
       if (!node.Split(*move)) {
         UpdateMidgame(*move);

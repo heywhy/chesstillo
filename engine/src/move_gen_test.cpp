@@ -1,10 +1,11 @@
-#include <chesstillo/fen.hpp>
-#include <chesstillo/position.hpp>
-#include <chesstillo/types.hpp>
 #include <gtest/gtest.h>
 
+#include <engine/fen.hpp>
+#include <engine/position.hpp>
+#include <engine/types.hpp>
+
 class MoveGenTestSuite : public testing::Test {
-protected:
+ protected:
   Position position;
 
   void SetUp() override { ApplyFen(position, START_FEN); }

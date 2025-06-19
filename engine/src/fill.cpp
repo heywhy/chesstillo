@@ -1,6 +1,6 @@
-#include <chesstillo/constants.hpp>
-#include <chesstillo/fill.hpp>
-#include <chesstillo/types.hpp>
+#include <engine/constants.hpp>
+#include <engine/fill.hpp>
+#include <engine/types.hpp>
 
 Bitboard SouthOccluded(Bitboard bb, Bitboard pro) {
   bb |= pro & (bb >> 8);

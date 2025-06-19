@@ -1,23 +1,32 @@
 #include <cassert>
 #include <cstdlib>
+#include <engine/move.hpp>
+#include <engine/search.hpp>
+#include <engine/settings.hpp>
+#include <engine/types.hpp>
+#include <engine/ybwc.hpp>
 #include <mutex>
 #include <thread>
 #include <vector>
-
-#include <chesstillo/move.hpp>
-#include <chesstillo/search.hpp>
-#include <chesstillo/settings.hpp>
-#include <chesstillo/types.hpp>
-#include <chesstillo/ybwc.hpp>
 
 Node::Node(Search *search, int alpha, int beta, int depth)
     : Node(search, alpha, beta, depth, nullptr) {}
 
 Node::Node(Search *search, int alpha, int beta, int depth, Node *parent)
-    : alpha(alpha), beta(beta), depth(depth), moves_done(0), moves_todo(0),
-      pv_node(false), parent_(parent), search_(search), help_(nullptr),
-      height_(search_->height_), best_score_(-SCORE_INF),
-      best_move_(Move::NONE), helping_(false), waiting_(false) {
+    : alpha(alpha),
+      beta(beta),
+      depth(depth),
+      moves_done(0),
+      moves_todo(0),
+      pv_node(false),
+      parent_(parent),
+      search_(search),
+      help_(nullptr),
+      height_(search_->height_),
+      best_score_(-SCORE_INF),
+      best_move_(Move::NONE),
+      helping_(false),
+      waiting_(false) {
   assert(MIN_SCORE <= alpha && alpha <= MAX_SCORE);
   assert(MIN_SCORE <= beta && beta <= MAX_SCORE);
   assert(alpha < beta);
@@ -193,7 +202,10 @@ bool GetHelper(Node *master, Node *node, Move *move) {
 }
 
 Task::Task()
-    : run_(false), stop_(false), helping_(false), search_(new class Search),
+    : run_(false),
+      stop_(false),
+      helping_(false),
+      search_(new class Search),
       thread_(&Task::Loop, this) {
   search_->task_ = this;
 }
@@ -291,7 +303,6 @@ void Task::Search() {
 
 TaskStack::TaskStack(int size)
     : size_(size), idle_(0), tasks_(size_), stack_(size_, nullptr) {
-
   for (Task &task : tasks_) {
     task.container_ = this;
 

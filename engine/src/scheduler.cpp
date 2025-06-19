@@ -1,10 +1,9 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdlib>
+#include <engine/scheduler.hpp>
 #include <mutex>
 #include <thread>
-
-#include <chesstillo/scheduler.hpp>
 
 using namespace std::chrono_literals;
 

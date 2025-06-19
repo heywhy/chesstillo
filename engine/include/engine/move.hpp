@@ -6,14 +6,14 @@
 #include <forward_list>
 #include <vector>
 
-#include <chesstillo/constants.hpp>
-#include <chesstillo/types.hpp>
+#include "constants.hpp"
+#include "types.hpp"
 
 class Move;
 typedef std::vector<Move> MoveList;
 
 class Move {
-public:
+ public:
   uint8_t from;
   uint8_t to;
   Piece piece;

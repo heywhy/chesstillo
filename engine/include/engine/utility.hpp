@@ -4,8 +4,8 @@
 #include <cstddef>
 #include <cstdint>
 
-#include <chesstillo/position.hpp>
-#include <chesstillo/types.hpp>
+#include "position.hpp"
+#include "types.hpp"
 
 bool PieceToChar(char *c, Piece piece);
 bool PieceToChar(char *c, Piece piece, Color color);

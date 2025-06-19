@@ -1,8 +1,8 @@
-#include <chesstillo/board.hpp>
-#include <chesstillo/fen.hpp>
-#include <chesstillo/position.hpp>
-#include <chesstillo/types.hpp>
 #include <cstdint>
+#include <engine/board.hpp>
+#include <engine/fen.hpp>
+#include <engine/position.hpp>
+#include <engine/types.hpp>
 #include <string>
 
 uint16_t ToInt(char num) { return num - '0'; }

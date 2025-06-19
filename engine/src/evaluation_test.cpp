@@ -1,12 +1,12 @@
-#include <chesstillo/evaluation.hpp>
-#include <chesstillo/fen.hpp>
-#include <chesstillo/position.hpp>
-#include <chesstillo/types.hpp>
-
 #include <gtest/gtest.h>
 
+#include <engine/evaluation.hpp>
+#include <engine/fen.hpp>
+#include <engine/position.hpp>
+#include <engine/types.hpp>
+
 class EvaluationTestSuite : public testing::Test {
-protected:
+ protected:
   Position position;
 
   void SetUp() override { ApplyFen(position, START_FEN); }

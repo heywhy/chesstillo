@@ -1,21 +1,21 @@
-#include <cstddef>
-#include <cstdio>
-#include <vector>
-
-#include <chesstillo/scheduler.hpp>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
+#include <cstddef>
+#include <cstdio>
+#include <engine/scheduler.hpp>
+#include <vector>
 
 using namespace std::chrono_literals;
 using testing::AtLeast;
 
 class Mock {
-public:
+ public:
   MOCK_METHOD(void, Invoke, ());
 };
 
 class SchedulerTestSuite : public testing::Test {
-protected:
+ protected:
   Mock mock;
   Scheduler scheduler_;
 

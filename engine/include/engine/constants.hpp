@@ -2,8 +2,8 @@
 #define CONSTANTS_HPP
 
 #include <array>
+#include <magic_bits.hpp>
 
-#include "magic_bits.hpp"
 #include "types.hpp"
 
 #define MAX_DEPTH 10  // 125

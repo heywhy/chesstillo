@@ -6,19 +6,19 @@
 #include <thread>
 #include <vector>
 
-#include <chesstillo/move.hpp>
-#include <chesstillo/search.hpp>
-#include <chesstillo/settings.hpp>
-#include <chesstillo/types.hpp>
+#include "move.hpp"
+#include "search.hpp"
+#include "settings.hpp"
+#include "types.hpp"
 
 class Node;
 
 class Task {
-public:
+ public:
   Task();
   ~Task();
 
-private:
+ private:
   bool run_;
   bool stop_;
   bool helping_;
@@ -42,7 +42,7 @@ private:
 };
 
 class Node {
-public:
+ public:
   int alpha;
   int beta;
   int depth;
@@ -58,7 +58,7 @@ public:
   void WaitSlaves();
   void Update(Move &move);
 
-private:
+ private:
   Node *parent_;
   Search *search_;
   Task *help_;
@@ -89,13 +89,13 @@ private:
 class TaskStack;
 
 class TaskStack {
-public:
+ public:
   TaskStack(int size);
 
   Task *GetIdleTask();
   void PutIdleTask(Task *task);
 
-private:
+ private:
   int size_;
   int idle_;
 

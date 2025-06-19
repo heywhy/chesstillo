@@ -1,7 +1,7 @@
-#include <chesstillo/board.hpp>
-#include <chesstillo/constants.hpp>
-#include <chesstillo/move_gen.hpp>
-#include <chesstillo/types.hpp>
+#include <engine/board.hpp>
+#include <engine/constants.hpp>
+#include <engine/move_gen.hpp>
+#include <engine/types.hpp>
 
 const magic_bits::Attacks kSlidingAttacks;
 

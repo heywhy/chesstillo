@@ -3,16 +3,15 @@
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
+#include <engine/board.hpp>
+#include <engine/constants.hpp>
+#include <engine/evaluation.hpp>
+#include <engine/fill.hpp>
+#include <engine/move_gen.hpp>
+#include <engine/position.hpp>
+#include <engine/types.hpp>
 #include <tuple>
 #include <utility>
-
-#include <chesstillo/board.hpp>
-#include <chesstillo/constants.hpp>
-#include <chesstillo/evaluation.hpp>
-#include <chesstillo/fill.hpp>
-#include <chesstillo/move_gen.hpp>
-#include <chesstillo/position.hpp>
-#include <chesstillo/types.hpp>
 
 const int kWeights[26][2] = {{500, 500},
                              {325, 325},
@@ -72,7 +71,8 @@ void EvalState::ComputePhase() {
 }
 
 // TODO: maybe apply pin masks to filter what pieces attacks are counted
-template <enum Color side> void EvalState::ComputeAttackMap() {
+template <enum Color side>
+void EvalState::ComputeAttackMap() {
   Bitboard *side_pieces;
 
   if constexpr (side == WHITE) {
@@ -242,7 +242,8 @@ int EvalKingPosition(EvalState &state) {
 }
 
 // TODO: consider the castling rights while looking at pawn shelter
-template <enum Color side> int KingPosition(EvalState &state) {
+template <enum Color side>
+int KingPosition(EvalState &state) {
   Bitboard king_bb;
   Bitboard storm_area;
   Bitboard *side_pieces;
@@ -490,7 +491,8 @@ int EvalKingDistance(EvalState &state) {
   return KingDistance<WHITE>(state) - KingDistance<BLACK>(state);
 }
 
-template <enum Color side> int DoublePawns(Bitboard pawns) {
+template <enum Color side>
+int DoublePawns(Bitboard pawns) {
   int count = 0;
   constexpr auto file_fills = side == BLACK ? NorthFill : SouthFill;
 
@@ -584,7 +586,8 @@ std::pair<int, int> BackwardPawns(Bitboard side_pawns, Bitboard enemy_pawns) {
   return std::make_pair(count, open);
 }
 
-template <enum Color side> int RooksMobility(EvalState &state) {
+template <enum Color side>
+int RooksMobility(EvalState &state) {
   int squares = 0;
   Bitboard enemy_sqs;
   Bitboard side_rooks;
@@ -610,7 +613,8 @@ template <enum Color side> int RooksMobility(EvalState &state) {
   return squares;
 }
 
-template <enum Color side> int BishopsMobility(EvalState &state) {
+template <enum Color side>
+int BishopsMobility(EvalState &state) {
   int squares = 0;
   Bitboard enemy_sqs;
   Bitboard side_bishops;
@@ -636,7 +640,8 @@ template <enum Color side> int BishopsMobility(EvalState &state) {
   return squares;
 }
 
-template <enum Color side> int KnightsMobility(EvalState &state) {
+template <enum Color side>
+int KnightsMobility(EvalState &state) {
   int squares = 0;
   Bitboard enemy_sqs;
   Bitboard side_knights;
@@ -661,7 +666,8 @@ template <enum Color side> int KnightsMobility(EvalState &state) {
   return squares;
 }
 
-template <enum Color side> int ClosedFiles(EvalState &state) {
+template <enum Color side>
+int ClosedFiles(EvalState &state) {
   int count = 0;
   Bitboard side_pawns;
   Bitboard side_rooks;
@@ -767,7 +773,8 @@ std::tuple<int, int, int> OpenFiles(EvalState &state) {
   return std::make_tuple(count, adj_enemy_king, same_as_enemy_king);
 }
 
-template <enum Color side, enum Piece piece> int Rank7(EvalState &state) {
+template <enum Color side, enum Piece piece>
+int Rank7(EvalState &state) {
   if constexpr (side == WHITE) {
     Bitboard hostile_pawns = state.black_pieces[PAWN] & kRank7;
     Bitboard attacking_piece = state.white_pieces[piece] & kRank7;
@@ -781,7 +788,8 @@ template <enum Color side, enum Piece piece> int Rank7(EvalState &state) {
   return hostile_pawns && std::popcount(attacking_piece);
 }
 
-template <enum Color side> int KingDistance(EvalState &state) {
+template <enum Color side>
+int KingDistance(EvalState &state) {
   int score = 0;
   int king_file;
 

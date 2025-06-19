@@ -1,3 +1,3 @@
-#include <chesstillo/options.hpp>
+#include <engine/options.hpp>
 
 Options options{.tasks = 1};
