@@ -6,10 +6,10 @@
 #include <stack>
 #include <string>
 #include <utility>
-#include <vector>
 
 #include "board.hpp"
 #include "constants.hpp"
+#include "move.hpp"
 #include "types.hpp"
 
 class Position;
@@ -26,14 +26,18 @@ struct _State {
   static void Apply(Position &position, _State &state);
 };
 
-static std::stack<_State> const kEmptyStack;
+static const std::stack<_State> kEmptyStack;
 
 // NOTE: maybe compute position hash on every move instead of at TT.
 class Position {
-public:
+ public:
   Position()
-      : turn_(WHITE), king_ban_(kEmpty), occupied_sqs_(&board_.occupied_sqs_),
-        en_passant_sq_(kEmpty), castling_rights_(0), fullmove_counter_(1),
+      : turn_(WHITE),
+        king_ban_(kEmpty),
+        occupied_sqs_(&board_.occupied_sqs_),
+        en_passant_sq_(kEmpty),
+        castling_rights_(0),
+        fullmove_counter_(1),
         halfmove_clock_(0) {};
 
   Position(const Position &src) {
@@ -55,20 +59,20 @@ public:
   }
 
   void Reset();
-  void Make(Move move);
+  void Make(Move &move);
   void Undo(Move &move);
-  bool PieceAt(char *, uint8_t);
-  bool PieceAt(Piece *, uint8_t);
+  bool PieceAt(char *, uint8_t) const;
+  bool PieceAt(Piece *, uint8_t) const;
 
-  Color GetTurn() { return turn_; }
+  Color GetTurn() const { return turn_; }
   Bitboard OccupiedSquares() { return *occupied_sqs_; }
-  inline Bitboard EnPassantSquare() { return en_passant_sq_; }
+  inline Bitboard EnPassantSquare() const { return en_passant_sq_; }
 
-  inline bool CanCastle(uint8_t direction) {
+  inline bool CanCastle(uint8_t direction) const {
     return castling_rights_ & (static_cast<std::uint8_t>(1) << direction);
   }
 
-private:
+ private:
   Color turn_;
   Board board_;
   Bitboard king_ban_;
@@ -90,10 +94,11 @@ private:
   friend struct _State;
   friend struct EvalState;
   friend class TT;
+  friend class SearchManager;
 
   friend int SEE(Position &position);
   friend int Evaluate(Position &position);
-  friend std::vector<Move> GenerateMoves(Position &position);
+  friend MoveList GenerateMoves(Position &position);
   friend Bitboard CheckMask(Position &position);
   friend std::pair<Bitboard, Bitboard> PinMask(Position &position);
   friend std::string PositionToFen(Position &position);

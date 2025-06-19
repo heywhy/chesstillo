@@ -43,7 +43,7 @@ bool PieceToChar(char *c, Piece piece, Color color) {
   return true;
 }
 
-Move DeduceMove(Position &position, uint8_t from, uint8_t to) {
+Move DeduceMove(const Position &position, uint8_t from, uint8_t to) {
   Piece piece;
   Piece captured;
 

@@ -8,6 +8,7 @@
 
 #include <chesstillo/board.hpp>
 #include <chesstillo/constants.hpp>
+#include <chesstillo/move.hpp>
 #include <chesstillo/move_gen.hpp>
 #include <chesstillo/position.hpp>
 #include <chesstillo/types.hpp>
@@ -19,10 +20,10 @@ inline bool PieceAt(Piece *piece, Piece *mailbox, uint8_t square) {
   return *piece != NONE;
 }
 
-Moves GenerateMoves(Position &position) {
-  Moves moves;
+MoveList GenerateMoves(Position &position) {
+  MoveList move_list;
 
-  moves.reserve(218);
+  move_list.reserve(218);
 
   Color opp = OPP(position.turn_);
   Bitboard occupied_sqs = *position.occupied_sqs_;
@@ -57,13 +58,13 @@ Moves GenerateMoves(Position &position) {
     move.captured = piece;
     move.Set(CAPTURE);
 
-    moves.push_back(std::move(move));
+    move_list.push_back(std::move(move));
   }
 
-  BITLOOP(quiet_moves) { moves.emplace_back(king_sq, LOOP_INDEX, KING); }
+  BITLOOP(quiet_moves) { move_list.emplace_back(king_sq, LOOP_INDEX, KING); }
 
   if (check_mask == kEmpty) {
-    return moves;
+    return move_list;
   }
 
   // 2. pawn pushes, pawn captures, en passant
@@ -101,7 +102,7 @@ Moves GenerateMoves(Position &position) {
       uint8_t to = LOOP_INDEX;
       uint8_t from = to + file_shift;
 
-      moves.emplace_back(from, to, PAWN);
+      move_list.emplace_back(from, to, PAWN);
     }
 
     int dbl_file_shift = file_shift * 2;
@@ -117,7 +118,7 @@ Moves GenerateMoves(Position &position) {
       uint8_t to = LOOP_INDEX;
       uint8_t from = to + dbl_file_shift;
 
-      moves.emplace_back(from, to, PAWN);
+      move_list.emplace_back(from, to, PAWN);
     }
   }
 
@@ -149,7 +150,7 @@ Moves GenerateMoves(Position &position) {
         move.captured = piece;
         move.Set(CAPTURE);
 
-        moves.push_back(std::move(move));
+        move_list.push_back(std::move(move));
       }
 
       Bitboard east_targets =
@@ -166,7 +167,7 @@ Moves GenerateMoves(Position &position) {
         move.captured = piece;
         move.Set(CAPTURE);
 
-        moves.push_back(std::move(move));
+        move_list.push_back(std::move(move));
       }
     }
 
@@ -187,7 +188,7 @@ Moves GenerateMoves(Position &position) {
 
         move.Set(EN_PASSANT);
 
-        moves.push_back(std::move(move));
+        move_list.push_back(std::move(move));
       }
 
       Bitboard east_targets =
@@ -200,7 +201,7 @@ Moves GenerateMoves(Position &position) {
 
         move.Set(EN_PASSANT);
 
-        moves.push_back(std::move(move));
+        move_list.push_back(std::move(move));
       }
     }
   }
@@ -213,7 +214,7 @@ Moves GenerateMoves(Position &position) {
       uint8_t from = LOOP_INDEX;
       Bitboard targets = kAttackMaps[KNIGHT][from] & movable_sqs;
 
-      AddMovesToList(moves, from, targets, KNIGHT, position.mailbox_,
+      AddMovesToList(move_list, from, targets, KNIGHT, position.mailbox_,
                      enemy_pieces_bb);
     }
   }
@@ -235,7 +236,7 @@ Moves GenerateMoves(Position &position) {
 
       Piece t = bb & queens ? QUEEN : BISHOP;
 
-      AddMovesToList(moves, from, targets, t, position.mailbox_,
+      AddMovesToList(move_list, from, targets, t, position.mailbox_,
                      enemy_pieces_bb);
     }
 
@@ -246,7 +247,7 @@ Moves GenerateMoves(Position &position) {
 
       targets &= ~own_pieces_bb;
 
-      AddMovesToList(moves, from, targets, BISHOP, position.mailbox_,
+      AddMovesToList(move_list, from, targets, BISHOP, position.mailbox_,
                      enemy_pieces_bb);
     }
   }
@@ -266,7 +267,7 @@ Moves GenerateMoves(Position &position) {
 
       Piece t = bb & queens ? QUEEN : ROOK;
 
-      AddMovesToList(moves, from, targets, t, position.mailbox_,
+      AddMovesToList(move_list, from, targets, t, position.mailbox_,
                      enemy_pieces_bb);
     }
 
@@ -277,7 +278,7 @@ Moves GenerateMoves(Position &position) {
 
       targets &= ~own_pieces_bb;
 
-      AddMovesToList(moves, from, targets, ROOK, position.mailbox_,
+      AddMovesToList(move_list, from, targets, ROOK, position.mailbox_,
                      enemy_pieces_bb);
     }
   }
@@ -293,7 +294,7 @@ Moves GenerateMoves(Position &position) {
 
       targets &= ~own_pieces_bb;
 
-      AddMovesToList(moves, from, targets, QUEEN, position.mailbox_,
+      AddMovesToList(move_list, from, targets, QUEEN, position.mailbox_,
                      enemy_pieces_bb);
     }
   }
@@ -324,7 +325,7 @@ Moves GenerateMoves(Position &position) {
 
       move.Set(CASTLE_RIGHT);
 
-      moves.push_back(std::move(move));
+      move_list.push_back(std::move(move));
     }
 
     if (check_mask == kUniverse && position.castling_rights_ & queen_side &&
@@ -334,7 +335,7 @@ Moves GenerateMoves(Position &position) {
 
       move.Set(CASTLE_LEFT);
 
-      moves.push_back(std::move(move));
+      move_list.push_back(std::move(move));
     }
   }
 
@@ -362,7 +363,7 @@ Moves GenerateMoves(Position &position) {
         move.Set(PROMOTION);
         move.promoted = piece;
 
-        moves.push_back(std::move(move));
+        move_list.push_back(std::move(move));
       }
     }
 
@@ -394,7 +395,7 @@ Moves GenerateMoves(Position &position) {
           move.promoted = piece;
           move.captured = enemy_piece;
 
-          moves.push_back(std::move(move));
+          move_list.push_back(std::move(move));
         }
       }
 
@@ -419,17 +420,17 @@ Moves GenerateMoves(Position &position) {
           move.promoted = piece;
           move.captured = enemy_piece;
 
-          moves.push_back(std::move(move));
+          move_list.push_back(std::move(move));
         }
       }
     }
   }
 
-  return moves;
+  return move_list;
 }
 
-void AddMovesToList(Moves &moves, uint8_t from, Bitboard targets, Piece piece,
-                    Piece *mailbox, Bitboard enemy_bb) {
+void AddMovesToList(MoveList &move_list, uint8_t from, Bitboard targets,
+                    Piece piece, Piece *mailbox, Bitboard enemy_bb) {
   BITLOOP(targets) {
     Piece captured;
     Move move(from, LOOP_INDEX, piece);
@@ -440,7 +441,7 @@ void AddMovesToList(Moves &moves, uint8_t from, Bitboard targets, Piece piece,
       move.captured = captured;
     }
 
-    moves.push_back(std::move(move));
+    move_list.push_back(std::move(move));
   }
 }
 

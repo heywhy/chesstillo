@@ -6,6 +6,7 @@
 #include <thread>
 #include <vector>
 
+#include <chesstillo/move.hpp>
 #include <chesstillo/search.hpp>
 #include <chesstillo/settings.hpp>
 #include <chesstillo/types.hpp>
@@ -55,6 +56,7 @@ public:
 
   bool Split(Move &move);
   void WaitSlaves();
+  void Update(Move &move);
 
 private:
   Node *parent_;
@@ -63,6 +65,9 @@ private:
 
   int height_;
   int best_score_;
+
+  Move *move_;
+  Move best_move_;
   std::vector<Search *> slaves_;
 
   bool helping_;
@@ -73,10 +78,13 @@ private:
   std::condition_variable cv_;
 
   friend class Task;
+  friend class Search;
   friend bool GetHelper(Node *master, Node *node, Move *move);
-};
 
-bool GetHelper(Node *master, Node *node, Move *move);
+  Move *NextMove();
+  Move *NextMoveLockless();
+  Move *FirstMove(MoveList &move_list);
+};
 
 class TaskStack;
 

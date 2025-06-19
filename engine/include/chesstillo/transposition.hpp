@@ -9,7 +9,7 @@
 #include <chesstillo/position.hpp>
 #include <chesstillo/types.hpp>
 
-#define MAX_TRANSPOSITION_SIZE 100
+#define MAX_TRANSPOSITION_SIZE 2000
 #define ZOBRIST_INDEX(piece, color, square)                                    \
   ((piece * 128) + (64 * color) + square)
 

@@ -13,8 +13,8 @@
 #define BIT_INDEX(x) std::countr_zero(x)
 #define BIT_INDEX_MSB(x) (63 - std::countl_zero(x))
 #define BITBOARD_FOR_SQUARE(index) static_cast<Bitboard>(1) << index
-#define BOARD_OCCUPANCY(pieces)                                                \
-  (pieces[KING] | pieces[QUEEN] | pieces[BISHOP] | pieces[KNIGHT] |            \
+#define BOARD_OCCUPANCY(pieces)                                     \
+  (pieces[KING] | pieces[QUEEN] | pieces[BISHOP] | pieces[KNIGHT] | \
    pieces[ROOK] | pieces[PAWN])
 
 struct Coord {
@@ -25,12 +25,12 @@ struct Coord {
 bool CoordForSquare(Coord *coord, std::uint8_t square);
 
 class Board {
-public:
+ public:
   Board() : occupied_sqs_(kEmpty) {}
 
   void Reset();
 
-private:
+ private:
   // pawn, rook, knight, bishop, queen, king
   Bitboard pieces_[2][6];
   Bitboard occupied_sqs_;

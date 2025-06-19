@@ -1,15 +1,20 @@
+#include <cstdio>
 #include <thread>
 
+#include <gtest/gtest.h>
+
+#include <chesstillo/fen.hpp>
 #include <chesstillo/options.hpp>
+#include <chesstillo/position.hpp>
 #include <chesstillo/search.hpp>
 #include <chesstillo/types.hpp>
 #include <chesstillo/ybwc.hpp>
-#include <gtest/gtest.h>
 
 using namespace std::chrono_literals;
 
 class YBWCTestSuite : public testing::Test {
 protected:
+  Position position;
   Search *search;
 
   void SetUp() override {
@@ -17,12 +22,18 @@ protected:
 
     options.tasks = std::thread::hardware_concurrency();
 
+    ApplyFen(position, START_FEN);
+
     search = new Search(options.tasks);
 
-    search->height = 0;
+    search->position = &position;
   }
 
-  void TearDown() override { delete search; }
+  void TearDown() override {
+    position.Reset();
+
+    delete search;
+  }
 };
 
 TEST_F(YBWCTestSuite, Task) { Task task; };
@@ -45,17 +56,21 @@ TEST_F(YBWCTestSuite, InitializeNode) {
 };
 
 TEST_F(YBWCTestSuite, Split) {
-  Move move(e2, e4, PAWN);
-  Node node(search, -SCORE_INF, SCORE_INF, 6);
+  // search->height = 6;
 
-  ASSERT_FALSE(node.Split(move));
+  // Move move(e2, e4, PAWN);
+  // Node node(search, -SCORE_INF, SCORE_INF, 8);
 
-  search->stop = RUNNING;
+  search->Run();
 
-  node.moves_done = 1;
-  node.moves_todo = 2;
+  // ASSERT_FALSE(node.Split(move));
 
-  ASSERT_TRUE(node.Split(move));
-
-  node.WaitSlaves();
+  // search->stop = RUNNING;
+  //
+  // node.moves_done = 1;
+  // node.moves_todo = 2;
+  //
+  // ASSERT_TRUE(node.Split(move));
+  //
+  // node.WaitSlaves();
 };

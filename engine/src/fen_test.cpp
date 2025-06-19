@@ -1,7 +1,8 @@
+#include <gtest/gtest.h>
+
 #include <chesstillo/fen.hpp>
 #include <chesstillo/position.hpp>
 #include <chesstillo/types.hpp>
-#include <gtest/gtest.h>
 
 TEST(FenTest, ApplyFen) {
   Position position;

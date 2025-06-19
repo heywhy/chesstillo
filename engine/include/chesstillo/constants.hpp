@@ -6,6 +6,7 @@
 #include "magic_bits.hpp"
 #include "types.hpp"
 
+#define MAX_DEPTH 10  // 125
 #define MAX_THREADS 256
 
 inline constexpr Bitboard kEmpty = 0;
@@ -34,6 +35,9 @@ inline constexpr Bitboard kQueenSide = 0x0F0F0F0F0F0F0F0F;
 inline constexpr Bitboard kCastleKingSidePath = 0x6000000000000060;
 inline constexpr Bitboard kCastleQueenSidePath = 0x0C0000000000000C;
 
+inline constexpr Bitboard kCenter = 0x0000001818000000;
+inline constexpr Bitboard kExtendedCenter = 0x00003C3C3C3C0000;
+
 typedef std::array<std::array<Bitboard, 64>, 4> AttackMaps;
 typedef std::array<std::array<std::array<Bitboard, 64>, 64>, 2> CheckBetween;
 
@@ -43,4 +47,5 @@ extern const magic_bits::Attacks kSlidingAttacks;
 
 consteval AttackMaps InitAttackMaps();
 consteval CheckBetween InitCheckBetween();
+
 #endif

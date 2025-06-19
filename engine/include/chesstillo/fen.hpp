@@ -1,9 +1,8 @@
 #ifndef FEN_HPP
 #define FEN_HPP
 
-#include <string>
-
 #include <chesstillo/position.hpp>
+#include <string>
 
 #define START_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 

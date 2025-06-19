@@ -6,6 +6,7 @@
 
 #include <chesstillo/board.hpp>
 #include <chesstillo/constants.hpp>
+#include <chesstillo/move.hpp>
 #include <chesstillo/position.hpp>
 #include <chesstillo/types.hpp>
 
@@ -56,9 +57,9 @@
 Bitboard CheckMask(Position &position);
 std::pair<Bitboard, Bitboard> PinMask(Position &position);
 
-Moves GenerateMoves(Position &position);
+MoveList GenerateMoves(Position &position);
 
-void AddMovesToList(Moves &moves, uint8_t from, Bitboard targets, Piece piece,
+void AddMovesToList(MoveList &moves, uint8_t from, Bitboard targets, Piece piece,
                     Piece *mailbox, Bitboard enemy_bb);
 
 constexpr Bitboard RankMask(uint8_t square) { return kRank1 << (square & 56); }
@@ -80,7 +81,7 @@ constexpr Bitboard AntiDiagonalMask(uint8_t square) {
 }
 
 constexpr Bitboard SquaresInBetween(unsigned int from, unsigned int to) {
-  Bitboard const M = -1;
+  const Bitboard M = -1;
   Bitboard btwn, line, rank, file;
 
   to = to >= 64 ? 63 : to;

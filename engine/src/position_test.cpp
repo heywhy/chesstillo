@@ -1,15 +1,16 @@
-#include <array>
-#include <cstdint>
+#include <gtest/gtest.h>
 
+#include <array>
 #include <chesstillo/board.hpp>
 #include <chesstillo/fen.hpp>
 #include <chesstillo/position.hpp>
 #include <chesstillo/types.hpp>
 #include <chesstillo/utility.hpp>
-#include <gtest/gtest.h>
+#include <cstdint>
+#include <utility>
 
 class PositionTestSuite : public ::testing::Test {
-protected:
+ protected:
   Position position;
 
   void SetUp() override { ApplyFen(position, START_FEN); }
@@ -29,7 +30,7 @@ TEST_F(PositionTestSuite, ApplyPawnMove) {
 }
 
 TEST_F(PositionTestSuite, ApplyPawnCaptureMove) {
-  std::array<std::array<uint8_t, 2>, 6> moves = {
+  std::array<std::pair<uint8_t, uint8_t>, 6> moves = {
       {{e2, e4}, {d7, d5}, {e4, d5}, {c7, c6}, {d2, d4}, {c6, d5}}};
 
   for (auto [from, to] : moves) {
@@ -43,9 +44,11 @@ TEST_F(PositionTestSuite, ApplyPawnCaptureMove) {
 }
 
 TEST_F(PositionTestSuite, MoveKnight) {
+  Move move(d4, e6, KNIGHT);
+
   ApplyFen(position, "8/8/4n3/8/3N4/8/8/8 w - - 0 1");
 
-  position.Make({d4, e6, KNIGHT});
+  position.Make(move);
 
   ASSERT_EQ(PositionToFen(position), "8/8/4N3/8/8/8/8/8 b - - 1 1");
 }

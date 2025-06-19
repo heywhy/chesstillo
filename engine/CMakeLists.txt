@@ -8,7 +8,22 @@ format(engine "${ENGINE_SRC}")
 
 add_library(engine
   STATIC
-  src/main.cpp
+  src/initializer.cpp
+  src/utility.cpp
+  src/board.cpp
+  src/position.cpp
+  src/fen.cpp
+  src/fill.cpp
+  # src/game.cpp
+  src/move.cpp
+  src/move_gen.cpp
+  src/evaluation.cpp
+  src/options.cpp
+  src/search.cpp
+  src/scheduler.cpp
+  src/threads.cpp
+  # src/transposition.cpp
+  src/ybwc.cpp
 )
 
 if(TARGET engine_format)
@@ -21,9 +36,16 @@ target_compile_options(engine PRIVATE ${COMPILE_OPTIONS})
 target_link_options(engine PRIVATE -O3)
 
 target_link_libraries(engine
-  PRIVATE magic_bits
+  PUBLIC magic_bits
   PRIVATE uci
 )
+
+add_executable(chesstillo src/main.cpp)
+
+target_compile_options(chesstillo PRIVATE ${COMPILE_OPTIONS})
+target_link_options(chesstillo PRIVATE -O3)
+
+target_link_libraries(chesstillo PRIVATE engine)
 
 file(
   GLOB

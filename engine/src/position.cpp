@@ -1,7 +1,3 @@
-#include <cstdint>
-#include <tuple>
-#include <utility>
-
 #include <chesstillo/board.hpp>
 #include <chesstillo/constants.hpp>
 #include <chesstillo/fen.hpp>
@@ -10,6 +6,9 @@
 #include <chesstillo/position.hpp>
 #include <chesstillo/types.hpp>
 #include <chesstillo/utility.hpp>
+#include <cstdint>
+#include <tuple>
+#include <utility>
 
 _State _State::From(Position &position) {
   return {position.king_ban_,        *position.occupied_sqs_,
@@ -26,13 +25,13 @@ void _State::Apply(Position &position, _State &state) {
   position.en_passant_target_ = state.en_passant_target;
 }
 
-bool Position::PieceAt(Piece *piece, uint8_t index) {
+bool Position::PieceAt(Piece *piece, uint8_t index) const {
   *piece = mailbox_[index];
 
   return *piece != NONE;
 }
 
-bool Position::PieceAt(char *c, uint8_t index) {
+bool Position::PieceAt(char *c, uint8_t index) const {
   Piece piece;
 
   if (!PieceAt(&piece, index)) {
@@ -65,7 +64,7 @@ void Position::Reset() {
   }
 }
 
-void Position::Make(Move move) {
+void Position::Make(Move &move) {
   history_.push(_State::From(*this));
 
   Color opp = OPP(turn_);
@@ -266,10 +265,10 @@ void Position::UpdateInternals() {
   if (en_passant_target_ && (ep_rank & king) && (ep_rank & enemy_rook_queen) &&
       (ep_rank & pawns)) {
     auto [pawn_west_targets, pawn_east_targets] =
-        turn_ == WHITE ? std::make_pair(PawnTargets<BLACK, WEST>,
-                                         PawnTargets<BLACK, EAST>)
-                       : std::make_pair(PawnTargets<WHITE, WEST>,
-                                         PawnTargets<WHITE, EAST>);
+        turn_ == WHITE
+            ? std::make_pair(PawnTargets<BLACK, WEST>, PawnTargets<BLACK, EAST>)
+            : std::make_pair(PawnTargets<WHITE, WEST>,
+                             PawnTargets<WHITE, EAST>);
 
     Bitboard west_targets = pawn_west_targets(en_passant_sq_) & pawns;
     Bitboard east_targets = pawn_east_targets(en_passant_sq_) & pawns;

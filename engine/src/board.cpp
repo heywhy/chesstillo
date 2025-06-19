@@ -1,8 +1,7 @@
-#include <cstdint>
-
 #include <chesstillo/board.hpp>
 #include <chesstillo/types.hpp>
 #include <chesstillo/utility.hpp>
+#include <cstdint>
 
 bool CoordForSquare(Coord *coord, uint8_t square) {
   if (square >= 0 && square < 64) {

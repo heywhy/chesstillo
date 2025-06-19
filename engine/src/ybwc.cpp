@@ -4,6 +4,7 @@
 #include <thread>
 #include <vector>
 
+#include <chesstillo/move.hpp>
 #include <chesstillo/search.hpp>
 #include <chesstillo/settings.hpp>
 #include <chesstillo/types.hpp>
@@ -15,8 +16,8 @@ Node::Node(Search *search, int alpha, int beta, int depth)
 Node::Node(Search *search, int alpha, int beta, int depth, Node *parent)
     : alpha(alpha), beta(beta), depth(depth), moves_done(0), moves_todo(0),
       pv_node(false), parent_(parent), search_(search), help_(nullptr),
-      height_(search_->height), best_score_(-SCORE_INF), helping_(false),
-      waiting_(false) {
+      height_(search_->height_), best_score_(-SCORE_INF),
+      best_move_(Move::NONE), helping_(false), waiting_(false) {
   assert(MIN_SCORE <= alpha && alpha <= MAX_SCORE);
   assert(MIN_SCORE <= beta && beta <= MAX_SCORE);
   assert(alpha < beta);
@@ -61,7 +62,7 @@ bool Node::Split(Move &move) {
 void Node::WaitSlaves() {
   std::unique_lock lock(mutex_);
 
-  if ((alpha >= beta || search_->stop) && slaves_.size()) {
+  if (alpha >= beta || search_->stop) {
     for (Search *search : slaves_) {
       search->StopAll(STOP_PARALLEL);
     }
@@ -89,6 +90,74 @@ void Node::WaitSlaves() {
     search_->stop = RUNNING;
     stop_point_ = false;
   }
+}
+
+Move *Node::FirstMove(MoveList &move_list) {
+  Move *move = nullptr;
+  std::unique_lock lock(mutex_);
+
+  moves_done = 0;
+  moves_todo = move_list.size();
+  move_ = move_list.data();
+
+  if (move_ && !search_->stop) {
+    assert(alpha < beta);
+    move = move_;
+  }
+
+  lock.unlock();
+
+  return move;
+}
+
+Move *Node::NextMove() {
+  std::unique_lock lock(mutex_);
+
+  Move *move = NextMoveLockless();
+
+  lock.unlock();
+
+  return move;
+}
+
+Move *Node::NextMoveLockless() {
+  Move *move = nullptr;
+
+  if (move_ && alpha < beta && !search_->stop && moves_todo > 1) {
+    ++moves_done;
+    --moves_todo;
+
+    move = ++move_;
+  }
+
+  return move;
+}
+
+void Node::Update(Move &move) {
+  std::unique_lock lock(mutex_);
+
+  if (!search_->stop && move.score > best_score_) {
+    best_score_ = move.score;
+    best_move_ = move;
+
+    if (height_ == 0) {
+      search_->RecordBestMove(move, alpha, beta, depth);
+      --search_->result_->moves_left_;
+    }
+
+    if (best_score_ > alpha) {
+      alpha = best_score_;
+    }
+  }
+
+  // INFO: stop slaves
+  if (alpha >= beta) {
+    for (Search *search : slaves_) {
+      search->StopAll(STOP_PARALLEL);
+    }
+  }
+
+  lock.unlock();
 }
 
 bool GetHelper(Node *master, Node *node, Move *move) {
@@ -161,21 +230,17 @@ void Task::Search() {
   search_->SetState(node_->search_->stop);
 
   while (move_ && !search_->stop) {
-    int const alpha = node_->alpha;
+    const int alpha = node_->alpha;
 
     if (alpha >= node_->beta) {
       break;
     }
 
     // search middlegame
-    move_->score = 0; // NWS score
+    move_->score =
+        -search_->Midgame(*move_, -alpha - 1, search_->depth - 1, node_);
 
-    if (alpha < move_->score && move_->score < node_->beta) {
-      move_->score = 0; // PVS score
-
-      assert(node_->pv_node == true);
-    }
-
+    // TODO: maybe use a score stabilizer & log moves
     if (node_->height_ == 0) {
     }
 
@@ -183,15 +248,18 @@ void Task::Search() {
 
     if (!search_->stop && move_->score > node_->best_score_) {
       node_->best_score_ = move_->score;
-      // node_->best_move_ = move_->x;
+      node_->best_move_ = *move_;
 
-      // TODO: implement
+      // TODO: record best move & log pv line
       if (node_->height_ == 0) {
+        search_->RecordBestMove(*move_, alpha, node_->beta, node_->depth);
+        --search_->result_->moves_left_;
       }
 
       if (node_->best_score_ > node_->alpha) {
         node_->alpha = node_->best_score_;
 
+        // stop the master thread?
         if (node_->alpha >= node_->beta && node_->search_->stop == RUNNING) {
           node_->stop_point_ = true;
           node_->search_->stop = STOP_PARALLEL;
@@ -200,7 +268,7 @@ void Task::Search() {
     }
 
     // next move
-    move_ = nullptr;
+    move_ = node_->NextMoveLockless();
   }
 
   search_->SetState(STOP_END);

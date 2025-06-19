@@ -1,10 +1,9 @@
-#include <cstdint>
-#include <string>
-
 #include <chesstillo/board.hpp>
 #include <chesstillo/fen.hpp>
 #include <chesstillo/position.hpp>
 #include <chesstillo/types.hpp>
+#include <cstdint>
+#include <string>
 
 uint16_t ToInt(char num) { return num - '0'; }
 
@@ -26,108 +25,104 @@ void ApplyFen(Position &position, const char *fen) {
     piece = nullptr;
 
     switch (*fen) {
-    case 'r':
-      piece = &black_pieces[ROOK];
-      break;
+      case 'r':
+        piece = &black_pieces[ROOK];
+        break;
 
-    case 'n':
-      piece = &black_pieces[KNIGHT];
-      break;
+      case 'n':
+        piece = &black_pieces[KNIGHT];
+        break;
 
-    case 'b':
-      piece = &black_pieces[BISHOP];
-      position.turn_ = BLACK;
-      en_passant_file = *fen;
-      break;
+      case 'b':
+        piece = &black_pieces[BISHOP];
+        position.turn_ = BLACK;
+        en_passant_file = *fen;
+        break;
 
-    case 'q':
-      piece = &black_pieces[QUEEN];
-      if (spaces == 2)
-        position.castling_rights_ |= CASTLE_LEFT(BLACK);
-      break;
+      case 'q':
+        piece = &black_pieces[QUEEN];
+        if (spaces == 2) position.castling_rights_ |= CASTLE_LEFT(BLACK);
+        break;
 
-    case 'k':
-      piece = &black_pieces[KING];
-      if (spaces == 2)
-        position.castling_rights_ |= CASTLE_RIGHT(BLACK);
-      break;
+      case 'k':
+        piece = &black_pieces[KING];
+        if (spaces == 2) position.castling_rights_ |= CASTLE_RIGHT(BLACK);
+        break;
 
-    case 'p':
-      piece = &black_pieces[PAWN];
-      break;
+      case 'p':
+        piece = &black_pieces[PAWN];
+        break;
 
-    case 'R':
-      piece = &white_pieces[ROOK];
-      break;
+      case 'R':
+        piece = &white_pieces[ROOK];
+        break;
 
-    case 'N':
-      piece = &white_pieces[KNIGHT];
-      break;
+      case 'N':
+        piece = &white_pieces[KNIGHT];
+        break;
 
-    case 'B':
-      piece = &white_pieces[BISHOP];
-      break;
+      case 'B':
+        piece = &white_pieces[BISHOP];
+        break;
 
-    case 'Q':
-      piece = &white_pieces[QUEEN];
-      if (spaces == 2)
-        position.castling_rights_ |= CASTLE_LEFT(WHITE);
-      break;
+      case 'Q':
+        piece = &white_pieces[QUEEN];
+        if (spaces == 2) position.castling_rights_ |= CASTLE_LEFT(WHITE);
+        break;
 
-    case 'K':
-      piece = &white_pieces[KING];
+      case 'K':
+        piece = &white_pieces[KING];
 
-      if (spaces == 2)
-        position.castling_rights_ |= CASTLE_RIGHT(WHITE);
-      break;
+        if (spaces == 2) position.castling_rights_ |= CASTLE_RIGHT(WHITE);
+        break;
 
-    case 'P':
-      piece = &white_pieces[PAWN];
-      break;
+      case 'P':
+        piece = &white_pieces[PAWN];
+        break;
 
-    case 'a':
-    case 'c':
-    case 'd':
-    case 'e':
-    case 'f':
-    case 'g':
-    case 'h':
-      en_passant_file = *fen;
-      break;
+      case 'a':
+      case 'c':
+      case 'd':
+      case 'e':
+      case 'f':
+      case 'g':
+      case 'h':
+        en_passant_file = *fen;
+        break;
 
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':
-      file += ToInt(*fen);
-      en_passant_rank = ToInt(*fen);
-      move_count = ToInt(*fen) + (move_count * 10);
-      break;
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+      case '5':
+      case '6':
+      case '7':
+      case '8':
+        file += ToInt(*fen);
+        en_passant_rank = ToInt(*fen);
+        move_count = ToInt(*fen) + (move_count * 10);
+        break;
 
-    case '0':
-    case '9':
-      move_count = ToInt(*fen) + (move_count * 10);
-      break;
+      case '0':
+      case '9':
+        move_count = ToInt(*fen) + (move_count * 10);
+        break;
 
-    case '/':
-      rank--;
-      file = 0;
-      break;
+      case '/':
+        rank--;
+        file = 0;
+        break;
 
-    case 'w':
-      position.turn_ = WHITE;
-      break;
+      case 'w':
+        position.turn_ = WHITE;
+        break;
 
-    case ' ':
-      spaces++;
-      move_count = 0;
-      en_passant_rank = 0;
-      en_passant_file = 0;
-      break;
+      case ' ':
+        spaces++;
+        move_count = 0;
+        en_passant_rank = 0;
+        en_passant_file = 0;
+        break;
     }
 
     if (spaces == 0 && piece) {
@@ -186,8 +181,7 @@ std::string PositionToFen(Position &position) {
       spaces = 0;
     }
 
-    if (rank != 0)
-      fen += '/';
+    if (rank != 0) fen += '/';
   }
 
   if (position.turn_ == WHITE) {
