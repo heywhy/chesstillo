@@ -104,7 +104,7 @@ void EvalState::ComputeAttackMap() {
 EvalState EvalState::For(Position &position) {
   Bitboard *white_pieces = position.Pieces(WHITE);
   Bitboard *black_pieces = position.Pieces(BLACK);
-  Bitboard occupied_sqs = *position.occupied_sqs_;
+  Bitboard occupied_sqs = position.board_.occupied_sqs;
 
   // TODO: maybe move position mask computation into the position
   // class so as to avoid double computation of these masks.

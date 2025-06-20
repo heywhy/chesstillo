@@ -1,6 +1,7 @@
 #include <cstdint>
 
 #include <engine/board.hpp>
+#include <engine/constants.hpp>
 #include <engine/types.hpp>
 #include <engine/utility.hpp>
 
@@ -19,16 +20,15 @@ bool CoordForSquare(Coord *coord, uint8_t square) {
   return false;
 }
 
+Board::Board() { Reset(); }
+
 void Board::Reset() {
-  occupied_sqs_ = kEmpty;
+  occupied_sqs = kEmpty;
 
-  pieces_[WHITE][KING] = pieces_[WHITE][QUEEN] = pieces_[WHITE][ROOK] =
-      pieces_[WHITE][KNIGHT] = pieces_[WHITE][BISHOP] = pieces_[WHITE][PAWN] =
-          kEmpty;
-
-  pieces_[BLACK][KING] = pieces_[BLACK][QUEEN] = pieces_[BLACK][ROOK] =
-      pieces_[BLACK][KNIGHT] = pieces_[BLACK][BISHOP] = pieces_[BLACK][PAWN] =
-          kEmpty;
+  for (int i = 0; i < 6; i++) {
+    pieces[0][i] = kEmpty;
+    pieces[1][i] = kEmpty;
+  }
 }
 
 }  // namespace engine

@@ -28,20 +28,17 @@ bool CoordForSquare(Coord *coord, std::uint8_t square);
 
 class Board {
  public:
-  Board() : occupied_sqs_(kEmpty) {}
+  // pawn, rook, knight, bishop, queen, king
+  Bitboard pieces[2][6];
+  Bitboard occupied_sqs;
+
+  Board();
 
   void Reset();
 
- private:
-  // pawn, rook, knight, bishop, queen, king
-  Bitboard pieces_[2][6];
-  Bitboard occupied_sqs_;
-
-  friend class Position;
-
   void UpdateOccupiedSqs() {
-    occupied_sqs_ =
-        BOARD_OCCUPANCY(pieces_[WHITE]) | BOARD_OCCUPANCY(pieces_[BLACK]);
+    occupied_sqs =
+        BOARD_OCCUPANCY(pieces[WHITE]) | BOARD_OCCUPANCY(pieces[BLACK]);
   }
 };
 

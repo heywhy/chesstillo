@@ -2,7 +2,6 @@
 
 #include <gtest/gtest.h>
 
-#include <engine/fen.hpp>
 #include <engine/position.hpp>
 #include <engine/search.hpp>
 
@@ -16,7 +15,7 @@ class SearchTestSuite : public testing::Test {
   void SetUp() override {
     search_ = new Search(std::thread::hardware_concurrency());
 
-    ApplyFen(position_, START_FEN);
+    position_ = Position::FromFen(kStartPos);
   }
 
   void TearDown() override {

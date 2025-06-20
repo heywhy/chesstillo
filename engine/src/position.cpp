@@ -4,7 +4,6 @@
 
 #include <engine/board.hpp>
 #include <engine/constants.hpp>
-#include <engine/fen.hpp>
 #include <engine/fill.hpp>
 #include <engine/move_gen.hpp>
 #include <engine/position.hpp>
@@ -14,24 +13,23 @@
 namespace engine {
 
 _State _State::From(Position &position) {
-  return {position.king_ban_,        *position.occupied_sqs_,
+  return {position.king_ban_,        position.board_.occupied_sqs,
           position.en_passant_sq_,   position.en_passant_target_,
           position.castling_rights_, position.halfmove_clock_};
 }
 
 void _State::Apply(Position &position, _State &state) {
   position.king_ban_ = state.king_ban;
-  *position.occupied_sqs_ = state.occupied_sqs;
   position.halfmove_clock_ = state.halfmove_clock;
   position.castling_rights_ = state.castling_rights;
   position.en_passant_sq_ = state.en_passant_square;
   position.en_passant_target_ = state.en_passant_target;
+  position.board_.occupied_sqs = state.occupied_sqs;
 }
 
 Position::Position()
     : turn_(WHITE),
       king_ban_(kEmpty),
-      occupied_sqs_(&board_.occupied_sqs_),
       en_passant_sq_(kEmpty),
       castling_rights_(0),
       fullmove_counter_(1),
@@ -48,8 +46,6 @@ Position::Position(const Position &src) {
 
   history_ = src.history_;
   board_ = src.board_;
-
-  occupied_sqs_ = &board_.occupied_sqs_;
 
   int size = sizeof(src.mailbox_) / sizeof(src.mailbox_[0]);
   std::copy(src.mailbox_, src.mailbox_ + size, mailbox_);
@@ -70,11 +66,11 @@ bool Position::PieceAt(char *c, uint8_t index) const {
 
   Bitboard bb = BITBOARD_FOR_SQUARE(index);
 
-  if (board_.pieces_[WHITE][piece] & bb) {
+  if (board_.pieces[WHITE][piece] & bb) {
     return PieceToChar(c, piece, WHITE);
   }
 
-  if (board_.pieces_[BLACK][piece] & bb) {
+  if (board_.pieces[BLACK][piece] & bb) {
     return PieceToChar(c, piece, BLACK);
   }
 
@@ -98,7 +94,7 @@ void Position::Make(Move &move) {
   history_.push(_State::From(*this));
 
   Color opp = OPP(turn_);
-  Bitboard &piece = board_.pieces_[turn_][move.piece];
+  Bitboard &piece = board_.pieces[turn_][move.piece];
   Bitboard to = BITBOARD_FOR_SQUARE(move.to);
   Bitboard from = BITBOARD_FOR_SQUARE(move.from);
 
@@ -108,7 +104,7 @@ void Position::Make(Move &move) {
   mailbox_[move.to] = move.piece;
 
   if (move.Is(CAPTURE)) {
-    Bitboard &piece = board_.pieces_[opp][move.captured];
+    Bitboard &piece = board_.pieces[opp][move.captured];
 
     piece ^= to;
   }
@@ -116,7 +112,7 @@ void Position::Make(Move &move) {
   if (move.piece == KING && move.Is(CASTLE_RIGHT)) [[unlikely]] {
     int king_square = BIT_INDEX(piece);
     Bitboard rank = RankMask(king_square);
-    Bitboard &rooks = board_.pieces_[turn_][ROOK];
+    Bitboard &rooks = board_.pieces[turn_][ROOK];
     Bitboard rook = rooks & rank & kKingSide;
     Bitboard new_position = rook >> 2;
 
@@ -129,7 +125,7 @@ void Position::Make(Move &move) {
   if (move.piece == KING && move.Is(CASTLE_LEFT)) [[unlikely]] {
     int king_square = BIT_INDEX(piece);
     Bitboard rank = RankMask(king_square);
-    Bitboard &rooks = board_.pieces_[turn_][ROOK];
+    Bitboard &rooks = board_.pieces[turn_][ROOK];
     Bitboard rook = rooks & rank & kQueenSide;
     Bitboard new_position = rook << 3;
 
@@ -161,7 +157,7 @@ void Position::Make(Move &move) {
   }
 
   if (move.Is(EN_PASSANT)) [[unlikely]] {
-    Bitboard &piece = board_.pieces_[opp][PAWN];
+    Bitboard &piece = board_.pieces[opp][PAWN];
 
     piece ^= en_passant_target_;
 
@@ -169,7 +165,7 @@ void Position::Make(Move &move) {
   }
 
   if (move.Is(PROMOTION)) [[unlikely]] {
-    Bitboard &new_piece = board_.pieces_[turn_][move.promoted];
+    Bitboard &new_piece = board_.pieces[turn_][move.promoted];
 
     // unset the old piece & set the index on the promoted piece
     piece ^= to;
@@ -205,7 +201,7 @@ void Position::Undo(Move &move) {
   _State::Apply(*this, history_.top());
 
   Color opp = OPP(turn_);
-  Bitboard &piece = board_.pieces_[opp][move.piece];
+  Bitboard &piece = board_.pieces[opp][move.piece];
   Bitboard to = BITBOARD_FOR_SQUARE(move.to);
   Bitboard from = BITBOARD_FOR_SQUARE(move.from);
 
@@ -214,7 +210,7 @@ void Position::Undo(Move &move) {
   mailbox_[move.from] = move.piece;
 
   if (move.Is(PROMOTION)) [[unlikely]] {
-    Bitboard &new_piece = board_.pieces_[opp][move.promoted];
+    Bitboard &new_piece = board_.pieces[opp][move.promoted];
 
     // reset the old piece & unset the promoted piece
     piece ^= to;
@@ -224,7 +220,7 @@ void Position::Undo(Move &move) {
   }
 
   if (move.Is(CAPTURE)) {
-    Bitboard *pieces = board_.pieces_[turn_];
+    Bitboard *pieces = board_.pieces[turn_];
 
     pieces[move.captured] |= to;
 
@@ -234,7 +230,7 @@ void Position::Undo(Move &move) {
   if (move.piece == KING && move.Is(CASTLE_RIGHT)) [[unlikely]] {
     uint8_t king_square = BIT_INDEX(piece);
     Bitboard rank = RankMask(king_square);
-    Bitboard &rooks = board_.pieces_[opp][ROOK];
+    Bitboard &rooks = board_.pieces[opp][ROOK];
     Bitboard rook = rooks & rank & kKingSide;
     Bitboard old_position = (rook << 2);
 
@@ -247,7 +243,7 @@ void Position::Undo(Move &move) {
   if (move.piece == KING && move.Is(CASTLE_LEFT)) [[unlikely]] {
     uint8_t king_square = BIT_INDEX(piece);
     Bitboard rank = RankMask(king_square);
-    Bitboard &rooks = board_.pieces_[opp][ROOK];
+    Bitboard &rooks = board_.pieces[opp][ROOK];
     Bitboard rook = rooks & rank & kQueenSide;
     Bitboard old_position = (rook >> 3);
 
@@ -258,7 +254,7 @@ void Position::Undo(Move &move) {
   }
 
   if (move.Is(EN_PASSANT)) [[unlikely]] {
-    Bitboard *pieces = board_.pieces_[turn_];
+    Bitboard *pieces = board_.pieces[turn_];
 
     pieces[PAWN] |= en_passant_target_;
 
@@ -284,10 +280,10 @@ void Position::UpdateInternals() {
 
   Color opp = OPP(turn_);
   Bitboard enemy_rook_queen =
-      board_.pieces_[opp][ROOK] | board_.pieces_[opp][QUEEN];
+      board_.pieces[opp][ROOK] | board_.pieces[opp][QUEEN];
 
-  Bitboard pawns = board_.pieces_[turn_][PAWN];
-  Bitboard king = board_.pieces_[turn_][KING];
+  Bitboard pawns = board_.pieces[turn_][PAWN];
+  Bitboard king = board_.pieces[turn_][KING];
   uint8_t ep_sq = BIT_INDEX(en_passant_target_);
   Bitboard ep_rank = RankMask(ep_sq);
   uint8_t king_sq = BIT_INDEX(king);
@@ -305,7 +301,7 @@ void Position::UpdateInternals() {
 
     if (west_targets) {
       Bitboard occupied_sqs_after_ep =
-          *occupied_sqs_ & ~(en_passant_target_ | west_targets);
+          board_.occupied_sqs & ~(en_passant_target_ | west_targets);
 
       if (kSlidingAttacks.Rook(occupied_sqs_after_ep, king_sq) &
           enemy_rook_queen) {
@@ -315,7 +311,7 @@ void Position::UpdateInternals() {
 
     if (east_targets) {
       Bitboard occupied_sqs_after_ep =
-          *occupied_sqs_ & ~(en_passant_target_ | east_targets);
+          board_.occupied_sqs & ~(en_passant_target_ | east_targets);
 
       if (kSlidingAttacks.Rook(occupied_sqs_after_ep, king_sq) &
           enemy_rook_queen) {
@@ -329,11 +325,11 @@ void Position::UpdateKingBan() {
   king_ban_ = kEmpty;
   Color opp = OPP(turn_);
 
-  Bitboard enemy_pawns = board_.pieces_[opp][PAWN];
+  Bitboard enemy_pawns = board_.pieces[opp][PAWN];
   Bitboard enemy_bishop_queen =
-      board_.pieces_[opp][BISHOP] | board_.pieces_[opp][QUEEN];
+      board_.pieces[opp][BISHOP] | board_.pieces[opp][QUEEN];
   Bitboard enemy_rook_queen =
-      board_.pieces_[opp][ROOK] | board_.pieces_[opp][QUEEN];
+      board_.pieces[opp][ROOK] | board_.pieces[opp][QUEEN];
 
   auto [pawn_east_targets, pawn_west_targets] =
       turn_ == WHITE
@@ -341,12 +337,12 @@ void Position::UpdateKingBan() {
           : std::make_pair(PawnTargets<WHITE, EAST>, PawnTargets<WHITE, WEST>);
 
   king_ban_ |=
-      (KING_ATTACKS(board_.pieces_[opp][KING])) |
-      (KNIGHT_ATTACKS(board_.pieces_[opp][KNIGHT])) |
+      (KING_ATTACKS(board_.pieces[opp][KING])) |
+      (KNIGHT_ATTACKS(board_.pieces[opp][KNIGHT])) |
       (BISHOP_ATTACKS(enemy_bishop_queen,
-                      ~board_.occupied_sqs_ | board_.pieces_[turn_][KING])) |
+                      ~board_.occupied_sqs | board_.pieces[turn_][KING])) |
       (ROOK_ATTACKS(enemy_rook_queen,
-                    ~board_.occupied_sqs_ | board_.pieces_[turn_][KING])) |
+                    ~board_.occupied_sqs | board_.pieces[turn_][KING])) |
       pawn_east_targets(enemy_pawns) | pawn_west_targets(enemy_pawns);
 }
 
@@ -354,11 +350,11 @@ void Position::UpdateMailbox() {
   for (int i = 0; i < 64; i++) {
     Bitboard bb = BITBOARD_FOR_SQUARE(i);
 
-    if (bb & *occupied_sqs_) {
+    if (bb & board_.occupied_sqs) {
       for (int j = 0; j < PIECES; j++) {
         Piece piece = static_cast<Piece>(j);
 
-        if ((board_.pieces_[WHITE][j] & bb) | (board_.pieces_[BLACK][j] & bb)) {
+        if ((board_.pieces[WHITE][j] & bb) | (board_.pieces[BLACK][j] & bb)) {
           mailbox_[i] = piece;
         }
       }

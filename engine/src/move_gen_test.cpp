@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <engine/fen.hpp>
 #include <engine/position.hpp>
 #include <engine/types.hpp>
 
@@ -10,7 +9,7 @@ class MoveGenTestSuite : public testing::Test {
  protected:
   Position position;
 
-  void SetUp() override { ApplyFen(position, START_FEN); }
+  void SetUp() override { position = Position::FromFen(kStartPos); }
 
   void TearDown() override { position.Reset(); }
 };

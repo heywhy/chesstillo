@@ -1,25 +1,19 @@
 #include <gtest/gtest.h>
 
-#include <engine/fen.hpp>
 #include <engine/position.hpp>
 #include <engine/types.hpp>
 
 using namespace engine;
 
-TEST(FenTest, ApplyFen) {
-  Position position;
+TEST(FenTestSuite, TestMakePositionFromFen) {
+  Position position = Position::FromFen(kStartPos);
 
-  ASSERT_EQ(position.OccupiedSquares(), kEmpty);
-
-  ApplyFen(position, START_FEN);
-
-  ASSERT_NE(position.OccupiedSquares(), kEmpty);
+  ASSERT_EQ(position.ToFen(), kStartPos);
 }
 
-TEST(FenTest, MaintainCastlingRights) {
-  Position position;
-
-  ApplyFen(position, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w Kq - 0 1");
+TEST(FenTestSuite, TestCastlingRightsDefinedInFenIsMaintained) {
+  Position position = Position::FromFen(
+      "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w Kq - 0 1");
 
   ASSERT_TRUE(position.CanCastle(CASTLE_RIGHT_WHITE));
   ASSERT_TRUE(position.CanCastle(CASTLE_LEFT_BLACK));
@@ -27,10 +21,9 @@ TEST(FenTest, MaintainCastlingRights) {
   ASSERT_FALSE(position.CanCastle(CASTLE_RIGHT_BLACK));
 }
 
-TEST(FenTest, MaintainCastlingRightsIfMissing) {
-  Position position;
-
-  ApplyFen(position, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1");
+TEST(FenTestSuite, TestIgnoreCastlingRightsIfMissing) {
+  Position position = Position::FromFen(
+      "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1");
 
   ASSERT_FALSE(position.CanCastle(CASTLE_RIGHT_WHITE));
   ASSERT_FALSE(position.CanCastle(CASTLE_RIGHT_BLACK));
@@ -38,24 +31,21 @@ TEST(FenTest, MaintainCastlingRightsIfMissing) {
   ASSERT_FALSE(position.CanCastle(CASTLE_LEFT_BLACK));
 }
 
-TEST(FenTest, ApplyEnPassantSquare) {
+TEST(FenTestSuite, TestSetEnPassantSquare) {
   Position position;
-
-  ApplyFen(position, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - e3 0 1");
-
-  ASSERT_TRUE(position.EnPassantSquare());
-
-  ApplyFen(position, START_FEN);
 
   ASSERT_FALSE(position.EnPassantSquare());
+
+  position = Position::FromFen(
+      "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - e3 0 1");
+
+  ASSERT_TRUE(position.EnPassantSquare());
 }
 
-TEST(FenTest, PositionToFen) {
-  Position position;
+TEST(FenTestSuite, TestMakeFenFromPosition) {
+  Position position = Position::FromFen(kStartPos);
 
-  ApplyFen(position, START_FEN);
-
-  ASSERT_EQ(PositionToFen(position), START_FEN);
+  ASSERT_EQ(position.ToFen(), kStartPos);
 
   Move white_move(e2, e4, PAWN);
   Move black_move(c7, c5, PAWN);
@@ -63,32 +53,28 @@ TEST(FenTest, PositionToFen) {
   position.Make(white_move);
   position.Make(black_move);
 
-  ASSERT_EQ(PositionToFen(position),
+  ASSERT_EQ(position.ToFen(),
             "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2");
 }
 
-TEST(FenTest, RepresentEnPassantSquareInPositionFen) {
-  Position position;
+TEST(FenTestSuite, TestRepresentEnPassantSquareInFen) {
   const char *fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - e3 0 1";
+  Position position = Position::FromFen(fen);
 
-  ApplyFen(position, fen);
+  ASSERT_EQ(position.ToFen(), fen);
 
-  ASSERT_EQ(PositionToFen(position), fen);
+  position = Position::FromFen(kStartPos);
 
-  ApplyFen(position, START_FEN);
-
-  ASSERT_EQ(PositionToFen(position), START_FEN);
+  ASSERT_EQ(position.ToFen(), kStartPos);
 }
 
-TEST(FenTest, ClockMovesInFenAreRespected) {
-  Position position;
+TEST(FenTestSuite, TestMovesClockAndCounter) {
   const char *fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - e3 50 97";
+  Position position = Position::FromFen(fen);
 
-  ApplyFen(position, fen);
+  ASSERT_EQ(position.ToFen(), fen);
 
-  ASSERT_EQ(PositionToFen(position), fen);
+  position = Position::FromFen(kStartPos);
 
-  ApplyFen(position, START_FEN);
-
-  ASSERT_EQ(PositionToFen(position), START_FEN);
+  ASSERT_EQ(position.ToFen(), kStartPos);
 }

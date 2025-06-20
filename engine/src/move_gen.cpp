@@ -27,7 +27,7 @@ MoveList GenerateMoves(Position &position) {
   move_list.reserve(218);
 
   Color opp = OPP(position.turn_);
-  Bitboard occupied_sqs = *position.occupied_sqs_;
+  Bitboard occupied_sqs = position.board_.occupied_sqs;
   Bitboard *enemy_pieces = position.Pieces(opp);
   Bitboard *own_pieces = position.Pieces(position.turn_);
 
@@ -449,7 +449,7 @@ void AddMovesToList(MoveList &move_list, uint8_t from, Bitboard targets,
 Bitboard CheckMask(Position &position) {
   Bitboard mask = kUniverse;
   Color opp = OPP(position.turn_);
-  Bitboard occupied_sqs = *position.occupied_sqs_;
+  Bitboard occupied_sqs = position.board_.occupied_sqs;
   Bitboard *opp_pieces = position.Pieces(opp);
   Bitboard *own_pieces = position.Pieces(position.turn_);
   Bitboard king_bb = own_pieces[KING];
@@ -519,7 +519,7 @@ std::pair<Bitboard, Bitboard> PinMask(Position &position) {
   Color opp = OPP(position.turn_);
   Bitboard *own_pieces = position.Pieces(position.turn_);
   Bitboard *opp_pieces = position.Pieces(opp);
-  Bitboard occupied_sqs = *position.occupied_sqs_;
+  Bitboard occupied_sqs = position.board_.occupied_sqs;
   Bitboard king_bb = own_pieces[KING];
   Bitboard own_pieces_bb = BOARD_OCCUPANCY(own_pieces);
 

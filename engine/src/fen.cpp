@@ -1,33 +1,31 @@
 #include <cstdint>
+#include <format>
 #include <string>
 
 #include <engine/board.hpp>
-#include <engine/fen.hpp>
 #include <engine/position.hpp>
 #include <engine/types.hpp>
 
 namespace engine {
 
-uint16_t ToInt(char num) { return num - '0'; }
+Position Position::FromFen(const std::string_view fen) {
+  Position position;
+  Board &board = position.board_;
 
-void ApplyFen(Position &position, const char *fen) {
-  Bitboard *piece;
-  Bitboard *black_pieces = position.Pieces(BLACK);
-  Bitboard *white_pieces = position.Pieces(WHITE);
+  Bitboard *black_pieces = board.pieces[BLACK];
+  Bitboard *white_pieces = board.pieces[WHITE];
 
-  uint8_t rank = 7;
-  uint8_t file = 0;
-  uint8_t spaces = 0;
-  uint16_t move_count = 0;
-  uint8_t en_passant_rank;
+  std::uint8_t rank = 7;
+  std::uint8_t file = 0;
+  std::uint8_t spaces = 0;
+  std::uint16_t move_count = 0;
+  std::uint8_t en_passant_rank;
   char en_passant_file;
 
-  position.Reset();
+  for (const char c : fen) {
+    Bitboard *piece = nullptr;
 
-  while (*fen) {
-    piece = nullptr;
-
-    switch (*fen) {
+    switch (c) {
       case 'r':
         piece = &black_pieces[ROOK];
         break;
@@ -39,7 +37,7 @@ void ApplyFen(Position &position, const char *fen) {
       case 'b':
         piece = &black_pieces[BISHOP];
         position.turn_ = BLACK;
-        en_passant_file = *fen;
+        en_passant_file = c;
         break;
 
       case 'q':
@@ -90,7 +88,7 @@ void ApplyFen(Position &position, const char *fen) {
       case 'f':
       case 'g':
       case 'h':
-        en_passant_file = *fen;
+        en_passant_file = c;
         break;
 
       case '1':
@@ -101,14 +99,14 @@ void ApplyFen(Position &position, const char *fen) {
       case '6':
       case '7':
       case '8':
-        file += ToInt(*fen);
-        en_passant_rank = ToInt(*fen);
-        move_count = ToInt(*fen) + (move_count * 10);
+        file += c - '0';
+        en_passant_rank = c - '0';
+        move_count = c - '0' + (move_count * 10);
         break;
 
       case '0':
       case '9':
-        move_count = ToInt(*fen) + (move_count * 10);
+        move_count = c - '0' + (move_count * 10);
         break;
 
       case '/':
@@ -145,18 +143,18 @@ void ApplyFen(Position &position, const char *fen) {
     } else if (spaces == 5) {
       position.fullmove_counter_ = move_count;
     }
-
-    fen++;
   }
 
   position.UpdateInternals();
   position.UpdateMailbox();
+
+  return position;
 }
 
-std::string PositionToFen(Position &position) {
+std::string Position::ToFen() const {
   int spaces = 0;
   std::string fen;
-  Bitboard occupied_sqs = position.OccupiedSquares();
+  Bitboard occupied_sqs = board_.occupied_sqs;
 
   for (int rank = 7; rank >= 0; rank--) {
     for (int file = 0; file < 8; file++) {
@@ -171,7 +169,7 @@ std::string PositionToFen(Position &position) {
 
         char piece;
 
-        if (position.PieceAt(&piece, square)) {
+        if (PieceAt(&piece, square)) {
           fen += piece;
         }
       } else {
@@ -187,22 +185,22 @@ std::string PositionToFen(Position &position) {
     if (rank != 0) fen += '/';
   }
 
-  if (position.turn_ == WHITE) {
+  if (turn_ == WHITE) {
     fen += {' ', 'w', ' '};
   } else {
     fen += {' ', 'b', ' '};
   }
 
-  if (position.CanCastle(CASTLE_RIGHT_WHITE)) {
+  if (CanCastle(CASTLE_RIGHT_WHITE)) {
     fen += 'K';
   }
-  if (position.CanCastle(CASTLE_LEFT_WHITE)) {
+  if (CanCastle(CASTLE_LEFT_WHITE)) {
     fen += 'Q';
   }
-  if (position.CanCastle(CASTLE_RIGHT_BLACK)) {
+  if (CanCastle(CASTLE_RIGHT_BLACK)) {
     fen += 'k';
   }
-  if (position.CanCastle(CASTLE_LEFT_BLACK)) {
+  if (CanCastle(CASTLE_LEFT_BLACK)) {
     fen += 'q';
   }
 
@@ -211,7 +209,7 @@ std::string PositionToFen(Position &position) {
   }
 
   Coord coord;
-  uint8_t en_passant_square = BIT_INDEX(position.en_passant_sq_);
+  uint8_t en_passant_square = BIT_INDEX(en_passant_sq_);
 
   if (CoordForSquare(&coord, en_passant_square)) {
     char rank = '0' + coord.rank;
@@ -221,8 +219,10 @@ std::string PositionToFen(Position &position) {
     fen += {' ', '-', ' '};
   }
 
-  return fen += std::to_string(position.halfmove_clock_) + ' ' +
-                std::to_string(position.fullmove_counter_);
+  std::string moves_clock_and_counter =
+      std::format("{} {}", halfmove_clock_, fullmove_counter_);
+
+  return fen.append(moves_clock_and_counter);
 }
 
 }  // namespace engine

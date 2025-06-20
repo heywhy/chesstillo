@@ -13,6 +13,9 @@
 
 namespace engine {
 
+inline constexpr const char *kStartPos =
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
 class Position;
 
 struct _State {
@@ -35,6 +38,10 @@ class Position {
   Position();
   Position(const Position &src);
 
+  static Position FromFen(const std::string_view fen);
+
+  std::string ToFen() const;
+
   void Reset();
   void Make(Move &move);
   void Undo(Move &move);
@@ -42,7 +49,6 @@ class Position {
   bool PieceAt(Piece *, uint8_t) const;
 
   Color GetTurn() const { return turn_; }
-  Bitboard OccupiedSquares() { return *occupied_sqs_; }
   inline Bitboard EnPassantSquare() const { return en_passant_sq_; }
 
   inline bool CanCastle(uint8_t direction) const {
@@ -53,7 +59,6 @@ class Position {
   Color turn_;
   Board board_;
   Bitboard king_ban_;
-  Bitboard *occupied_sqs_;
   Bitboard en_passant_sq_;
   Bitboard en_passant_target_;
   uint8_t castling_rights_;
@@ -78,10 +83,8 @@ class Position {
   friend MoveList GenerateMoves(Position &position);
   friend Bitboard CheckMask(Position &position);
   friend std::pair<Bitboard, Bitboard> PinMask(Position &position);
-  friend std::string PositionToFen(Position &position);
-  friend void ApplyFen(Position &position, const char *fen);
 
-  inline Bitboard *Pieces(Color color) { return board_.pieces_[color]; }
+  inline Bitboard *Pieces(Color color) { return board_.pieces[color]; }
 };
 
 }  // namespace engine

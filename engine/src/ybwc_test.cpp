@@ -2,7 +2,6 @@
 
 #include <gtest/gtest.h>
 
-#include <engine/fen.hpp>
 #include <engine/options.hpp>
 #include <engine/position.hpp>
 #include <engine/search.hpp>
@@ -22,7 +21,7 @@ class YBWCTestSuite : public testing::Test {
 
     options.tasks = std::thread::hardware_concurrency();
 
-    ApplyFen(position, START_FEN);
+    position = Position::FromFen(kStartPos);
 
     search = new Search(options.tasks);
 
