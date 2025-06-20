@@ -14,6 +14,8 @@
 
 #define MAX_STACK_MOVES 2000000
 
+namespace engine {
+
 class Node;
 class Task;
 class TaskStack;
@@ -21,7 +23,7 @@ class TaskStack;
 enum Stop { RUNNING, STOP_PARALLEL, STOP_END };
 
 class Result {
-private:
+ private:
   Line pv_;
   int depth_;
   uint64_t nodes_;
@@ -39,7 +41,7 @@ private:
 };
 
 class Search {
-public:
+ public:
   TaskStack *tasks;
   Position *position;
 
@@ -57,7 +59,7 @@ public:
   void StopAll(Stop state);
   int Midgame(Move &move, int alpha, int depth, Node *node);
 
-private:
+ private:
   Task *task_;
   Search *master_;
   Search *parent_;
@@ -98,11 +100,16 @@ struct Stack {
   Move *moves;
 
   Stack()
-      : depth(0), cmove(0), nps(0), check_mask(kEmpty),
+      : depth(0),
+        cmove(0),
+        nps(0),
+        check_mask(kEmpty),
         moves(static_cast<Move *>(std::calloc(MAX_STACK_MOVES, sizeof(Move)))) {
   }
 
   ~Stack() { std::free(moves); }
 };
+
+}  // namespace engine
 
 #endif

@@ -28,6 +28,8 @@
   (FILE_ATTACKS(bb, empty) | RANK_ATTACKS(bb, empty)) ^ \
       (DIAGONAL_ATTACKS(bb, empty) | ANTI_DIAGONAL_ATTACKS(bb, empty))
 
+namespace engine {
+
 Bitboard SouthOccluded(Bitboard bb, Bitboard pro);
 Bitboard NorthOccluded(Bitboard bb, Bitboard pro);
 Bitboard EastOccluded(Bitboard bb, Bitboard pro);
@@ -42,4 +44,7 @@ Bitboard NorthFill(Bitboard bb);
 Bitboard SouthFill(Bitboard bb);
 
 inline Bitboard FileFill(Bitboard bb) { return NorthFill(bb) | SouthFill(bb); }
+
+}  // namespace engine
+
 #endif

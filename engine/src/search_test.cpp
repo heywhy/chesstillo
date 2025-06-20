@@ -1,9 +1,12 @@
+#include <thread>
+
 #include <gtest/gtest.h>
 
 #include <engine/fen.hpp>
 #include <engine/position.hpp>
 #include <engine/search.hpp>
-#include <thread>
+
+using namespace engine;
 
 class SearchTestSuite : public testing::Test {
  protected:

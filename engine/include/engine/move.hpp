@@ -9,6 +9,8 @@
 #include "constants.hpp"
 #include "types.hpp"
 
+namespace engine {
+
 class Move;
 typedef std::vector<Move> MoveList;
 
@@ -47,5 +49,7 @@ struct Line {
   Color color;
   std::forward_list<Move> moves;
 };
+
+}  // namespace engine
 
 #endif

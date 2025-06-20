@@ -4,6 +4,8 @@
 #include <engine/position.hpp>
 #include <engine/types.hpp>
 
+using namespace engine;
+
 TEST(FenTest, ApplyFen) {
   Position position;
 

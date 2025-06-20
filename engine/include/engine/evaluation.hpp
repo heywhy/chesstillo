@@ -32,11 +32,13 @@
 #define QUEEN_ON_7th 25
 
 #define TOTAL_PHASE 24
-#define TAPER_EVAL(opening, endgame, phase)                                    \
+#define TAPER_EVAL(opening, endgame, phase) \
   ((opening * (256 - phase)) + (endgame * phase)) / 256
 
 // INFO: opening & endgame weights
 // order of weights should corresponding with type::piece spec.
+
+namespace engine {
 
 extern const int kWeights[26][2];
 extern const float kRankBonus[6];
@@ -56,9 +58,12 @@ struct EvalState {
   EvalState(Bitboard *white_pieces, Bitboard *black_pieces,
             Bitboard occupied_sqs, Bitboard check_mask, Bitboard pin_hv_mask,
             Bitboard pin_diag_mask)
-      : white_pieces(white_pieces), black_pieces(black_pieces),
-        occupied_sqs(occupied_sqs), check_mask(check_mask),
-        pin_hv_mask(pin_hv_mask), pin_diag_mask(pin_diag_mask) {
+      : white_pieces(white_pieces),
+        black_pieces(black_pieces),
+        occupied_sqs(occupied_sqs),
+        check_mask(check_mask),
+        pin_hv_mask(pin_hv_mask),
+        pin_diag_mask(pin_diag_mask) {
     ComputeMaterials();
     ComputePhase();
     ComputeAttackMap<WHITE>();
@@ -67,35 +72,45 @@ struct EvalState {
 
   static EvalState For(Position &position);
 
-private:
+ private:
   void ComputePhase();
   void ComputeMaterials();
-  template <enum Color side> void ComputeAttackMap();
+  template <enum Color side>
+  void ComputeAttackMap();
 };
 
 enum Phase : uint8_t { OPENING, ENDGAME };
 
-template <enum Color side> int DoublePawns(Bitboard pawns);
+template <enum Color side>
+int DoublePawns(Bitboard pawns);
 template <enum Color side>
 std::pair<int, int> IsolatedPawns(Bitboard pawns, Bitboard empty_sqs);
 template <enum Color side>
 std::pair<int, int> BackwardPawns(Bitboard side_pawns, Bitboard enemy_pawns);
 
-template <enum Color side> int ClosedFiles(EvalState &state);
+template <enum Color side>
+int ClosedFiles(EvalState &state);
 template <enum Color side>
 std::tuple<int, int, int> SemiOpenFiles(EvalState &state);
 template <enum Color side>
 std::tuple<int, int, int> OpenFiles(EvalState &state);
 
-template <enum Color side, enum Piece piece> int Rank7(EvalState &state);
-template <enum Color side> int KingDistance(EvalState &state);
+template <enum Color side, enum Piece piece>
+int Rank7(EvalState &state);
+template <enum Color side>
+int KingDistance(EvalState &state);
 
-template <enum Color> int RooksMobility(EvalState &state);
-template <enum Color> int BishopsMobility(EvalState &state);
-template <enum Color> int KnightsMobility(EvalState &state);
-template <enum Color> std::pair<float, float> PassedPawns(EvalState &state);
+template <enum Color>
+int RooksMobility(EvalState &state);
+template <enum Color>
+int BishopsMobility(EvalState &state);
+template <enum Color>
+int KnightsMobility(EvalState &state);
+template <enum Color>
+std::pair<float, float> PassedPawns(EvalState &state);
 
-template <enum Color> int KingPosition(EvalState &state);
+template <enum Color>
+int KingPosition(EvalState &state);
 
 std::pair<int, int> EvalPieces(EvalState &state);
 int EvalKingDistance(EvalState &state);
@@ -111,20 +126,23 @@ int Evaluate(Position &position);
 
 inline int PieceValue(Piece piece) {
   switch (piece) {
-  case KING:
-    return kWeights[KING][0];
-  case QUEEN:
-    return kWeights[QUEEN][0];
-  case ROOK:
-    return kWeights[ROOK][0];
-  case KNIGHT:
-    return kWeights[KNIGHT][0];
-  case BISHOP:
-    return kWeights[BISHOP][0];
-  case PAWN:
-    return kWeights[PAWN][0];
-  default:
-    return 0;
+    case KING:
+      return kWeights[KING][0];
+    case QUEEN:
+      return kWeights[QUEEN][0];
+    case ROOK:
+      return kWeights[ROOK][0];
+    case KNIGHT:
+      return kWeights[KNIGHT][0];
+    case BISHOP:
+      return kWeights[BISHOP][0];
+    case PAWN:
+      return kWeights[PAWN][0];
+    default:
+      return 0;
   }
 }
+
+}  // namespace engine
+
 #endif

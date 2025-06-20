@@ -1,4 +1,7 @@
 #include <cstdint>
+#include <tuple>
+#include <utility>
+
 #include <engine/board.hpp>
 #include <engine/constants.hpp>
 #include <engine/fen.hpp>
@@ -7,8 +10,8 @@
 #include <engine/position.hpp>
 #include <engine/types.hpp>
 #include <engine/utility.hpp>
-#include <tuple>
-#include <utility>
+
+namespace engine {
 
 _State _State::From(Position &position) {
   return {position.king_ban_,        *position.occupied_sqs_,
@@ -23,6 +26,33 @@ void _State::Apply(Position &position, _State &state) {
   position.castling_rights_ = state.castling_rights;
   position.en_passant_sq_ = state.en_passant_square;
   position.en_passant_target_ = state.en_passant_target;
+}
+
+Position::Position()
+    : turn_(WHITE),
+      king_ban_(kEmpty),
+      occupied_sqs_(&board_.occupied_sqs_),
+      en_passant_sq_(kEmpty),
+      castling_rights_(0),
+      fullmove_counter_(1),
+      halfmove_clock_(0) {};
+
+Position::Position(const Position &src) {
+  turn_ = src.turn_;
+  king_ban_ = src.king_ban_;
+  en_passant_sq_ = src.en_passant_sq_;
+  en_passant_target_ = src.en_passant_target_;
+  castling_rights_ = src.castling_rights_;
+  fullmove_counter_ = src.fullmove_counter_;
+  halfmove_clock_ = src.halfmove_clock_;
+
+  history_ = src.history_;
+  board_ = src.board_;
+
+  occupied_sqs_ = &board_.occupied_sqs_;
+
+  int size = sizeof(src.mailbox_) / sizeof(src.mailbox_[0]);
+  std::copy(src.mailbox_, src.mailbox_ + size, mailbox_);
 }
 
 bool Position::PieceAt(Piece *piece, uint8_t index) const {
@@ -337,3 +367,5 @@ void Position::UpdateMailbox() {
     }
   }
 }
+
+}  // namespace engine

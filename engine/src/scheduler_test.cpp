@@ -1,11 +1,13 @@
+#include <cstddef>
+#include <cstdio>
+#include <vector>
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <cstddef>
-#include <cstdio>
 #include <engine/scheduler.hpp>
-#include <vector>
 
+using namespace engine;
 using namespace std::chrono_literals;
 using testing::AtLeast;
 

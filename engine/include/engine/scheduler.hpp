@@ -11,6 +11,8 @@
 #include <unordered_set>
 #include <vector>
 
+namespace engine {
+
 typedef std::function<void()> Callback;
 
 class Status;
@@ -18,7 +20,7 @@ class Scheduler;
 class Worker;
 
 class Job {
-private:
+ private:
   Callback callback_;
   bool done_;
   Worker *worker_;
@@ -40,11 +42,11 @@ private:
 };
 
 class Worker {
-public:
+ public:
   Worker() : job_(nullptr), id_(ID++), ready_(false), stopped_(false) {}
   ~Worker() { Stop(); }
 
-private:
+ private:
   Job *job_;
   std::mutex mutex_;
   std::thread thread_;
@@ -67,10 +69,10 @@ private:
 };
 
 class Status {
-public:
+ public:
   void Wait();
 
-private:
+ private:
   Job job_;
 
   Status(Callback callback) : job_(callback) {}
@@ -79,7 +81,7 @@ private:
 };
 
 class Scheduler {
-public:
+ public:
   Scheduler();
   Scheduler(int workers);
 
@@ -92,7 +94,7 @@ public:
   void MakeAvailable(Worker *worker);
   Status *Dispatch(Callback callback);
 
-private:
+ private:
   int size_;
   bool ready_;
   bool stopped_;
@@ -108,5 +110,7 @@ private:
   void Stop();
   void Monitor();
 };
+
+}  // namespace engine
 
 #endif

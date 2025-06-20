@@ -54,6 +54,8 @@
        _x_copy ^= BITBOARD_FOR_SQUARE(LOOP_INDEX),                  \
                 _loop_i = BIT_INDEX(_x_copy))
 
+namespace engine {
+
 Bitboard CheckMask(Position &position);
 std::pair<Bitboard, Bitboard> PinMask(Position &position);
 
@@ -167,4 +169,7 @@ template <enum Color side>
 constexpr Bitboard PawnTargets(Bitboard b) {
   return PawnTargets<side, EAST>(b) | PawnTargets<side, WEST>(b);
 }
+
+}  // namespace engine
+
 #endif

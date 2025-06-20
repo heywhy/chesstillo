@@ -3,6 +3,9 @@
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
+#include <tuple>
+#include <utility>
+
 #include <engine/board.hpp>
 #include <engine/constants.hpp>
 #include <engine/evaluation.hpp>
@@ -10,8 +13,8 @@
 #include <engine/move_gen.hpp>
 #include <engine/position.hpp>
 #include <engine/types.hpp>
-#include <tuple>
-#include <utility>
+
+namespace engine {
 
 const int kWeights[26][2] = {{500, 500},
                              {325, 325},
@@ -888,3 +891,5 @@ std::pair<float, float> PassedPawns(EvalState &state) {
 
   return std::make_pair(opening_score, endgame_score);
 }
+
+}  // namespace engine

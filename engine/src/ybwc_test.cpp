@@ -1,14 +1,15 @@
+#include <thread>
+
 #include <gtest/gtest.h>
 
-#include <cstdio>
 #include <engine/fen.hpp>
 #include <engine/options.hpp>
 #include <engine/position.hpp>
 #include <engine/search.hpp>
 #include <engine/types.hpp>
 #include <engine/ybwc.hpp>
-#include <thread>
 
+using namespace engine;
 using namespace std::chrono_literals;
 
 class YBWCTestSuite : public testing::Test {

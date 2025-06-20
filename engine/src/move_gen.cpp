@@ -1,6 +1,10 @@
 #include <cstdarg>
 #include <cstddef>
 #include <cstdint>
+#include <magic_bits.hpp>
+#include <tuple>
+#include <utility>
+
 #include <engine/board.hpp>
 #include <engine/constants.hpp>
 #include <engine/move.hpp>
@@ -8,9 +12,8 @@
 #include <engine/position.hpp>
 #include <engine/types.hpp>
 #include <engine/utility.hpp>
-#include <magic_bits.hpp>
-#include <tuple>
-#include <utility>
+
+namespace engine {
 
 inline bool PieceAt(Piece *piece, Piece *mailbox, uint8_t square) {
   *piece = mailbox[square];
@@ -562,3 +565,5 @@ std::pair<Bitboard, Bitboard> PinMask(Position &position) {
 
   return {hv_mask, diag_mask};
 }
+
+}  // namespace engine

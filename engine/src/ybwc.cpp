@@ -1,13 +1,16 @@
 #include <cassert>
 #include <cstdlib>
+#include <mutex>
+#include <thread>
+#include <vector>
+
 #include <engine/move.hpp>
 #include <engine/search.hpp>
 #include <engine/settings.hpp>
 #include <engine/types.hpp>
 #include <engine/ybwc.hpp>
-#include <mutex>
-#include <thread>
-#include <vector>
+
+namespace engine {
 
 Node::Node(Search *search, int alpha, int beta, int depth)
     : Node(search, alpha, beta, depth, nullptr) {}
@@ -321,3 +324,5 @@ Task *TaskStack::GetIdleTask() {
 
   return idle_ ? stack_[--idle_] : nullptr;
 }
+
+}  // namespace engine

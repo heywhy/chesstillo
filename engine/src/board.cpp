@@ -1,7 +1,10 @@
 #include <cstdint>
+
 #include <engine/board.hpp>
 #include <engine/types.hpp>
 #include <engine/utility.hpp>
+
+namespace engine {
 
 bool CoordForSquare(Coord *coord, uint8_t square) {
   if (square >= 0 && square < 64) {
@@ -27,3 +30,5 @@ void Board::Reset() {
       pieces_[BLACK][KNIGHT] = pieces_[BLACK][BISHOP] = pieces_[BLACK][PAWN] =
           kEmpty;
 }
+
+}  // namespace engine

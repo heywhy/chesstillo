@@ -1,11 +1,14 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdlib>
-#include <engine/scheduler.hpp>
 #include <mutex>
 #include <thread>
 
+#include <engine/scheduler.hpp>
+
 using namespace std::chrono_literals;
+
+namespace engine {
 
 int Worker::ID = 1;
 
@@ -227,3 +230,5 @@ void Worker::Run(Job *job) {
   lock.unlock();
   cv_.notify_all();
 }
+
+}  // namespace engine

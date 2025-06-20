@@ -21,6 +21,8 @@
 #define CASTLE_RIGHT_WHITE (RIGHT + WHITE)
 #define CASTLE_RIGHT_BLACK (RIGHT + BLACK + 1)
 
+namespace engine {
+
 using Bitboard = std::uint64_t;
 
 enum Color : std::uint8_t { WHITE, BLACK };
@@ -56,5 +58,7 @@ enum ESquare : std::uint8_t {
   a8, b8, c8, d8, e8, f8, g8, h8
 };
 // clang-format on
+
+}  // namespace engine
 
 #endif

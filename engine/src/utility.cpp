@@ -1,9 +1,12 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+
 #include <engine/board.hpp>
 #include <engine/types.hpp>
 #include <engine/utility.hpp>
+
+namespace engine {
 
 bool PieceToChar(char *c, Piece piece) {
   switch (piece) {
@@ -96,3 +99,5 @@ bool ToString(char *buf, const Move &move) {
 
   return true;
 }
+
+}  // namespace engine

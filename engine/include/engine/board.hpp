@@ -17,6 +17,8 @@
   (pieces[KING] | pieces[QUEEN] | pieces[BISHOP] | pieces[KNIGHT] | \
    pieces[ROOK] | pieces[PAWN])
 
+namespace engine {
+
 struct Coord {
   char file;
   std::uint8_t rank;
@@ -42,5 +44,7 @@ class Board {
         BOARD_OCCUPANCY(pieces_[WHITE]) | BOARD_OCCUPANCY(pieces_[BLACK]);
   }
 };
+
+}  // namespace engine
 
 #endif

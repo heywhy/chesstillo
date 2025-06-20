@@ -11,6 +11,8 @@
 #include "settings.hpp"
 #include "types.hpp"
 
+namespace engine {
+
 class Node;
 
 class Task {
@@ -103,5 +105,7 @@ class TaskStack {
   std::vector<Task> tasks_;
   std::vector<Task *> stack_;
 };
+
+}  // namespace engine
 
 #endif

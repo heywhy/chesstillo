@@ -1,13 +1,16 @@
-#include <gtest/gtest.h>
-
 #include <array>
 #include <cstdint>
+#include <utility>
+
+#include <gtest/gtest.h>
+
 #include <engine/board.hpp>
 #include <engine/fen.hpp>
 #include <engine/position.hpp>
 #include <engine/types.hpp>
 #include <engine/utility.hpp>
-#include <utility>
+
+using namespace engine;
 
 class PositionTestSuite : public ::testing::Test {
  protected:

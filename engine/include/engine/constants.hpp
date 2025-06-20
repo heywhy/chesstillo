@@ -9,6 +9,8 @@
 #define MAX_DEPTH 10  // 125
 #define MAX_THREADS 256
 
+namespace engine {
+
 inline constexpr Bitboard kEmpty = 0;
 inline constexpr Bitboard kUniverse = -1;
 inline constexpr Bitboard kAFile = 0x0101010101010101;
@@ -47,5 +49,7 @@ extern const magic_bits::Attacks kSlidingAttacks;
 
 consteval AttackMaps InitAttackMaps();
 consteval CheckBetween InitCheckBetween();
+
+}  // namespace engine
 
 #endif

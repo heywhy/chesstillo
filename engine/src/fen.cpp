@@ -1,9 +1,12 @@
 #include <cstdint>
+#include <string>
+
 #include <engine/board.hpp>
 #include <engine/fen.hpp>
 #include <engine/position.hpp>
 #include <engine/types.hpp>
-#include <string>
+
+namespace engine {
 
 uint16_t ToInt(char num) { return num - '0'; }
 
@@ -221,3 +224,5 @@ std::string PositionToFen(Position &position) {
   return fen += std::to_string(position.halfmove_clock_) + ' ' +
                 std::to_string(position.fullmove_counter_);
 }
+
+}  // namespace engine

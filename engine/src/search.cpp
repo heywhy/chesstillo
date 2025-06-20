@@ -1,5 +1,6 @@
 #include <cassert>
 #include <cstdio>
+
 #include <engine/constants.hpp>
 #include <engine/evaluation.hpp>
 #include <engine/move.hpp>
@@ -8,6 +9,8 @@
 #include <engine/types.hpp>
 #include <engine/utility.hpp>
 #include <engine/ybwc.hpp>
+
+namespace engine {
 
 Search::Search() : Search(0) {}
 
@@ -385,3 +388,5 @@ int Search::Quiesce(Position &position, int alpha, int beta) {
 
   return alpha;
 }
+
+}  // namespace engine

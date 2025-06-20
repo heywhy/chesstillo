@@ -2,6 +2,8 @@
 #include <engine/fill.hpp>
 #include <engine/types.hpp>
 
+namespace engine {
+
 Bitboard SouthOccluded(Bitboard bb, Bitboard pro) {
   bb |= pro & (bb >> 8);
   pro &= (pro >> 8);
@@ -103,3 +105,5 @@ Bitboard SouthFill(Bitboard bb) {
 
   return bb;
 }
+
+}  // namespace engine

@@ -30,33 +30,33 @@ typedef void (*UIBindPtr)(const Move &move);
 typedef std::function<void(const Move &)> UIBindFn;
 
 class UI {
-public:
+ public:
   virtual void Refresh() = 0;
 
   void Bind(UIBindFn);
   void Bind(UIBindPtr);
   void Notify(const Move &move);
 
-private:
+ private:
   std::variant<UIBindPtr, UIBindFn> callback_;
 };
 
 class Game;
 
 class Player {
-public:
+ public:
   virtual void Init(const Game &) = 0;
   virtual void Wait(Move &, Game &) = 0;
 };
 
 class Human : public Player {
-public:
+ public:
   void Init(const Game &) override;
   void Wait(Move &, Game &) override;
 };
 
 class Engine : public Player {
-public:
+ public:
   ~Engine();
   Engine(const std::string &binary);
 
@@ -69,7 +69,7 @@ public:
   void Send(std::string &output, const std::string_view &command,
             const std::string_view clause);
 
-private:
+ private:
   const std::string &binary_;
 
   asio::io_context context_;
@@ -89,7 +89,7 @@ private:
 };
 
 class Game {
-public:
+ public:
   Position position;
   std::list<Move> moves;
   const std::string_view start_pos;
@@ -104,7 +104,7 @@ public:
   void UpdateTurns();
   Color GetTurn() const;
 
-private:
+ private:
   Player &white_;
   Player &black_;
 

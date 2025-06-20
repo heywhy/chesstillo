@@ -3,6 +3,8 @@
 #include <engine/move_gen.hpp>
 #include <engine/types.hpp>
 
+namespace engine {
+
 const magic_bits::Attacks kSlidingAttacks;
 
 consteval AttackMaps InitAttackMaps() {
@@ -36,3 +38,5 @@ consteval CheckBetween InitCheckBetween() {
 }
 
 constexpr CheckBetween kCheckBetween = InitCheckBetween();
+
+}  // namespace engine
