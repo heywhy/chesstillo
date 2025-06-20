@@ -23,8 +23,8 @@ struct _State {
   Bitboard occupied_sqs;
   Bitboard en_passant_square;
   Bitboard en_passant_target;
-  uint8_t castling_rights;
-  uint8_t halfmove_clock;
+  std::uint8_t castling_rights;
+  std::uint8_t halfmove_clock;
 
   static _State From(Position &position);
   static void Apply(Position &position, _State &state);
@@ -43,15 +43,16 @@ class Position {
   std::string ToFen() const;
 
   void Reset();
-  void Make(Move &move);
-  void Undo(Move &move);
-  bool PieceAt(char *, uint8_t) const;
-  bool PieceAt(Piece *, uint8_t) const;
+  void Make(const Move &move);
+  void Undo(const Move &move);
+  bool PieceAt(char *, std::uint8_t) const;
+  bool PieceAt(Piece *, std::uint8_t) const;
 
   Color GetTurn() const { return turn_; }
+
   inline Bitboard EnPassantSquare() const { return en_passant_sq_; }
 
-  inline bool CanCastle(uint8_t direction) const {
+  inline bool CanCastle(std::uint8_t direction) const {
     return castling_rights_ & (static_cast<std::uint8_t>(1) << direction);
   }
 
@@ -61,10 +62,10 @@ class Position {
   Bitboard king_ban_;
   Bitboard en_passant_sq_;
   Bitboard en_passant_target_;
-  uint8_t castling_rights_;
+  std::uint8_t castling_rights_;
 
   long fullmove_counter_;
-  uint8_t halfmove_clock_;
+  std::uint8_t halfmove_clock_;
 
   std::stack<_State> history_;
   Piece mailbox_[64];

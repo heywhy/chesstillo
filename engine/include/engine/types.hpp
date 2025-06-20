@@ -10,12 +10,12 @@
 #define MIN_SCORE -INT_MAX
 #define SCORE_INF INT_MAX
 
-#define CASTLE_LEFT(color)                                   \
-  (static_cast<uint8_t>(1) << (color == WHITE ? LEFT + color \
-                                              : LEFT + color + 1))
-#define CASTLE_RIGHT(color)                                   \
-  (static_cast<uint8_t>(1) << (color == WHITE ? RIGHT + color \
-                                              : RIGHT + color + 1))
+#define CASTLE_LEFT(color)      \
+  (static_cast<std::uint8_t>(1) \
+   << (color == WHITE ? LEFT + color : LEFT + color + 1))
+#define CASTLE_RIGHT(color)     \
+  (static_cast<std::uint8_t>(1) \
+   << (color == WHITE ? RIGHT + color : RIGHT + color + 1))
 #define CASTLE_LEFT_WHITE (LEFT + WHITE)
 #define CASTLE_LEFT_BLACK (LEFT + BLACK + 1)
 #define CASTLE_RIGHT_WHITE (RIGHT + WHITE)
@@ -32,9 +32,9 @@ enum CastleDir : std::uint8_t { LEFT, RIGHT };
 enum Piece : std::uint8_t { ROOK, BISHOP, KNIGHT, KING, QUEEN, PAWN, NONE };
 
 // exact, lower bound, upper bound
-enum NodeType : uint8_t { PV, CUT, ALL };
+enum NodeType : std::uint8_t { PV, CUT, ALL };
 
-enum Flag : uint8_t {
+enum Flag : std::uint8_t {
   CHECK,
   CAPTURE,
   EN_PASSANT,

@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <engine/constants.hpp>
 #include <engine/position.hpp>
 #include <engine/types.hpp>
 
@@ -34,7 +35,7 @@ TEST(FenTestSuite, TestIgnoreCastlingRightsIfMissing) {
 TEST(FenTestSuite, TestSetEnPassantSquare) {
   Position position;
 
-  ASSERT_FALSE(position.EnPassantSquare());
+  ASSERT_EQ(position.EnPassantSquare(), kEmpty);
 
   position = Position::FromFen(
       "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - e3 0 1");

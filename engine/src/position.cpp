@@ -90,7 +90,7 @@ void Position::Reset() {
   }
 }
 
-void Position::Make(Move &move) {
+void Position::Make(const Move &move) {
   history_.push(_State::From(*this));
 
   Color opp = OPP(turn_);
@@ -197,7 +197,7 @@ void Position::Make(Move &move) {
   UpdateInternals();
 }
 
-void Position::Undo(Move &move) {
+void Position::Undo(const Move &move) {
   _State::Apply(*this, history_.top());
 
   Color opp = OPP(turn_);

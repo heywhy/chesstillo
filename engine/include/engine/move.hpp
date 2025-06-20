@@ -6,7 +6,6 @@
 #include <forward_list>
 #include <vector>
 
-#include "constants.hpp"
 #include "types.hpp"
 
 namespace engine {

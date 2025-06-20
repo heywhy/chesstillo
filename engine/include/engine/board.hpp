@@ -3,7 +3,6 @@
 
 #include <cstdint>
 
-#include "constants.hpp"
 #include "types.hpp"
 
 #define OPP(turn) static_cast<Color>(turn ^ 1)
