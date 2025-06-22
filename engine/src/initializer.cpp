@@ -1,6 +1,7 @@
 #include <engine/board.hpp>
 #include <engine/constants.hpp>
 #include <engine/move_gen.hpp>
+#include <engine/square.hpp>
 #include <engine/types.hpp>
 
 namespace engine {
@@ -11,7 +12,7 @@ consteval AttackMaps InitAttackMaps() {
   AttackMaps m{};
 
   for (int i = 0; i < 64; i++) {
-    Bitboard square = BITBOARD_FOR_SQUARE(i);
+    Bitboard square = square::BB(i);
 
     m[KING][i] = KING_ATTACKS(square);
     m[KNIGHT][i] = KNIGHT_ATTACKS(square);

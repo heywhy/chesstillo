@@ -4,6 +4,7 @@
 
 #include <engine/board.hpp>
 #include <engine/position.hpp>
+#include <engine/square.hpp>
 #include <engine/types.hpp>
 
 namespace engine {
@@ -12,14 +13,14 @@ Position Position::FromFen(const std::string_view fen) {
   Position position;
   Board &board = position.board_;
 
-  Bitboard *black_pieces = board.pieces[BLACK];
-  Bitboard *white_pieces = board.pieces[WHITE];
+  PieceList &black_pieces = board.pieces[BLACK];
+  PieceList &white_pieces = board.pieces[WHITE];
 
-  std::uint8_t rank = 7;
-  std::uint8_t file = 0;
-  std::uint8_t spaces = 0;
+  std::uint_fast8_t rank = 7;
+  std::uint_fast8_t file = 0;
+  std::uint_fast8_t spaces = 0;
   std::uint16_t move_count = 0;
-  std::uint8_t en_passant_rank;
+  std::uint_fast8_t en_passant_rank;
   char en_passant_file;
 
   for (const char c : fen) {
@@ -127,17 +128,17 @@ Position Position::FromFen(const std::string_view fen) {
     }
 
     if (spaces == 0 && piece) {
-      uint8_t square = TO_SQUARE(file, rank);
-      *piece |= BITBOARD_FOR_SQUARE(square);
+      std::uint_fast8_t square = square::From(file, rank);
+      *piece |= square::BB(square);
 
       file++;
     } else if (spaces == 3 && (en_passant_rank == 3 || en_passant_rank == 6) &&
                en_passant_file >= 'a' && en_passant_file <= 'h') {
-      uint8_t rank = en_passant_rank - 1;
-      uint8_t file = en_passant_file - 97;
-      uint8_t square = TO_SQUARE(file, rank);
+      std::uint_fast8_t rank = en_passant_rank - 1;
+      std::uint_fast8_t file = en_passant_file - 97;
+      std::uint_fast8_t square = square::From(file, rank);
 
-      position.en_passant_sq_ = BITBOARD_FOR_SQUARE(square);
+      position.en_passant_sq_ = square::BB(square);
     } else if (spaces == 4) {
       position.halfmove_clock_ = move_count;
     } else if (spaces == 5) {
@@ -158,8 +159,8 @@ std::string Position::ToFen() const {
 
   for (int rank = 7; rank >= 0; rank--) {
     for (int file = 0; file < 8; file++) {
-      uint8_t square = TO_SQUARE(file, rank);
-      Bitboard bb = BITBOARD_FOR_SQUARE(square);
+      std::uint_fast8_t square = square::From(file, rank);
+      Bitboard bb = square::BB(square);
 
       if (occupied_sqs & bb) {
         if (spaces > 0) {
@@ -209,7 +210,7 @@ std::string Position::ToFen() const {
   }
 
   Coord coord;
-  uint8_t en_passant_square = BIT_INDEX(en_passant_sq_);
+  std::uint_fast8_t en_passant_square = square::Index(en_passant_sq_);
 
   if (CoordForSquare(&coord, en_passant_square)) {
     char rank = '0' + coord.rank;

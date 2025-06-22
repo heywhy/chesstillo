@@ -18,7 +18,7 @@ struct TTEntry {
   int depth;
   int score;
   Move best_move;
-  uint8_t age;
+  std::uint_fast8_t age;
   NodeType node;
 };
 

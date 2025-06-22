@@ -23,8 +23,8 @@ struct _State {
   Bitboard occupied_sqs;
   Bitboard en_passant_square;
   Bitboard en_passant_target;
-  std::uint8_t castling_rights;
-  std::uint8_t halfmove_clock;
+  std::uint_fast8_t castling_rights;
+  std::uint_fast8_t halfmove_clock;
 
   static _State From(Position &position);
   static void Apply(Position &position, _State &state);
@@ -45,15 +45,15 @@ class Position {
   void Reset();
   void Make(const Move &move);
   void Undo(const Move &move);
-  bool PieceAt(char *, std::uint8_t) const;
-  bool PieceAt(Piece *, std::uint8_t) const;
+  bool PieceAt(char *, std::uint_fast8_t) const;
+  bool PieceAt(Piece *, std::uint_fast8_t) const;
 
   Color GetTurn() const { return turn_; }
 
   inline Bitboard EnPassantSquare() const { return en_passant_sq_; }
 
-  inline bool CanCastle(std::uint8_t direction) const {
-    return castling_rights_ & (static_cast<std::uint8_t>(1) << direction);
+  inline bool CanCastle(std::uint_fast8_t direction) const {
+    return castling_rights_ & (static_cast<std::uint_fast8_t>(1) << direction);
   }
 
  private:
@@ -62,10 +62,10 @@ class Position {
   Bitboard king_ban_;
   Bitboard en_passant_sq_;
   Bitboard en_passant_target_;
-  std::uint8_t castling_rights_;
+  std::uint_fast8_t castling_rights_;
 
   long fullmove_counter_;
-  std::uint8_t halfmove_clock_;
+  std::uint_fast8_t halfmove_clock_;
 
   std::stack<_State> history_;
   Piece mailbox_[64];
@@ -85,7 +85,7 @@ class Position {
   friend Bitboard CheckMask(Position &position);
   friend std::pair<Bitboard, Bitboard> PinMask(Position &position);
 
-  inline Bitboard *Pieces(Color color) { return board_.pieces[color]; }
+  inline PieceList &Pieces(Color color) { return board_.pieces[color]; }
 };
 
 }  // namespace engine

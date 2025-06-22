@@ -23,7 +23,7 @@ TEST(PositionTestSuite, TestPawnMove) {
 
 TEST(PositionTestSuite, TestPawnCaptureMove) {
   Position position = Position::FromFen(kStartPos);
-  std::array<std::pair<uint8_t, uint8_t>, 6> moves = {
+  std::array<std::pair<std::uint_fast8_t, std::uint_fast8_t>, 6> moves = {
       {{e2, e4}, {d7, d5}, {e4, d5}, {c7, c6}, {d2, d4}, {c6, d5}}};
 
   for (auto [from, to] : moves) {
@@ -48,7 +48,8 @@ TEST(PositionTestSuite, TestKnightMove) {
 TEST(PositionTestSuite, TestBishopMove) {
   Position position = Position::FromFen("8/8/8/3b4/3B4/8/8/8 w - - 0 1");
 
-  std::array<std::array<uint8_t, 2>, 2> moves = {{{d4, b6}, {d5, f7}}};
+  std::array<std::array<std::uint_fast8_t, 2>, 2> moves = {
+      {{d4, b6}, {d5, f7}}};
 
   for (auto [from, to] : moves) {
     Move move = DeduceMove(position, from, to);
@@ -62,7 +63,8 @@ TEST(PositionTestSuite, TestBishopMove) {
 TEST(PositionTestSuite, TestRookMove) {
   Position position = Position::FromFen("8/2r2n2/8/8/3R4/8/8/5R2 w - - 0 1");
 
-  std::array<std::array<uint8_t, 2>, 2> moves = {{{f1, f7}, {c7, f7}}};
+  std::array<std::array<std::uint_fast8_t, 2>, 2> moves = {
+      {{f1, f7}, {c7, f7}}};
 
   for (auto [from, to] : moves) {
     Move move = DeduceMove(position, from, to);
@@ -76,7 +78,7 @@ TEST(PositionTestSuite, TestRookMove) {
 TEST(PositionTestSuite, TestQueenMove) {
   Position position = Position::FromFen("8/8/4r3/1n1N2q1/2Q5/8/8/8 w - - 0 1");
 
-  std::array<std::array<uint8_t, 2>, 9> moves = {{
+  std::array<std::array<std::uint_fast8_t, 2>, 9> moves = {{
       {c4, b5},
       {e6, e5},
       {b5, f1},

@@ -12,6 +12,7 @@
 #include <engine/fill.hpp>
 #include <engine/move_gen.hpp>
 #include <engine/position.hpp>
+#include <engine/square.hpp>
 #include <engine/types.hpp>
 
 namespace engine {
@@ -102,8 +103,8 @@ void EvalState::ComputeAttackMap() {
 }
 
 EvalState EvalState::For(Position &position) {
-  Bitboard *white_pieces = position.Pieces(WHITE);
-  Bitboard *black_pieces = position.Pieces(BLACK);
+  PieceList &white_pieces = position.Pieces(WHITE);
+  PieceList &black_pieces = position.Pieces(BLACK);
   Bitboard occupied_sqs = position.board_.occupied_sqs;
 
   // TODO: maybe move position mask computation into the position
@@ -111,8 +112,8 @@ EvalState EvalState::For(Position &position) {
   Bitboard check_mask = CheckMask(position);
   auto [pin_hv_mask, pin_diag_mask] = PinMask(position);
 
-  return {white_pieces, black_pieces, occupied_sqs,
-          check_mask,   pin_hv_mask,  pin_diag_mask};
+  return {white_pieces.data(), black_pieces.data(), occupied_sqs,
+          check_mask,          pin_hv_mask,         pin_diag_mask};
 }
 
 // TODO: Position table, Pattern, King, Passed Pawn
@@ -287,10 +288,10 @@ int KingPosition(EvalState &state) {
   Bitboard shelter_pawns = shelter_files & side_pieces[PAWN];
 
   BITLOOP(shelter_pawns) {
-    uint8_t distance;
-    uint8_t square = LOOP_INDEX;
-    uint8_t rank = RANK(square);
-    Bitboard bb = BITBOARD_FOR_SQUARE(square);
+    std::uint_fast8_t distance;
+    std::uint_fast8_t square = LOOP_INDEX;
+    std::uint_fast8_t rank = square::Rank(square);
+    Bitboard bb = square::BB(square);
 
     if constexpr (side == WHITE) {
       distance = 8 - rank;
@@ -310,7 +311,7 @@ int KingPosition(EvalState &state) {
 
   BITLOOP(shelter_sqs) {
     int penalty = 36;
-    Bitboard bb = BITBOARD_FOR_SQUARE(LOOP_INDEX);
+    Bitboard bb = square::BB(LOOP_INDEX);
 
     if (bb & king_file) {
       penalty *= 2;
@@ -328,8 +329,8 @@ int KingPosition(EvalState &state) {
   Bitboard hostile_pawns = shelter_files & storm_area & enemy_pieces[PAWN];
 
   BITLOOP(hostile_pawns) {
-    uint8_t square = LOOP_INDEX;
-    Bitboard bb = BITBOARD_FOR_SQUARE(square);
+    std::uint_fast8_t square = LOOP_INDEX;
+    Bitboard bb = square::BB(square);
 
     // clang-format off
     if constexpr (side == WHITE) {
@@ -353,11 +354,11 @@ int KingPosition(EvalState &state) {
   Bitboard bishop_and_queen = side_pieces[BISHOP] | side_pieces[QUEEN];
 
   BITLOOP(enemy_pieces[KNIGHT]) {
-    uint8_t square = LOOP_INDEX;
+    std::uint_fast8_t square = LOOP_INDEX;
     Bitboard targets = kAttackMaps[KNIGHT][square];
 
     if (targets & enemy_king_adjacents || enemy_king_adjacents_x2 & targets) {
-      Bitboard bb = BITBOARD_FOR_SQUARE(square);
+      Bitboard bb = square::BB(square);
 
       attackers_value += 1;
       attackers |= bb;
@@ -365,12 +366,12 @@ int KingPosition(EvalState &state) {
   }
 
   BITLOOP(bishop_and_queen) {
-    uint8_t square = LOOP_INDEX;
+    std::uint_fast8_t square = LOOP_INDEX;
     Bitboard targets = kSlidingAttacks.Bishop(state.occupied_sqs, square);
 
     if (kAttackMaps[BISHOP][square] & enemy_king_adjacents ||
         enemy_king_adjacents_x2 & targets) {
-      Bitboard bb = BITBOARD_FOR_SQUARE(square);
+      Bitboard bb = square::BB(square);
 
       attackers_value += bb & side_pieces[BISHOP] ? 1 : 4;
       attackers |= bb;
@@ -380,8 +381,8 @@ int KingPosition(EvalState &state) {
   Bitboard rook_and_queen = side_pieces[ROOK] | side_pieces[QUEEN];
 
   BITLOOP(rook_and_queen) {
-    uint8_t square = LOOP_INDEX;
-    Bitboard bb = BITBOARD_FOR_SQUARE(square);
+    std::uint_fast8_t square = LOOP_INDEX;
+    Bitboard bb = square::BB(square);
     Bitboard targets = kSlidingAttacks.Rook(state.occupied_sqs, square);
 
     if (kAttackMaps[ROOK][square] & enemy_king_adjacents ||
@@ -500,8 +501,8 @@ int DoublePawns(Bitboard pawns) {
   constexpr auto file_fills = side == BLACK ? NorthFill : SouthFill;
 
   while (pawns) {
-    uint8_t square = BIT_INDEX_MSB(pawns);
-    Bitboard bb = BITBOARD_FOR_SQUARE(square);
+    std::uint_fast8_t square = square::MIndex(pawns);
+    Bitboard bb = square::BB(square);
     Bitboard targets = file_fills(bb) & pawns;
 
     if (targets & pawns) {
@@ -521,8 +522,8 @@ std::pair<int, int> IsolatedPawns(Bitboard pawns, Bitboard empty_sqs) {
   int count = 0;
 
   while (pawns) {
-    uint8_t square = BIT_INDEX(pawns);
-    Bitboard bb = BITBOARD_FOR_SQUARE(square);
+    std::uint_fast8_t square = square::Index(pawns);
+    Bitboard bb = square::BB(square);
 
     Bitboard targets = FileFill((MOVE_WEST(bb)) | (MOVE_EAST(bb))) & pawns;
 
@@ -547,8 +548,8 @@ std::pair<int, int> BackwardPawns(Bitboard side_pawns, Bitboard enemy_pawns) {
   constexpr auto file_fills = side == WHITE ? NorthFill : SouthFill;
 
   while (side_pawns) {
-    uint8_t square = BIT_INDEX(side_pawns);
-    Bitboard bb = BITBOARD_FOR_SQUARE(square);
+    std::uint_fast8_t square = square::Index(side_pawns);
+    Bitboard bb = square::BB(square);
 
     Bitboard push_target = PushPawn<side>(bb);
     Bitboard dbl_push_target = PushPawn<side>(push_target);
@@ -559,10 +560,10 @@ std::pair<int, int> BackwardPawns(Bitboard side_pawns, Bitboard enemy_pawns) {
     Bitboard west_fill_targets = file_fills(MOVE_WEST(push_target));
     Bitboard east_fill_targets = file_fills(MOVE_EAST(push_target));
 
-    Bitboard push_rank = RankMask(BIT_INDEX(push_target));
-    Bitboard tpl_rank = RankMask(BIT_INDEX(tpl_push_target));
+    Bitboard push_rank = RankMask(square::Index(push_target));
+    Bitboard tpl_rank = RankMask(square::Index(tpl_push_target));
 
-    Bitboard ranks_ahead = push_rank | RankMask(BIT_INDEX(dbl_push_target));
+    Bitboard ranks_ahead = push_rank | RankMask(square::Index(dbl_push_target));
 
     // clang-format off
     if (
@@ -598,10 +599,10 @@ int RooksMobility(EvalState &state) {
 
   if constexpr (side == WHITE) {
     side_rooks = state.white_pieces[ROOK];
-    enemy_sqs = BOARD_OCCUPANCY(state.black_pieces);
+    enemy_sqs = square::Occupancy(state.black_pieces);
   } else {
     side_rooks = state.black_pieces[ROOK];
-    enemy_sqs = BOARD_OCCUPANCY(state.white_pieces);
+    enemy_sqs = square::Occupancy(state.white_pieces);
   }
 
   Bitboard movable_sqs = empty_sqs | enemy_sqs;
@@ -625,10 +626,10 @@ int BishopsMobility(EvalState &state) {
 
   if constexpr (side == WHITE) {
     side_bishops = state.white_pieces[BISHOP];
-    enemy_sqs = BOARD_OCCUPANCY(state.black_pieces);
+    enemy_sqs = square::Occupancy(state.black_pieces);
   } else {
     side_bishops = state.black_pieces[BISHOP];
-    enemy_sqs = BOARD_OCCUPANCY(state.white_pieces);
+    enemy_sqs = square::Occupancy(state.white_pieces);
   }
 
   Bitboard movable_sqs = empty_sqs | enemy_sqs;
@@ -652,10 +653,10 @@ int KnightsMobility(EvalState &state) {
 
   if constexpr (side == WHITE) {
     side_knights = state.white_pieces[KNIGHT];
-    enemy_sqs = BOARD_OCCUPANCY(state.black_pieces);
+    enemy_sqs = square::Occupancy(state.black_pieces);
   } else {
     side_knights = state.black_pieces[KNIGHT];
-    enemy_sqs = BOARD_OCCUPANCY(state.white_pieces);
+    enemy_sqs = square::Occupancy(state.white_pieces);
   }
 
   Bitboard movable_sqs = empty_sqs | enemy_sqs;
@@ -712,14 +713,14 @@ std::tuple<int, int, int> SemiOpenFiles(EvalState &state) {
     enemy_pawns = state.black_pieces[PAWN];
 
     enemy_king = state.black_pieces[KING];
-    enemy_king_file = FileMask(BIT_INDEX(enemy_king));
+    enemy_king_file = FileMask(square::Index(enemy_king));
   } else {
     side_pawns = state.black_pieces[PAWN];
     side_rooks = state.black_pieces[ROOK];
     enemy_pawns = state.white_pieces[PAWN];
 
     enemy_king = state.white_pieces[KING];
-    enemy_king_file = FileMask(BIT_INDEX(enemy_king));
+    enemy_king_file = FileMask(square::Index(enemy_king));
   }
 
   BITLOOP(side_rooks) {
@@ -753,12 +754,12 @@ std::tuple<int, int, int> OpenFiles(EvalState &state) {
     side_rooks = state.white_pieces[ROOK];
 
     enemy_king = state.black_pieces[KING];
-    enemy_king_file = FileMask(BIT_INDEX(enemy_king));
+    enemy_king_file = FileMask(square::Index(enemy_king));
   } else {
     side_rooks = state.black_pieces[ROOK];
 
     enemy_king = state.white_pieces[KING];
-    enemy_king_file = FileMask(BIT_INDEX(enemy_king));
+    enemy_king_file = FileMask(square::Index(enemy_king));
   }
 
   BITLOOP(side_rooks) {
@@ -809,7 +810,7 @@ int KingDistance(EvalState &state) {
 
   Coord king_coord;
 
-  CoordForSquare(&king_coord, BIT_INDEX(enemy_king));
+  CoordForSquare(&king_coord, square::Index(enemy_king));
 
   king_file = king_coord.file - 97;
 
@@ -856,9 +857,9 @@ std::pair<float, float> PassedPawns(EvalState &state) {
   }
 
   BITLOOP(side_pawns) {
-    uint8_t square = LOOP_INDEX;
-    int rank = RANK(square);
-    Bitboard bb = BITBOARD_FOR_SQUARE(square);
+    std::uint_fast8_t square = LOOP_INDEX;
+    int rank = square::Rank(square);
+    Bitboard bb = square::BB(square);
     Bitboard front_targets = front_fill(bb) ^ bb;
 
     if (front_targets & all_pawns) {

@@ -7,6 +7,7 @@
 #include <engine/fill.hpp>
 #include <engine/move_gen.hpp>
 #include <engine/position.hpp>
+#include <engine/square.hpp>
 #include <engine/types.hpp>
 #include <engine/utility.hpp>
 
@@ -51,20 +52,20 @@ Position::Position(const Position &src) {
   std::copy(src.mailbox_, src.mailbox_ + size, mailbox_);
 }
 
-bool Position::PieceAt(Piece *piece, uint8_t index) const {
+bool Position::PieceAt(Piece *piece, std::uint_fast8_t index) const {
   *piece = mailbox_[index];
 
   return *piece != NONE;
 }
 
-bool Position::PieceAt(char *c, uint8_t index) const {
+bool Position::PieceAt(char *c, std::uint_fast8_t index) const {
   Piece piece;
 
   if (!PieceAt(&piece, index)) {
     return false;
   }
 
-  Bitboard bb = BITBOARD_FOR_SQUARE(index);
+  Bitboard bb = square::BB(index);
 
   if (board_.pieces[WHITE][piece] & bb) {
     return PieceToChar(c, piece, WHITE);
@@ -95,8 +96,8 @@ void Position::Make(const Move &move) {
 
   Color opp = OPP(turn_);
   Bitboard &piece = board_.pieces[turn_][move.piece];
-  Bitboard to = BITBOARD_FOR_SQUARE(move.to);
-  Bitboard from = BITBOARD_FOR_SQUARE(move.from);
+  Bitboard to = square::BB(move.to);
+  Bitboard from = square::BB(move.from);
 
   piece ^= from ^ to;
 
@@ -110,7 +111,7 @@ void Position::Make(const Move &move) {
   }
 
   if (move.piece == KING && move.Is(CASTLE_RIGHT)) [[unlikely]] {
-    int king_square = BIT_INDEX(piece);
+    int king_square = square::Index(piece);
     Bitboard rank = RankMask(king_square);
     Bitboard &rooks = board_.pieces[turn_][ROOK];
     Bitboard rook = rooks & rank & kKingSide;
@@ -118,12 +119,12 @@ void Position::Make(const Move &move) {
 
     rooks ^= rook | new_position;
 
-    mailbox_[BIT_INDEX(rook)] = NONE;
-    mailbox_[BIT_INDEX(new_position)] = ROOK;
+    mailbox_[square::Index(rook)] = NONE;
+    mailbox_[square::Index(new_position)] = ROOK;
   }
 
   if (move.piece == KING && move.Is(CASTLE_LEFT)) [[unlikely]] {
-    int king_square = BIT_INDEX(piece);
+    int king_square = square::Index(piece);
     Bitboard rank = RankMask(king_square);
     Bitboard &rooks = board_.pieces[turn_][ROOK];
     Bitboard rook = rooks & rank & kQueenSide;
@@ -131,8 +132,8 @@ void Position::Make(const Move &move) {
 
     rooks ^= rook | new_position;
 
-    mailbox_[BIT_INDEX(rook)] = NONE;
-    mailbox_[BIT_INDEX(new_position)] = ROOK;
+    mailbox_[square::Index(rook)] = NONE;
+    mailbox_[square::Index(new_position)] = ROOK;
   }
 
   auto [left_rook, right_rook, single_push] =
@@ -161,7 +162,7 @@ void Position::Make(const Move &move) {
 
     piece ^= en_passant_target_;
 
-    mailbox_[BIT_INDEX(en_passant_target_)] = NONE;
+    mailbox_[square::Index(en_passant_target_)] = NONE;
   }
 
   if (move.Is(PROMOTION)) [[unlikely]] {
@@ -202,8 +203,8 @@ void Position::Undo(const Move &move) {
 
   Color opp = OPP(turn_);
   Bitboard &piece = board_.pieces[opp][move.piece];
-  Bitboard to = BITBOARD_FOR_SQUARE(move.to);
-  Bitboard from = BITBOARD_FOR_SQUARE(move.from);
+  Bitboard to = square::BB(move.to);
+  Bitboard from = square::BB(move.from);
 
   piece = (piece ^ to) | from;
 
@@ -220,7 +221,7 @@ void Position::Undo(const Move &move) {
   }
 
   if (move.Is(CAPTURE)) {
-    Bitboard *pieces = board_.pieces[turn_];
+    PieceList &pieces = board_.pieces[turn_];
 
     pieces[move.captured] |= to;
 
@@ -228,7 +229,7 @@ void Position::Undo(const Move &move) {
   }
 
   if (move.piece == KING && move.Is(CASTLE_RIGHT)) [[unlikely]] {
-    uint8_t king_square = BIT_INDEX(piece);
+    std::uint_fast8_t king_square = square::Index(piece);
     Bitboard rank = RankMask(king_square);
     Bitboard &rooks = board_.pieces[opp][ROOK];
     Bitboard rook = rooks & rank & kKingSide;
@@ -236,12 +237,12 @@ void Position::Undo(const Move &move) {
 
     rooks ^= rook | old_position;
 
-    mailbox_[BIT_INDEX(rook)] = NONE;
-    mailbox_[BIT_INDEX(old_position)] = ROOK;
+    mailbox_[square::Index(rook)] = NONE;
+    mailbox_[square::Index(old_position)] = ROOK;
   }
 
   if (move.piece == KING && move.Is(CASTLE_LEFT)) [[unlikely]] {
-    uint8_t king_square = BIT_INDEX(piece);
+    std::uint_fast8_t king_square = square::Index(piece);
     Bitboard rank = RankMask(king_square);
     Bitboard &rooks = board_.pieces[opp][ROOK];
     Bitboard rook = rooks & rank & kQueenSide;
@@ -249,16 +250,16 @@ void Position::Undo(const Move &move) {
 
     rooks ^= rook | old_position;
 
-    mailbox_[BIT_INDEX(rook)] = NONE;
-    mailbox_[BIT_INDEX(old_position)] = ROOK;
+    mailbox_[square::Index(rook)] = NONE;
+    mailbox_[square::Index(old_position)] = ROOK;
   }
 
   if (move.Is(EN_PASSANT)) [[unlikely]] {
-    Bitboard *pieces = board_.pieces[turn_];
+    PieceList &pieces = board_.pieces[turn_];
 
     pieces[PAWN] |= en_passant_target_;
 
-    mailbox_[BIT_INDEX(en_passant_target_)] = PAWN;
+    mailbox_[square::Index(en_passant_target_)] = PAWN;
   }
 
   if (opp == BLACK) {
@@ -284,9 +285,9 @@ void Position::UpdateInternals() {
 
   Bitboard pawns = board_.pieces[turn_][PAWN];
   Bitboard king = board_.pieces[turn_][KING];
-  uint8_t ep_sq = BIT_INDEX(en_passant_target_);
+  std::uint_fast8_t ep_sq = square::Index(en_passant_target_);
   Bitboard ep_rank = RankMask(ep_sq);
-  uint8_t king_sq = BIT_INDEX(king);
+  std::uint_fast8_t king_sq = square::Index(king);
 
   if (en_passant_target_ && (ep_rank & king) && (ep_rank & enemy_rook_queen) &&
       (ep_rank & pawns)) {
@@ -348,7 +349,7 @@ void Position::UpdateKingBan() {
 
 void Position::UpdateMailbox() {
   for (int i = 0; i < 64; i++) {
-    Bitboard bb = BITBOARD_FOR_SQUARE(i);
+    Bitboard bb = square::BB(i);
 
     if (bb & board_.occupied_sqs) {
       for (int j = 0; j < PIECES; j++) {

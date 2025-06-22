@@ -3,6 +3,7 @@
 #include <cstring>
 
 #include <engine/board.hpp>
+#include <engine/square.hpp>
 #include <engine/types.hpp>
 #include <engine/utility.hpp>
 
@@ -45,7 +46,8 @@ bool PieceToChar(char *c, Piece piece, Color color) {
   return true;
 }
 
-Move DeduceMove(const Position &position, uint8_t from, uint8_t to) {
+Move DeduceMove(const Position &position, std::uint_fast8_t from,
+                std::uint_fast8_t to) {
   Piece piece;
   Piece captured;
 
@@ -58,7 +60,7 @@ Move DeduceMove(const Position &position, uint8_t from, uint8_t to) {
     move.Set(CAPTURE);
   }
 
-  if (BITBOARD_FOR_SQUARE(to) & position.EnPassantSquare()) {
+  if (square::BB(to) & position.EnPassantSquare()) {
     move.Set(EN_PASSANT);
   }
 

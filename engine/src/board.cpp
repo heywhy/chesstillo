@@ -2,17 +2,19 @@
 
 #include <engine/board.hpp>
 #include <engine/constants.hpp>
+#include <engine/square.hpp>
 #include <engine/types.hpp>
 #include <engine/utility.hpp>
 
 namespace engine {
 
-bool CoordForSquare(Coord *coord, uint8_t square) {
+bool CoordForSquare(Coord *coord, std::uint_fast8_t square) {
   if (square >= 0 && square < 64) {
-    uint8_t file = FILE(square);
-    uint8_t rank = RANK(square);
+    std::uint_fast8_t file = square::File(square);
+    std::uint_fast8_t rank = square::Rank(square);
 
-    *coord = {static_cast<char>(file + 97), static_cast<uint8_t>(rank)};
+    *coord = {static_cast<char>(file + 97),
+              static_cast<std::uint_fast8_t>(rank)};
 
     return true;
   }
@@ -29,6 +31,11 @@ void Board::Reset() {
     pieces[0][i] = kEmpty;
     pieces[1][i] = kEmpty;
   }
+}
+
+void Board::UpdateOccupiedSqs() {
+  occupied_sqs =
+      square::Occupancy(pieces[WHITE]) | square::Occupancy(pieces[BLACK]);
 }
 
 }  // namespace engine

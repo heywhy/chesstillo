@@ -10,12 +10,13 @@
 #include <engine/move.hpp>
 #include <engine/move_gen.hpp>
 #include <engine/position.hpp>
+#include <engine/square.hpp>
 #include <engine/types.hpp>
 #include <engine/utility.hpp>
 
 namespace engine {
 
-inline bool PieceAt(Piece *piece, Piece *mailbox, uint8_t square) {
+inline bool PieceAt(Piece *piece, Piece *mailbox, std::uint_fast8_t square) {
   *piece = mailbox[square];
 
   return *piece != NONE;
@@ -28,21 +29,22 @@ MoveList GenerateMoves(Position &position) {
 
   Color opp = OPP(position.turn_);
   Bitboard occupied_sqs = position.board_.occupied_sqs;
-  Bitboard *enemy_pieces = position.Pieces(opp);
-  Bitboard *own_pieces = position.Pieces(position.turn_);
+  PieceList &enemy_pieces = position.Pieces(opp);
+  PieceList &own_pieces = position.Pieces(position.turn_);
 
   Bitboard check_mask = CheckMask(position);
   auto [pin_hv_mask, pin_diag_mask] = PinMask(position);
   Bitboard pin_mask = pin_hv_mask | pin_diag_mask;
 
   Bitboard empty_sqs = ~occupied_sqs;
-  Bitboard own_pieces_bb = BOARD_OCCUPANCY(own_pieces);
-  Bitboard enemy_pieces_bb = BOARD_OCCUPANCY(enemy_pieces) ^ enemy_pieces[KING];
+  Bitboard own_pieces_bb = square::Occupancy(own_pieces);
+  Bitboard enemy_pieces_bb =
+      square::Occupancy(enemy_pieces) ^ enemy_pieces[KING];
   Bitboard enemy_or_empty_sqs = enemy_pieces_bb | empty_sqs;
   Bitboard movable_sqs = enemy_or_empty_sqs & check_mask;
 
   // 1. safe king squares
-  uint8_t king_sq = BIT_INDEX(own_pieces[KING]);
+  std::uint_fast8_t king_sq = square::Index(own_pieces[KING]);
   Bitboard legal_king_moves =
       kAttackMaps[KING][king_sq] & enemy_or_empty_sqs & ~position.king_ban_;
 
@@ -51,7 +53,7 @@ MoveList GenerateMoves(Position &position) {
 
   BITLOOP(captures) {
     Piece piece;
-    uint8_t to = LOOP_INDEX;
+    std::uint_fast8_t to = LOOP_INDEX;
     Move move(king_sq, to, KING);
 
     PieceAt(&piece, position.mailbox_, to);
@@ -100,8 +102,8 @@ MoveList GenerateMoves(Position &position) {
     Bitboard single_targets = free_pawns_pts | pinned_pawns_pts;
 
     BITLOOP(single_targets) {
-      uint8_t to = LOOP_INDEX;
-      uint8_t from = to + file_shift;
+      std::uint_fast8_t to = LOOP_INDEX;
+      std::uint_fast8_t from = to + file_shift;
 
       move_list.emplace_back(from, to, PAWN);
     }
@@ -116,8 +118,8 @@ MoveList GenerateMoves(Position &position) {
     Bitboard double_targets = free_pawns_dts | pinned_pawns_dts;
 
     BITLOOP(double_targets) {
-      uint8_t to = LOOP_INDEX;
-      uint8_t from = to + dbl_file_shift;
+      std::uint_fast8_t to = LOOP_INDEX;
+      std::uint_fast8_t from = to + dbl_file_shift;
 
       move_list.emplace_back(from, to, PAWN);
     }
@@ -142,8 +144,8 @@ MoveList GenerateMoves(Position &position) {
 
       BITLOOP(west_targets) {
         Piece piece;
-        uint8_t to = LOOP_INDEX;
-        uint8_t from = to + west_shift;
+        std::uint_fast8_t to = LOOP_INDEX;
+        std::uint_fast8_t from = to + west_shift;
         Move move(from, to, PAWN);
 
         PieceAt(&piece, position.mailbox_, to);
@@ -159,8 +161,8 @@ MoveList GenerateMoves(Position &position) {
 
       BITLOOP(east_targets) {
         Piece piece;
-        uint8_t to = LOOP_INDEX;
-        uint8_t from = to + east_shift;
+        std::uint_fast8_t to = LOOP_INDEX;
+        std::uint_fast8_t from = to + east_shift;
         Move move(from, to, PAWN);
 
         PieceAt(&piece, position.mailbox_, to);
@@ -183,8 +185,8 @@ MoveList GenerateMoves(Position &position) {
           (free_pawns_wts & capture_mask) | (pinned_pawns_wts & capture_mask);
 
       BITLOOP(west_targets) {
-        uint8_t to = LOOP_INDEX;
-        uint8_t from = to + west_shift;
+        std::uint_fast8_t to = LOOP_INDEX;
+        std::uint_fast8_t from = to + west_shift;
         Move move(from, to, PAWN);
 
         move.Set(EN_PASSANT);
@@ -196,7 +198,7 @@ MoveList GenerateMoves(Position &position) {
           (free_pawns_ets & capture_mask) | (pinned_pawns_ets & capture_mask);
 
       BITLOOP(east_targets) {
-        uint8_t to = LOOP_INDEX;
+        std::uint_fast8_t to = LOOP_INDEX;
         int from = to + east_shift;
         Move move(from, to, PAWN);
 
@@ -212,7 +214,7 @@ MoveList GenerateMoves(Position &position) {
     Bitboard knights = own_pieces[KNIGHT] & ~pin_mask;
 
     BITLOOP(knights) {
-      uint8_t from = LOOP_INDEX;
+      std::uint_fast8_t from = LOOP_INDEX;
       Bitboard targets = kAttackMaps[KNIGHT][from] & movable_sqs;
 
       AddMovesToList(move_list, from, targets, KNIGHT, position.mailbox_,
@@ -228,8 +230,8 @@ MoveList GenerateMoves(Position &position) {
     Bitboard pinned_bishops = (bishops | queens) & pin_diag_mask;
 
     BITLOOP(pinned_bishops) {
-      uint8_t from = LOOP_INDEX;
-      Bitboard bb = BITBOARD_FOR_SQUARE(from);
+      std::uint_fast8_t from = LOOP_INDEX;
+      Bitboard bb = square::BB(from);
       Bitboard targets = kSlidingAttacks.Bishop(occupied_sqs, from) &
                          movable_sqs & pin_diag_mask;
 
@@ -242,7 +244,7 @@ MoveList GenerateMoves(Position &position) {
     }
 
     BITLOOP(free_bishops) {
-      uint8_t from = LOOP_INDEX;
+      std::uint_fast8_t from = LOOP_INDEX;
       Bitboard targets =
           kSlidingAttacks.Bishop(occupied_sqs, from) & movable_sqs;
 
@@ -259,8 +261,8 @@ MoveList GenerateMoves(Position &position) {
     Bitboard pinned_rooks = (rooks | queens) & pin_hv_mask;
 
     BITLOOP(pinned_rooks) {
-      uint8_t from = LOOP_INDEX;
-      Bitboard bb = BITBOARD_FOR_SQUARE(from);
+      std::uint_fast8_t from = LOOP_INDEX;
+      Bitboard bb = square::BB(from);
       Bitboard targets =
           kSlidingAttacks.Rook(occupied_sqs, from) & movable_sqs & pin_hv_mask;
 
@@ -273,7 +275,7 @@ MoveList GenerateMoves(Position &position) {
     }
 
     BITLOOP(free_rooks) {
-      uint8_t from = LOOP_INDEX;
+      std::uint_fast8_t from = LOOP_INDEX;
 
       Bitboard targets = kSlidingAttacks.Rook(occupied_sqs, from) & movable_sqs;
 
@@ -288,7 +290,7 @@ MoveList GenerateMoves(Position &position) {
     Bitboard mqueens = own_pieces[QUEEN] & ~pin_mask;
 
     BITLOOP(mqueens) {
-      uint8_t from = LOOP_INDEX;
+      std::uint_fast8_t from = LOOP_INDEX;
 
       Bitboard targets =
           kSlidingAttacks.Queen(occupied_sqs, from) & movable_sqs;
@@ -306,12 +308,12 @@ MoveList GenerateMoves(Position &position) {
         position.turn_ == WHITE ? std::make_tuple(a1, h1, kRank1)
                                 : std::make_tuple(a8, h8, kRank8);
 
-    uint8_t king_side = CASTLE_RIGHT(position.turn_);
-    uint8_t queen_side = CASTLE_LEFT(position.turn_);
+    std::uint_fast8_t king_side = CASTLE_RIGHT(position.turn_);
+    std::uint_fast8_t queen_side = CASTLE_LEFT(position.turn_);
     Bitboard rooks = own_pieces[ROOK];
     Bitboard king = own_pieces[KING] & starting_rank;
-    Bitboard king_side_rook = rooks & BITBOARD_FOR_SQUARE(right_rook);
-    Bitboard queen_side_rook = rooks & BITBOARD_FOR_SQUARE(left_rook);
+    Bitboard king_side_rook = rooks & square::BB(right_rook);
+    Bitboard queen_side_rook = rooks & square::BB(left_rook);
     Bitboard king_side_path = kCastleKingSidePath & starting_rank;
     Bitboard queen_side_path = kCastleQueenSidePath & starting_rank;
     Bitboard right_occupied =
@@ -322,7 +324,7 @@ MoveList GenerateMoves(Position &position) {
     if (check_mask == kUniverse && position.castling_rights_ & king_side &&
         king_side_rook && right_occupied == kEmpty &&
         !(king_side_path & position.king_ban_)) {
-      Move move(BIT_INDEX(king), BIT_INDEX(king << 2), KING);
+      Move move(square::Index(king), square::Index(king << 2), KING);
 
       move.Set(CASTLE_RIGHT);
 
@@ -332,7 +334,7 @@ MoveList GenerateMoves(Position &position) {
     if (check_mask == kUniverse && position.castling_rights_ & queen_side &&
         queen_side_rook && left_occupied == kEmpty &&
         !(queen_side_path & position.king_ban_)) {
-      Move move(BIT_INDEX(king), BIT_INDEX(king >> 2), KING);
+      Move move(square::Index(king), square::Index(king >> 2), KING);
 
       move.Set(CASTLE_LEFT);
 
@@ -355,8 +357,8 @@ MoveList GenerateMoves(Position &position) {
     Bitboard single_targets = free_pawns_pts | pinned_pawns_pts;
 
     BITLOOP(single_targets) {
-      uint8_t to = LOOP_INDEX;
-      uint8_t from = LOOP_INDEX + file_shift;
+      std::uint_fast8_t to = LOOP_INDEX;
+      std::uint_fast8_t from = LOOP_INDEX + file_shift;
 
       for (Piece piece : {QUEEN, ROOK, BISHOP, KNIGHT}) {
         Move move(from, to, PAWN);
@@ -382,8 +384,8 @@ MoveList GenerateMoves(Position &position) {
 
       BITLOOP(west_targets) {
         Piece enemy_piece;
-        uint8_t to = LOOP_INDEX;
-        uint8_t from = to + west_shift;
+        std::uint_fast8_t to = LOOP_INDEX;
+        std::uint_fast8_t from = to + west_shift;
 
         PieceAt(&enemy_piece, position.mailbox_, to);
 
@@ -407,8 +409,8 @@ MoveList GenerateMoves(Position &position) {
 
       BITLOOP(east_targets) {
         Piece enemy_piece;
-        uint8_t to = LOOP_INDEX;
-        uint8_t from = to + east_shift;
+        std::uint_fast8_t to = LOOP_INDEX;
+        std::uint_fast8_t from = to + east_shift;
 
         PieceAt(&enemy_piece, position.mailbox_, to);
 
@@ -430,12 +432,13 @@ MoveList GenerateMoves(Position &position) {
   return move_list;
 }
 
-void AddMovesToList(MoveList &move_list, uint8_t from, Bitboard targets,
-                    Piece piece, Piece *mailbox, Bitboard enemy_bb) {
+void AddMovesToList(MoveList &move_list, std::uint_fast8_t from,
+                    Bitboard targets, Piece piece, Piece *mailbox,
+                    Bitboard enemy_bb) {
   BITLOOP(targets) {
     Piece captured;
     Move move(from, LOOP_INDEX, piece);
-    Bitboard bb = BITBOARD_FOR_SQUARE(LOOP_INDEX);
+    Bitboard bb = square::BB(LOOP_INDEX);
 
     if (bb & enemy_bb && PieceAt(&captured, mailbox, LOOP_INDEX)) {
       move.Set(CAPTURE);
@@ -450,8 +453,8 @@ Bitboard CheckMask(Position &position) {
   Bitboard mask = kUniverse;
   Color opp = OPP(position.turn_);
   Bitboard occupied_sqs = position.board_.occupied_sqs;
-  Bitboard *opp_pieces = position.Pieces(opp);
-  Bitboard *own_pieces = position.Pieces(position.turn_);
+  PieceList &opp_pieces = position.Pieces(opp);
+  PieceList &own_pieces = position.Pieces(position.turn_);
   Bitboard king_bb = own_pieces[KING];
 
   auto [pawn_east_targets, pawn_west_targets, inverse_east_targets,
@@ -468,7 +471,7 @@ Bitboard CheckMask(Position &position) {
     mask = inverse_west_targets(king_bb);
   }
 
-  uint8_t king_square = BIT_INDEX(king_bb);
+  std::uint_fast8_t king_square = square::Index(king_bb);
 
   Bitboard knight = kAttackMaps[KNIGHT][king_square] & opp_pieces[KNIGHT];
 
@@ -483,14 +486,14 @@ Bitboard CheckMask(Position &position) {
         kSlidingAttacks.Bishop(occupied_sqs, king_square) & enemy_bishop_queen;
 
     BITLOOP(pieces) {
-      uint8_t bishop = LOOP_INDEX;
+      std::uint_fast8_t bishop = LOOP_INDEX;
       Bitboard rays_from_attacker = kCheckBetween[BISHOP][king_square][bishop];
 
       if (mask != kUniverse) {
         return kEmpty;
       }
 
-      mask = rays_from_attacker | BITBOARD_FOR_SQUARE(bishop);
+      mask = rays_from_attacker | square::BB(bishop);
     }
   }
 
@@ -501,14 +504,14 @@ Bitboard CheckMask(Position &position) {
         kSlidingAttacks.Rook(occupied_sqs, king_square) & enemy_rook_queen;
 
     BITLOOP(pieces) {
-      uint8_t rook = LOOP_INDEX;
+      std::uint_fast8_t rook = LOOP_INDEX;
       Bitboard rays_from_attacker = kCheckBetween[ROOK][king_square][rook];
 
       if (mask != kUniverse) {
         return kEmpty;
       }
 
-      mask = rays_from_attacker | BITBOARD_FOR_SQUARE(rook);
+      mask = rays_from_attacker | square::BB(rook);
     }
   }
 
@@ -517,11 +520,11 @@ Bitboard CheckMask(Position &position) {
 
 std::pair<Bitboard, Bitboard> PinMask(Position &position) {
   Color opp = OPP(position.turn_);
-  Bitboard *own_pieces = position.Pieces(position.turn_);
-  Bitboard *opp_pieces = position.Pieces(opp);
+  PieceList &own_pieces = position.Pieces(position.turn_);
+  PieceList &opp_pieces = position.Pieces(opp);
   Bitboard occupied_sqs = position.board_.occupied_sqs;
   Bitboard king_bb = own_pieces[KING];
-  Bitboard own_pieces_bb = BOARD_OCCUPANCY(own_pieces);
+  Bitboard own_pieces_bb = square::Occupancy(own_pieces);
 
   Bitboard hv_mask = kEmpty;
   Bitboard diag_mask = kEmpty;
@@ -529,7 +532,7 @@ std::pair<Bitboard, Bitboard> PinMask(Position &position) {
   Bitboard enemy_rook_queen = opp_pieces[ROOK] | opp_pieces[QUEEN];
   Bitboard enemy_bishop_queen = opp_pieces[BISHOP] | opp_pieces[QUEEN];
 
-  uint8_t king_square = BIT_INDEX(king_bb);
+  std::uint_fast8_t king_square = square::Index(king_bb);
 
   if (kAttackMaps[ROOK][king_square] & enemy_rook_queen) {
     Bitboard attacks_from_king =
@@ -540,10 +543,10 @@ std::pair<Bitboard, Bitboard> PinMask(Position &position) {
     Bitboard pieces = xray_attacks_from_king & enemy_rook_queen;
 
     BITLOOP(pieces) {
-      uint8_t rook = LOOP_INDEX;
+      std::uint_fast8_t rook = LOOP_INDEX;
       Bitboard rays_from_attacker = kCheckBetween[ROOK][king_square][rook];
 
-      hv_mask |= rays_from_attacker | BITBOARD_FOR_SQUARE(rook);
+      hv_mask |= rays_from_attacker | square::BB(rook);
     }
   }
 
@@ -556,10 +559,10 @@ std::pair<Bitboard, Bitboard> PinMask(Position &position) {
     Bitboard pieces = xray_attacks_from_king & enemy_bishop_queen;
 
     BITLOOP(pieces) {
-      uint8_t bishop = LOOP_INDEX;
+      std::uint_fast8_t bishop = LOOP_INDEX;
       Bitboard rays_from_attacker = kCheckBetween[BISHOP][king_square][bishop];
 
-      diag_mask |= rays_from_attacker | BITBOARD_FOR_SQUARE(bishop);
+      diag_mask |= rays_from_attacker | square::BB(bishop);
     }
   }
 

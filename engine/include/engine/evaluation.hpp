@@ -79,7 +79,7 @@ struct EvalState {
   void ComputeAttackMap();
 };
 
-enum Phase : uint8_t { OPENING, ENDGAME };
+enum Phase : std::uint_fast8_t { OPENING, ENDGAME };
 
 template <enum Color side>
 int DoublePawns(Bitboard pawns);
