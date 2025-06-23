@@ -45,11 +45,9 @@ Position::Position(const Position &src) {
   fullmove_counter_ = src.fullmove_counter_;
   halfmove_clock_ = src.halfmove_clock_;
 
-  history_ = src.history_;
   board_ = src.board_;
-
-  int size = sizeof(src.mailbox_) / sizeof(src.mailbox_[0]);
-  std::copy(src.mailbox_, src.mailbox_ + size, mailbox_);
+  history_ = src.history_;
+  mailbox_ = src.mailbox_;
 }
 
 bool Position::PieceAt(Piece *piece, std::uint_fast8_t index) const {

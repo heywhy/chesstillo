@@ -28,8 +28,6 @@ constexpr Bitboard Occupancy(const Bitboard* pieces) {
 
 constexpr Bitboard Occupancy(const PieceList& pieces) {
   return Occupancy(pieces.data());
-  // return pieces[KING] | pieces[QUEEN] | pieces[BISHOP] | pieces[KNIGHT] |
-  //        pieces[ROOK] | pieces[PAWN];
 }
 
 constexpr std::uint_fast8_t Rank(const std::uint_fast8_t square) {

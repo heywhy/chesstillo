@@ -4,7 +4,6 @@
 #include <cstdint>
 #include <utility>
 
-#include "board.hpp"
 #include "constants.hpp"
 #include "move.hpp"
 #include "position.hpp"
@@ -61,7 +60,7 @@ std::pair<Bitboard, Bitboard> PinMask(Position &position);
 MoveList GenerateMoves(Position &position);
 
 void AddMovesToList(MoveList &moves, std::uint_fast8_t from, Bitboard targets,
-                    Piece piece, Piece *mailbox, Bitboard enemy_bb);
+                    Piece piece, const Mailbox &mailbox, Bitboard enemy_bb);
 
 constexpr Bitboard RankMask(std::uint_fast8_t square) {
   return kRank1 << (square & 56);

@@ -16,7 +16,8 @@
 
 namespace engine {
 
-inline bool PieceAt(Piece *piece, Piece *mailbox, std::uint_fast8_t square) {
+inline bool PieceAt(Piece *piece, const Mailbox &mailbox,
+                    std::uint_fast8_t square) {
   *piece = mailbox[square];
 
   return *piece != NONE;
@@ -433,7 +434,7 @@ MoveList GenerateMoves(Position &position) {
 }
 
 void AddMovesToList(MoveList &move_list, std::uint_fast8_t from,
-                    Bitboard targets, Piece piece, Piece *mailbox,
+                    Bitboard targets, Piece piece, const Mailbox &mailbox,
                     Bitboard enemy_bb) {
   BITLOOP(targets) {
     Piece captured;

@@ -67,8 +67,8 @@ class Position {
   long fullmove_counter_;
   std::uint_fast8_t halfmove_clock_;
 
+  Mailbox mailbox_;
   std::stack<_State> history_;
-  Piece mailbox_[64];
 
   void UpdateKingBan();
   void UpdateMailbox();

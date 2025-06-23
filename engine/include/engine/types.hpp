@@ -41,6 +41,8 @@ enum Piece : std::uint_fast8_t {
   NONE
 };
 
+using Mailbox = std::array<Piece, 64>;
+
 // exact, lower bound, upper bound
 enum NodeType : std::uint_fast8_t { PV, CUT, ALL };
 
