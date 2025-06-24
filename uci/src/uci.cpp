@@ -20,9 +20,14 @@ std::string FindExecutable(const std::string_view &executable) {
 
 namespace command {
 std::unordered_map<std::string_view, TokenType> Input::Known = {
-    {"uci", UCI},      {"isready", IS_READY},     {"ucinewgame", UCI_NEW_GAME},
-    {"stop", STOP},    {"ponderhit", PONDER_HIT}, {"quit", QUIT},
-    {"uciok", UCI_OK}, {"readyok", READY_OK}};
+    {"uci", TokenType::UCI},
+    {"isready", TokenType::IS_READY},
+    {"ucinewgame", TokenType::UCI_NEW_GAME},
+    {"stop", TokenType::STOP},
+    {"ponderhit", TokenType::PONDER_HIT},
+    {"quit", TokenType::QUIT},
+    {"uciok", TokenType::UCI_OK},
+    {"readyok", TokenType::READY_OK}};
 }
 
 }  // namespace uci

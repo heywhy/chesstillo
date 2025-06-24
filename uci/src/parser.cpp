@@ -15,34 +15,34 @@ std::unique_ptr<Command> Parser::Parse() {
     Tokens::const_reference token = Advance();
 
     switch (token.type) {
-      case UCI:
-      case IS_READY:
-      case UCI_NEW_GAME:
-      case STOP:
-      case PONDER_HIT:
-      case QUIT:
-      case UCI_OK:
-      case READY_OK:
+      case TokenType::UCI:
+      case TokenType::IS_READY:
+      case TokenType::UCI_NEW_GAME:
+      case TokenType::STOP:
+      case TokenType::PONDER_HIT:
+      case TokenType::QUIT:
+      case TokenType::UCI_OK:
+      case TokenType::READY_OK:
         command.reset(new command::Input(token.lexeme));
         break;
 
-      case DEBUG:
+      case TokenType::DEBUG:
         command = Debug();
         break;
 
-      case POSITION:
+      case TokenType::POSITION:
         command = Position();
         break;
 
-      case GO:
+      case TokenType::GO:
         command = Go();
         break;
 
-      case SET_OPTION:
+      case TokenType::SET_OPTION:
         command = SetOption();
         break;
 
-      case REGISTER:
+      case TokenType::REGISTER:
         command = Register();
         break;
 
@@ -50,23 +50,23 @@ std::unique_ptr<Command> Parser::Parse() {
         command = ID();
         break;
 
-      case BEST_MOVE:
+      case TokenType::BEST_MOVE:
         command = BestMove();
         break;
 
-      case COPY_PROTECTION:
+      case TokenType::COPY_PROTECTION:
         command = CopyProtection();
         break;
 
-      case REGISTRATION:
+      case TokenType::REGISTRATION:
         command = Registration();
         break;
 
-      case INFO:
+      case TokenType::INFO:
         command = Info();
         break;
 
-      case uci::TokenType::OPTION:
+      case TokenType::OPTION:
         command = Option();
         break;
 

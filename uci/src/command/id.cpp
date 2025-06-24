@@ -11,7 +11,7 @@ std::unique_ptr<Command> Parser::ID() {
   std::unique_ptr<command::ID> command;
   const std::string_view msg("Expected author or name after 'id'.");
 
-  const auto &token = Consume(WORD, msg);
+  const auto &token = Consume(TokenType::WORD, msg);
   const auto &literal = std::get<std::string_view>(token.literal);
 
   if (literal == "author") {
@@ -36,11 +36,11 @@ std::string command::ID::ToString() const {
   std::string str("id ");
 
   switch (type) {
-    case AUTHOR:
+    case Type::AUTHOR:
       str.append("author ");
       break;
 
-    case NAME:
+    case Type::NAME:
       str.append("name ");
       break;
   }

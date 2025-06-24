@@ -13,7 +13,7 @@ std::unique_ptr<Command> Parser::Register() {
   static std::array<std::string_view, 3> M = {"later", "name", "code"};
   const std::string_view msg("Expected later, name or code after 'register'.");
 
-  const auto &token = Consume(WORD, msg);
+  const auto &token = Consume(TokenType::WORD, msg);
   const auto &literal = std::get<std::string_view>(token.literal);
 
   auto it = std::find(M.begin(), M.end(), literal);
@@ -38,7 +38,7 @@ std::unique_ptr<Command> Parser::Register() {
   throw Error(token, "Expected name or code.");
 
 set_attr: {
-  const auto &token = Consume(WORD, msg);
+  const auto &token = Consume(TokenType::WORD, msg);
   const auto &literal = std::get<std::string_view>(token.literal);
 
   if (literal == "name") {
@@ -51,7 +51,7 @@ set_attr: {
 }
 
 set_name: {
-  while (Match(WORD)) {
+  while (Match(TokenType::WORD)) {
     const auto &token = Previous();
     const auto &literal = std::get<std::string_view>(token.literal);
 
@@ -66,7 +66,7 @@ set_name: {
 }
 
 set_code: {
-  const auto &token = Consume(WORD, msg);
+  const auto &token = Consume(TokenType::WORD, msg);
   const auto &literal = std::get<std::string_view>(token.literal);
 
   command->code = literal;

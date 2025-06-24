@@ -9,28 +9,28 @@
 using namespace uci;
 
 static const std::unordered_map<std::string_view, uci::TokenType> kKeywords{
-    {"uci", UCI},
-    {"debug", DEBUG},
-    {"isready", IS_READY},
-    {"setoption", SET_OPTION},
-    {"register", REGISTER},
-    {"ucinewgame", UCI_NEW_GAME},
-    {"position", POSITION},
-    {"go", GO},
-    {"stop", STOP},
-    {"ponderhit", PONDER_HIT},
-    {"quit", QUIT},
+    {"uci", TokenType::UCI},
+    {"debug", TokenType::DEBUG},
+    {"isready", TokenType::IS_READY},
+    {"setoption", TokenType::SET_OPTION},
+    {"register", TokenType::REGISTER},
+    {"ucinewgame", TokenType::UCI_NEW_GAME},
+    {"position", TokenType::POSITION},
+    {"go", TokenType::GO},
+    {"stop", TokenType::STOP},
+    {"ponderhit", TokenType::PONDER_HIT},
+    {"quit", TokenType::QUIT},
 
-    {"id", ID},
-    {"uciok", UCI_OK},
-    {"readyok", READY_OK},
-    {"bestmove", BEST_MOVE},
-    {"copyprotection", COPY_PROTECTION},
-    {"registration", REGISTRATION},
-    {"info", INFO},
-    {"option", OPTION},
-    {"true", BOOLEAN},
-    {"false", BOOLEAN},
+    {"id", TokenType::ID},
+    {"uciok", TokenType::UCI_OK},
+    {"readyok", TokenType::READY_OK},
+    {"bestmove", TokenType::BEST_MOVE},
+    {"copyprotection", TokenType::COPY_PROTECTION},
+    {"registration", TokenType::REGISTRATION},
+    {"info", TokenType::INFO},
+    {"option", TokenType::OPTION},
+    {"true", TokenType::BOOLEAN},
+    {"false", TokenType::BOOLEAN},
 };
 
 Scanner::Scanner(const std::string_view &input)
@@ -82,9 +82,10 @@ void Scanner::Word() {
   }
 
   auto value = input_.substr(start_, current_ - start_);
-  TokenType type = kKeywords.contains(value) ? kKeywords.at(value) : WORD;
+  TokenType type =
+      kKeywords.contains(value) ? kKeywords.at(value) : TokenType::WORD;
 
-  if (type == BOOLEAN) {
+  if (type == TokenType::BOOLEAN) {
     AddToken(type, value == "true");
   } else {
     AddToken(type, value);
@@ -110,7 +111,7 @@ void Scanner::Digit() {
     auto word = input_.substr(start_, current_ - start_);
     int value = std::stoi(std::string(word));
 
-    AddToken(NUMBER, value);
+    AddToken(TokenType::NUMBER, value);
   } catch (std::out_of_range &) {
     Word();
   }

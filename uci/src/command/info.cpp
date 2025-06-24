@@ -11,7 +11,8 @@
 using namespace uci;
 
 #define IS_ATTR(token) \
-  token.type == WORD &&M.contains(std::get<std::string_view>(token.literal))
+  token.type ==        \
+      TokenType::WORD &&M.contains(std::get<std::string_view>(token.literal))
 
 // TODO: check if the token is a valid move string or abort
 #define CONSUME_MOVES(list, error)                                   \
@@ -19,7 +20,7 @@ using namespace uci;
     if (IS_ATTR(Peek())) {                                           \
       goto decide;                                                   \
     }                                                                \
-    const Token &token = Consume(WORD, error);                       \
+    const Token &token = Consume(TokenType::WORD, error);            \
     const auto &literal = std::get<std::string_view>(token.literal); \
     list.emplace_back(literal);                                      \
   }
@@ -34,7 +35,7 @@ std::unique_ptr<Command> Parser::Info() {
       "refutation", "currline"};
 
 decide: {
-  const auto &token = Consume(WORD, "Unexpected token.");
+  const auto &token = Consume(TokenType::WORD, "Unexpected token.");
   auto &literal = std::get<std::string_view>(token.literal);
 
   if (literal == "depth") {
@@ -85,7 +86,8 @@ maybe_return: {
 }
 
 depth: {
-  const Token &token = Consume(NUMBER, "Expect number after 'depth'.");
+  const Token &token =
+      Consume(TokenType::NUMBER, "Expect number after 'depth'.");
 
   command->depth = std::get<std::int64_t>(token.literal);
 
@@ -93,7 +95,8 @@ depth: {
 }
 
 seldepth: {
-  const Token &token = Consume(NUMBER, "Expect number after 'seldepth'.");
+  const Token &token =
+      Consume(TokenType::NUMBER, "Expect number after 'seldepth'.");
 
   command->seldepth = std::get<std::int64_t>(token.literal);
 
@@ -101,7 +104,8 @@ seldepth: {
 }
 
 time: {
-  const Token &token = Consume(NUMBER, "Expect number after 'time'.");
+  const Token &token =
+      Consume(TokenType::NUMBER, "Expect number after 'time'.");
 
   command->time = std::get<std::int64_t>(token.literal);
 
@@ -109,7 +113,8 @@ time: {
 }
 
 nodes: {
-  const Token &token = Consume(NUMBER, "Expect number after 'nodes'.");
+  const Token &token =
+      Consume(TokenType::NUMBER, "Expect number after 'nodes'.");
 
   command->nodes = std::get<std::int64_t>(token.literal);
 
@@ -123,7 +128,8 @@ pv: {
 }
 
 multipv: {
-  const Token &token = Consume(NUMBER, "Expect number after 'multipv'.");
+  const Token &token =
+      Consume(TokenType::NUMBER, "Expect number after 'multipv'.");
 
   command->multipv = std::get<std::int64_t>(token.literal);
 
@@ -131,32 +137,34 @@ multipv: {
 }
 
 score: {
-  const Token &token = Consume(WORD, "Expect word after 'score'.");
+  const Token &token = Consume(TokenType::WORD, "Expect word after 'score'.");
   std::string_view type = std::get<std::string_view>(token.literal);
 
   command->score = new command::Info::Score;
 
   if (type == "cp") {
-    const Token &token = Consume(NUMBER, "Expect number after 'cp'.");
+    const Token &token =
+        Consume(TokenType::NUMBER, "Expect number after 'cp'.");
 
     command->score->type = command::Info::Score::CP;
     command->score->value = std::get<std::int64_t>(token.literal);
   } else if (type == "mate") {
-    const Token &token = Consume(NUMBER, "Expect number after 'mate'.");
+    const Token &token =
+        Consume(TokenType::NUMBER, "Expect number after 'mate'.");
 
     command->score->type = command::Info::Score::MATE;
     command->score->value = std::get<std::int64_t>(token.literal);
   }
 
-  if (Check(WORD)) {
+  if (Check(TokenType::WORD)) {
     const auto &literal = std::get<std::string_view>(Peek().literal);
 
     if (literal == "lowerbound") {
-      const auto &token = Consume(WORD);
+      const auto &token = Consume(TokenType::WORD);
 
       command->score->lowerbound = true;
     } else if (literal == "upperbound") {
-      const auto &token = Consume(WORD);
+      const auto &token = Consume(TokenType::WORD);
 
       command->score->upperbound = true;
     }
@@ -167,7 +175,8 @@ score: {
 
   // TODO: check if it's valid move
 currmove: {
-  const Token &token = Consume(WORD, "Expect move after 'currmove'.");
+  const Token &token =
+      Consume(TokenType::WORD, "Expect move after 'currmove'.");
 
   command->currmove = std::get<std::string_view>(token.literal);
 
@@ -175,7 +184,8 @@ currmove: {
 }
 
 currmovenumber: {
-  const Token &token = Consume(NUMBER, "Expect number after 'currmovenumber'.");
+  const Token &token =
+      Consume(TokenType::NUMBER, "Expect number after 'currmovenumber'.");
 
   command->currmovenumber = std::get<std::int64_t>(token.literal);
 
@@ -187,7 +197,8 @@ currmovenumber: {
 }
 
 hashfull: {
-  const Token &token = Consume(NUMBER, "Expect number after 'hashfull'.");
+  const Token &token =
+      Consume(TokenType::NUMBER, "Expect number after 'hashfull'.");
 
   command->hashfull = std::get<std::int64_t>(token.literal);
 
@@ -195,7 +206,7 @@ hashfull: {
 }
 
 nps: {
-  const Token &token = Consume(NUMBER, "Expect number after 'nps'.");
+  const Token &token = Consume(TokenType::NUMBER, "Expect number after 'nps'.");
 
   command->nps = std::get<std::int64_t>(token.literal);
 
@@ -203,7 +214,8 @@ nps: {
 }
 
 tbhits: {
-  const Token &token = Consume(NUMBER, "Expect number after 'tbhits'.");
+  const Token &token =
+      Consume(TokenType::NUMBER, "Expect number after 'tbhits'.");
 
   command->tbhits = std::get<std::int64_t>(token.literal);
 
@@ -211,7 +223,8 @@ tbhits: {
 }
 
 sbhits: {
-  const Token &token = Consume(NUMBER, "Expect number after 'sbhits'.");
+  const Token &token =
+      Consume(TokenType::NUMBER, "Expect number after 'sbhits'.");
 
   command->sbhits = std::get<std::int64_t>(token.literal);
 
@@ -219,7 +232,8 @@ sbhits: {
 }
 
 cpuload: {
-  const Token &token = Consume(NUMBER, "Expect number after 'cpuload'.");
+  const Token &token =
+      Consume(TokenType::NUMBER, "Expect number after 'cpuload'.");
 
   command->cpuload = std::get<std::int64_t>(token.literal);
 
@@ -241,7 +255,8 @@ refutation: {
 }
 
 currline: {
-  const Token &token = Consume(NUMBER, "Expect number after 'currline'.");
+  const Token &token =
+      Consume(TokenType::NUMBER, "Expect number after 'currline'.");
 
   command->currline = new command::Info::Currline;
 

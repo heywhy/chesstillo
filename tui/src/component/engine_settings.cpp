@@ -70,15 +70,15 @@ ftxui::Component EngineSettings::Make(const std::string_view label,
   EngineOption &e_option = const_cast<EngineOption &>(option);
 
   switch (option.type) {
-    case uci::CHECK:
+    case uci::OptionType::CHECK:
       component = tui::Make<EngineSettings::Check>(label, e_option, on_change_);
       break;
 
-    case uci::SPIN:
+    case uci::OptionType::SPIN:
       component = tui::Make<EngineSettings::Spin>(label, e_option, on_change_);
       break;
 
-    case uci::COMBO:
+    case uci::OptionType::COMBO:
       component = tui::Make<EngineSettings::Combo>(label, e_option, on_change_);
       break;
 
@@ -86,7 +86,7 @@ ftxui::Component EngineSettings::Make(const std::string_view label,
       //   component = tui::Make<EngineSettings::Button>(label, e_option);
       //   break;
 
-    case uci::STRING:
+    case uci::OptionType::STRING:
       component =
           tui::Make<EngineSettings::String>(label, e_option, on_change_);
       break;

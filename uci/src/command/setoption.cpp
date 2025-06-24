@@ -14,21 +14,21 @@ using namespace uci;
 std::unique_ptr<Command> Parser::SetOption() {
   const std::string_view msg("Expected 'name' after 'setoption'.");
 
-  const auto &token = Consume(WORD, msg);
+  const auto &token = Consume(TokenType::WORD, msg);
   const auto &literal = std::get<std::string_view>(token.literal);
 
   if (literal != "name") {
     throw Error(token, msg);
   }
 
-  const auto &id_token = Consume(WORD, "Expected 'id'.");
+  const auto &id_token = Consume(TokenType::WORD, "Expected 'id'.");
   const auto &id_literal = std::get<std::string_view>(id_token.literal);
 
   std::unique_ptr<command::SetOption> command =
       std::make_unique<command::SetOption>(id_literal);
 
   if (!IsAtEnd()) {
-    const auto &token = Consume(WORD, msg);
+    const auto &token = Consume(TokenType::WORD, msg);
     const auto &literal = std::get<std::string_view>(token.literal);
 
     if (literal != "value") {
@@ -46,13 +46,13 @@ std::unique_ptr<Command> Parser::SetOption() {
     current_ = tokens_.size();
 
     switch (value_token.type) {
-      case NUMBER:
+      case TokenType::NUMBER:
         command->value = std::get<std::int64_t>(value_token.literal);
         break;
-      case BOOLEAN:
+      case TokenType::BOOLEAN:
         command->value = std::get<bool>(value_token.literal);
         break;
-      case WORD:
+      case TokenType::WORD:
         command->value = std::get<std::string_view>(value_token.literal);
         break;
       default:

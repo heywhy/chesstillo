@@ -8,9 +8,9 @@ namespace engine {
 
 using Flags = std::uint8_t;
 
-constexpr Flags UCI = 1 << 0;
-constexpr Flags READY = 1 << 1;
-constexpr Flags CLEAR_HASH = 1 << 2;
+constexpr Flags UCI = static_cast<Flags>(1) << 0;
+constexpr Flags READY = static_cast<Flags>(1) << 1;
+constexpr Flags CLEAR_HASH = static_cast<Flags>(1) << 2;
 
 }  // namespace engine
 }  // namespace tui

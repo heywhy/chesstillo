@@ -8,7 +8,8 @@
 using namespace uci;
 
 std::unique_ptr<Command> Parser::Registration() {
-  const auto &token = Consume(WORD, "Expected checking, ok or error.");
+  const auto &token =
+      Consume(TokenType::WORD, "Expected checking, ok or error.");
   const auto &literal = std::get<std::string_view>(token.literal);
 
   if (!kStatus.contains(literal)) {
@@ -22,15 +23,15 @@ std::string command::Registration::ToString() const {
   std::string str("registration ");
 
   switch (status) {
-    case CHECKING:
+    case Status::CHECKING:
       str.append("checking");
       break;
 
-    case OK:
+    case Status::OK:
       str.append("ok");
       break;
 
-    case ERROR:
+    case Status::ERROR:
       str.append("error");
       break;
   }

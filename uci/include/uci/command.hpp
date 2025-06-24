@@ -65,16 +65,16 @@ struct Input : public Command {
 
   bool IsFeedback() {
     switch (type) {
-      case UCI:
-      case IS_READY:
-      case UCI_NEW_GAME:
-      case STOP:
-      case PONDER_HIT:
-      case QUIT:
+      case TokenType::UCI:
+      case TokenType::IS_READY:
+      case TokenType::UCI_NEW_GAME:
+      case TokenType::STOP:
+      case TokenType::PONDER_HIT:
+      case TokenType::QUIT:
         return false;
 
-      case UCI_OK:
-      case READY_OK:
+      case TokenType::UCI_OK:
+      case TokenType::READY_OK:
         return true;
 
       default:
@@ -152,7 +152,7 @@ struct Register : public Command {
 // Engine -> GUI
 
 struct ID : Command {
-  enum Type : uint8_t { NAME, AUTHOR };
+  enum class Type { NAME, AUTHOR };
 
   const Type type;
   std::string_view value;

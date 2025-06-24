@@ -10,7 +10,7 @@ using namespace uci;
 
 std::unique_ptr<Command> Parser::Debug() {
   std::unique_ptr<command::Debug> command;
-  const auto &token = Consume(WORD, "Expected on or off.");
+  const auto &token = Consume(TokenType::WORD, "Expected on or off.");
   const auto &literal = std::get<std::string_view>(token.literal);
 
   if (literal == "on") {

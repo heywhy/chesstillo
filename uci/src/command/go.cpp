@@ -34,7 +34,7 @@ command: {
       "Expected searchmoves, ponder, wsec, bsec, winc, binc, movestogo, "
       "depth, nodes, mate, movetime or infinite.";
 
-  const auto &token = Consume(WORD, msg);
+  const auto &token = Consume(TokenType::WORD, msg);
   const auto &literal = std::get<std::string_view>(token.literal);
 
   if (literal == "ponder") {
@@ -49,7 +49,7 @@ command: {
     int *address = prop_map[literal];
     std::string msg = std::format("Expected number after '{}'", literal);
 
-    const auto &token = Consume(NUMBER, msg);
+    const auto &token = Consume(TokenType::NUMBER, msg);
     const auto &literal = std::get<std::int64_t>(token.literal);
 
     *address = literal;
@@ -60,7 +60,7 @@ command: {
 }
 
 searchmoves: {
-  while (Check(WORD) &&
+  while (Check(TokenType::WORD) &&
          !(prop_map.contains(std::get<std::string_view>(Peek().literal)))) {
     const auto &token = Advance();
     const auto &literal = std::get<std::string_view>(token.literal);

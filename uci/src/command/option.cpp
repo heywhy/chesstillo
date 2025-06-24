@@ -20,12 +20,13 @@ std::unique_ptr<Command> Parser::Option() {
                                          "var",  "min",  "max"};
 
   static std::unordered_map<std::string_view, OptionType> N = {
-      {"check", CHECK},   {"spin", SPIN},     {"combo", COMBO},
-      {"button", BUTTON}, {"string", STRING},
+      {"check", OptionType::CHECK},   {"spin", OptionType::SPIN},
+      {"combo", OptionType::COMBO},   {"button", OptionType::BUTTON},
+      {"string", OptionType::STRING},
   };
 
 decide: {
-  const auto &token = Consume(WORD);
+  const auto &token = Consume(TokenType::WORD);
   const auto &literal = std::get<std::string_view>(token.literal);
 
   if (literal == "name") {
@@ -56,12 +57,12 @@ maybe_return: {
 name: {
   std::string id;
 
-  const auto &token = Consume(WORD, "Expected name of the option.");
+  const auto &token = Consume(TokenType::WORD, "Expected name of the option.");
   const auto &literal = std::get<std::string_view>(token.literal);
 
   id.append(literal).append(" ");
 
-  while (Check(WORD) &&
+  while (Check(TokenType::WORD) &&
          !M.contains(std::get<std::string_view>(Peek().literal))) {
     const auto &token = Advance();
     const auto &literal = std::get<std::string_view>(token.literal);
@@ -79,7 +80,7 @@ name: {
 type: {
   const std::string_view msg("Expected check, spin, combo, button and string.");
 
-  const auto &token = Consume(WORD, msg);
+  const auto &token = Consume(TokenType::WORD, msg);
   const auto &literal = std::get<std::string_view>(token.literal);
 
   if (!N.contains(literal)) {
@@ -91,16 +92,17 @@ type: {
 }
 
 def4ult: {
-  if (command->type == SPIN) {
-    const auto &token = Consume(NUMBER);
+  if (command->type == OptionType::SPIN) {
+    const auto &token = Consume(TokenType::NUMBER);
     const auto &literal = std::get<std::int64_t>(token.literal);
 
     command->def4ult = literal;
-  } else if (command->type == CHECK) {
-    const auto &token = Consume(BOOLEAN);
+  } else if (command->type == OptionType::CHECK) {
+    const auto &token = Consume(TokenType::BOOLEAN);
     command->def4ult = std::get<bool>(token.literal);
-  } else if (command->type == COMBO || command->type == STRING) {
-    const auto &token = Consume(WORD);
+  } else if (command->type == OptionType::COMBO ||
+             command->type == OptionType::STRING) {
+    const auto &token = Consume(TokenType::WORD);
     const auto &literal = std::get<std::string_view>(token.literal);
 
     command->def4ult = literal;
@@ -112,7 +114,7 @@ def4ult: {
 }
 
 var: {
-  const auto &token = Consume(WORD);
+  const auto &token = Consume(TokenType::WORD);
   const auto &literal = std::get<std::string_view>(token.literal);
 
   command->vars.emplace_back(literal);
@@ -121,7 +123,7 @@ var: {
 }
 
 min: {
-  const auto &token = Consume(NUMBER);
+  const auto &token = Consume(TokenType::NUMBER);
   const auto &literal = std::get<std::int64_t>(token.literal);
 
   command->min = literal;
@@ -130,7 +132,7 @@ min: {
 }
 
 max: {
-  const auto &token = Consume(NUMBER);
+  const auto &token = Consume(TokenType::NUMBER);
   const auto &literal = std::get<std::int64_t>(token.literal);
 
   command->max = literal;
@@ -147,7 +149,7 @@ std::string command::Option::ToString() const {
   str.append(id).append(" type ");
 
   switch (type) {
-    case CHECK: {
+    case OptionType::CHECK: {
       str.append("check ");
 
       if (std::holds_alternative<bool>(def4ult)) {
@@ -157,7 +159,7 @@ std::string command::Option::ToString() const {
       break;
     };
 
-    case SPIN: {
+    case OptionType::SPIN: {
       str.append("spin ");
 
       if (std::holds_alternative<std::int64_t>(def4ult)) {
@@ -167,7 +169,7 @@ std::string command::Option::ToString() const {
       break;
     };
 
-    case COMBO: {
+    case OptionType::COMBO: {
       str.append("combo ");
 
       if (std::holds_alternative<std::string_view>(def4ult)) {
@@ -177,12 +179,12 @@ std::string command::Option::ToString() const {
       break;
     }
 
-    case BUTTON: {
+    case OptionType::BUTTON: {
       str.append("button ");
       break;
     }
 
-    case STRING: {
+    case OptionType::STRING: {
       str.append("string ");
 
       if (std::holds_alternative<std::string_view>(def4ult)) {

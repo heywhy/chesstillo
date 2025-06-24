@@ -40,7 +40,7 @@ TEST_F(UCIEngineTestSuite, SendCommand) {
 
   ON_CALL(ui, Handle(testing::A<command::Input *>()))
       .WillByDefault([&](command::Input *command) {
-        if (command->type == uci::UCI_OK) {
+        if (command->type == TokenType::UCI_OK) {
           ui.cv.notify_all();
         }
       });

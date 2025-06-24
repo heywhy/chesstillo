@@ -1,3 +1,5 @@
+#include <cstddef>
+
 #include <ftxui/component/component_base.hpp>
 #include <ftxui/component/event.hpp>
 
@@ -94,7 +96,7 @@ ftxui::Component Chessboard::ActiveChild() {
 }
 
 void Chessboard::SetActiveChild(ComponentBase *child) {
-  for (size_t i = 0; i < children_.size(); ++i) {
+  for (std::size_t i = 0; i < children_.size(); ++i) {
     if (children_[i].get() == child) {
       selector_ = static_cast<int>(i);
       return;

@@ -187,11 +187,11 @@ void Main::InitEngine() {
 
 void Main::Handle(uci::command::Input *command) {
   switch (command->type) {
-    case uci::UCI_OK:
+    case uci::TokenType::UCI_OK:
       engine_flags_ |= engine::UCI;
       break;
 
-    case uci::READY_OK:
+    case uci::TokenType::READY_OK:
       engine_flags_ |= engine::READY;
       break;
 
@@ -205,13 +205,13 @@ void Main::Handle(uci::command::Input *command) {
 
 void Main::Handle(uci::command::ID *command) {
   switch (command->type) {
-    case uci::command::ID::NAME:
+    case uci::command::ID::Type::NAME:
       engine_name_ = command->value;
 
       tui::trim(engine_name_);
       break;
 
-    case uci::command::ID::AUTHOR:
+    case uci::command::ID::Type::AUTHOR:
       engine_author_ = command->value;
 
       tui::trim(engine_author_);

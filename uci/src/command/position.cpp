@@ -11,7 +11,7 @@ using namespace uci;
 
 std::unique_ptr<Command> Parser::Position() {
   std::unique_ptr<command::Position> command;
-  const auto &token = Consume(WORD, "Expected 'startpos' or 'fen'.");
+  const auto &token = Consume(TokenType::WORD, "Expected 'startpos' or 'fen'.");
   const auto &literal = std::get<std::string_view>(token.literal);
 
   if (literal == "startpos") {
@@ -29,7 +29,7 @@ startpos: {
 
   const std::string_view msg = "Expected 'moves'.";
 
-  const auto &token = Consume(WORD, msg);
+  const auto &token = Consume(TokenType::WORD, msg);
   const auto &literal = std::get<std::string_view>(token.literal);
 
   if (literal != "moves") {
@@ -43,20 +43,20 @@ fen: {
   std::string fen;
   std::string_view msg("Expected 'fenstring'.");
 
-  const auto &token = Consume(WORD, msg);
+  const auto &token = Consume(TokenType::WORD, msg);
   const auto &literal = std::get<std::string_view>(token.literal);
 
   fen.append(literal).append(" ");
 
   while (!IsAtEnd()) {
-    if (Match(NUMBER)) {
+    if (Match(TokenType::NUMBER)) {
       const auto &literal = std::get<std::int64_t>(Previous().literal);
 
       fen.append(std::to_string(literal)).append(" ");
       continue;
     }
 
-    const auto &token = Consume(WORD, msg);
+    const auto &token = Consume(TokenType::WORD, msg);
     const auto &literal = std::get<std::string_view>(token.literal);
 
     if (literal == "moves") {
@@ -74,7 +74,7 @@ fen: {
 
 moves: {
   while (!IsAtEnd()) {
-    const auto &token = Consume(WORD, "Expected 'moves'.");
+    const auto &token = Consume(TokenType::WORD, "Expected 'moves'.");
     const auto &literal = std::get<std::string_view>(token.literal);
 
     command->moves.emplace_back(literal);

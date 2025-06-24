@@ -9,7 +9,7 @@
 
 namespace uci {
 
-enum TokenType : uint8_t {
+enum class TokenType {
   // GUI to Engine
   UCI,
   DEBUG,
@@ -39,8 +39,8 @@ enum TokenType : uint8_t {
   BOOLEAN
 };
 
-enum Status : uint8_t { CHECKING, OK, ERROR };
-enum OptionType : uint8_t { CHECK, SPIN, COMBO, BUTTON, STRING };
+enum class Status { CHECKING, OK, ERROR };
+enum class OptionType { CHECK, SPIN, COMBO, BUTTON, STRING };
 
 extern std::unordered_map<std::string_view, Status> kStatus;
 
