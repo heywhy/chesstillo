@@ -18,7 +18,9 @@ inline constexpr const char *kStartPos =
 
 class Position;
 
-struct _State {
+namespace position {
+
+struct State {
   Bitboard king_ban;
   Bitboard occupied_sqs;
   Bitboard en_passant_square;
@@ -26,11 +28,13 @@ struct _State {
   std::uint_fast8_t castling_rights;
   std::uint_fast8_t halfmove_clock;
 
-  static _State From(Position &position);
-  static void Apply(Position &position, _State &state);
+  static State From(Position &position);
+  static void Apply(Position &position, State &state);
 };
 
-static const std::stack<_State> kEmptyStack;
+}  // namespace position
+
+static const std::stack<position::State> kEmptyStack;
 
 // NOTE: maybe compute position hash on every move instead of at TT.
 class Position {
@@ -68,13 +72,14 @@ class Position {
   std::uint_fast8_t halfmove_clock_;
 
   Mailbox mailbox_;
-  std::stack<_State> history_;
+  std::stack<position::State> history_;
 
   void UpdateKingBan();
   void UpdateMailbox();
   void UpdateInternals();
 
-  friend struct _State;
+  friend struct position::State;
+
   friend struct EvalState;
   friend class TT;
   friend class SearchManager;

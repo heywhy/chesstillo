@@ -12,14 +12,15 @@
 #include <engine/utility.hpp>
 
 namespace engine {
+namespace position {
 
-_State _State::From(Position &position) {
+State State::From(Position &position) {
   return {position.king_ban_,        position.board_.occupied_sqs,
           position.en_passant_sq_,   position.en_passant_target_,
           position.castling_rights_, position.halfmove_clock_};
 }
 
-void _State::Apply(Position &position, _State &state) {
+void State::Apply(Position &position, State &state) {
   position.king_ban_ = state.king_ban;
   position.halfmove_clock_ = state.halfmove_clock;
   position.castling_rights_ = state.castling_rights;
@@ -27,6 +28,8 @@ void _State::Apply(Position &position, _State &state) {
   position.en_passant_target_ = state.en_passant_target;
   position.board_.occupied_sqs = state.occupied_sqs;
 }
+
+}  // namespace position
 
 Position::Position()
     : turn_(WHITE),
@@ -90,7 +93,7 @@ void Position::Reset() {
 }
 
 void Position::Make(const Move &move) {
-  history_.push(_State::From(*this));
+  history_.push(position::State::From(*this));
 
   Color opp = OPP(turn_);
   Bitboard &piece = board_.pieces[turn_][move.piece];
@@ -197,7 +200,7 @@ void Position::Make(const Move &move) {
 }
 
 void Position::Undo(const Move &move) {
-  _State::Apply(*this, history_.top());
+  position::State::Apply(*this, history_.top());
 
   Color opp = OPP(turn_);
   Bitboard &piece = board_.pieces[opp][move.piece];
