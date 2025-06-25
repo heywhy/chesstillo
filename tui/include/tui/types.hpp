@@ -6,11 +6,11 @@
 namespace tui {
 namespace engine {
 
-using Flags = std::uint8_t;
+using Flag = std::uint8_t;
 
-constexpr Flags UCI = static_cast<Flags>(1) << 0;
-constexpr Flags READY = static_cast<Flags>(1) << 1;
-constexpr Flags CLEAR_HASH = static_cast<Flags>(1) << 2;
+constexpr Flag UCI = static_cast<Flag>(1) << 0;
+constexpr Flag READY = static_cast<Flag>(1) << 1;
+constexpr Flag CLEAR_HASH = static_cast<Flag>(1) << 2;
 
 }  // namespace engine
 }  // namespace tui

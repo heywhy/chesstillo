@@ -34,7 +34,7 @@ endif()
 target_include_directories(tui PUBLIC include)
 
 target_compile_options(tui PRIVATE ${COMPILE_OPTIONS})
-target_link_options(tui PRIVATE -O3)
+target_link_options(tui PRIVATE ${LINK_OPTIONS})
 
 target_link_libraries(tui
   PUBLIC uci
@@ -47,7 +47,7 @@ target_link_libraries(tui
 add_executable(chesstillo_tui src/main.cpp)
 
 target_compile_options(chesstillo_tui PRIVATE ${COMPILE_OPTIONS})
-target_link_options(chesstillo_tui PRIVATE -O3)
+target_link_options(chesstillo_tui PRIVATE ${LINK_OPTIONS})
 
 target_link_libraries(chesstillo_tui
   PRIVATE tui

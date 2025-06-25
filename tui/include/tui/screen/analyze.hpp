@@ -58,7 +58,7 @@ class Main : public ftxui::ComponentBase, public uci::UI {
 
   bool running_ = false;
 
-  engine::Flags engine_flags_ = 0;
+  engine::Flag engine_flags_ = 0;
 
   struct PV {
     unsigned int id = 0;
