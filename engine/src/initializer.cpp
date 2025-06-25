@@ -16,8 +16,8 @@ consteval AttackMaps InitAttackMaps() {
 
     m[KING][i] = KING_ATTACKS(square);
     m[KNIGHT][i] = KNIGHT_ATTACKS(square);
-    m[ROOK][i] = RankMask(i) ^ FileMask(i);
-    m[BISHOP][i] = DiagonalMask(i) ^ AntiDiagonalMask(i);
+    m[ROOK][i] = square::RankMask(i) ^ square::FileMask(i);
+    m[BISHOP][i] = square::DiagonalMask(i) ^ square::AntiDiagonalMask(i);
   }
 
   return m;
@@ -30,8 +30,8 @@ consteval CheckBetween InitCheckBetween() {
 
   for (int i = 0; i < 64; i++) {
     for (int j = 0; j < 64; j++) {
-      m[ROOK][i][j] = SquaresInBetween(i, j);
-      m[BISHOP][i][j] = SquaresInBetween(i, j);
+      m[ROOK][i][j] = square::InBetween(i, j);
+      m[BISHOP][i][j] = square::InBetween(i, j);
     }
   }
 

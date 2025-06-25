@@ -559,10 +559,11 @@ std::pair<int, int> BackwardPawns(Bitboard side_pawns, Bitboard enemy_pawns) {
     Bitboard west_fill_targets = file_fills(MOVE_WEST(push_target));
     Bitboard east_fill_targets = file_fills(MOVE_EAST(push_target));
 
-    Bitboard push_rank = RankMask(square::Index(push_target));
-    Bitboard tpl_rank = RankMask(square::Index(tpl_push_target));
+    Bitboard push_rank = square::RankMask(square::Index(push_target));
+    Bitboard tpl_rank = square::RankMask(square::Index(tpl_push_target));
 
-    Bitboard ranks_ahead = push_rank | RankMask(square::Index(dbl_push_target));
+    Bitboard ranks_ahead =
+        push_rank | square::RankMask(square::Index(dbl_push_target));
 
     // clang-format off
     if (
@@ -684,7 +685,7 @@ int ClosedFiles(EvalState &state) {
   }
 
   BITLOOP(side_rooks) {
-    Bitboard file = FileMask(LOOP_INDEX);
+    Bitboard file = square::FileMask(LOOP_INDEX);
 
     if (file & side_pawns) {
       count++;
@@ -712,18 +713,18 @@ std::tuple<int, int, int> SemiOpenFiles(EvalState &state) {
     enemy_pawns = state.black_pieces[PAWN];
 
     enemy_king = state.black_pieces[KING];
-    enemy_king_file = FileMask(square::Index(enemy_king));
+    enemy_king_file = square::FileMask(square::Index(enemy_king));
   } else {
     side_pawns = state.black_pieces[PAWN];
     side_rooks = state.black_pieces[ROOK];
     enemy_pawns = state.white_pieces[PAWN];
 
     enemy_king = state.white_pieces[KING];
-    enemy_king_file = FileMask(square::Index(enemy_king));
+    enemy_king_file = square::FileMask(square::Index(enemy_king));
   }
 
   BITLOOP(side_rooks) {
-    Bitboard file = FileMask(LOOP_INDEX);
+    Bitboard file = square::FileMask(LOOP_INDEX);
 
     if (!(file & side_pawns) && file & enemy_pawns) {
       count++;
@@ -753,16 +754,16 @@ std::tuple<int, int, int> OpenFiles(EvalState &state) {
     side_rooks = state.white_pieces[ROOK];
 
     enemy_king = state.black_pieces[KING];
-    enemy_king_file = FileMask(square::Index(enemy_king));
+    enemy_king_file = square::FileMask(square::Index(enemy_king));
   } else {
     side_rooks = state.black_pieces[ROOK];
 
     enemy_king = state.white_pieces[KING];
-    enemy_king_file = FileMask(square::Index(enemy_king));
+    enemy_king_file = square::FileMask(square::Index(enemy_king));
   }
 
   BITLOOP(side_rooks) {
-    Bitboard file = FileMask(LOOP_INDEX);
+    Bitboard file = square::FileMask(LOOP_INDEX);
 
     if (!(file & all_pawns)) {
       count++;

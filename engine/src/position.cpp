@@ -113,7 +113,7 @@ void Position::Make(const Move &move) {
 
   if (move.piece == KING && move.Is(move::CASTLE_KING_SIDE)) [[unlikely]] {
     int king_square = square::Index(piece);
-    Bitboard rank = RankMask(king_square);
+    Bitboard rank = square::RankMask(king_square);
     Bitboard &rooks = board_.pieces[turn_][ROOK];
     Bitboard rook = rooks & rank & kKingSide;
     Bitboard new_position = rook >> 2;
@@ -126,7 +126,7 @@ void Position::Make(const Move &move) {
 
   if (move.piece == KING && move.Is(move::CASTLE_QUEEN_SIDE)) [[unlikely]] {
     int king_square = square::Index(piece);
-    Bitboard rank = RankMask(king_square);
+    Bitboard rank = square::RankMask(king_square);
     Bitboard &rooks = board_.pieces[turn_][ROOK];
     Bitboard rook = rooks & rank & kQueenSide;
     Bitboard new_position = rook << 3;
@@ -232,7 +232,7 @@ void Position::Undo(const Move &move) {
 
   if (move.piece == KING && move.Is(move::CASTLE_KING_SIDE)) [[unlikely]] {
     int king_square = square::Index(piece);
-    Bitboard rank = RankMask(king_square);
+    Bitboard rank = square::RankMask(king_square);
     Bitboard &rooks = board_.pieces[opp][ROOK];
     Bitboard rook = rooks & rank & kKingSide;
     Bitboard old_position = (rook << 2);
@@ -245,7 +245,7 @@ void Position::Undo(const Move &move) {
 
   if (move.piece == KING && move.Is(move::CASTLE_QUEEN_SIDE)) [[unlikely]] {
     int king_square = square::Index(piece);
-    Bitboard rank = RankMask(king_square);
+    Bitboard rank = square::RankMask(king_square);
     Bitboard &rooks = board_.pieces[opp][ROOK];
     Bitboard rook = rooks & rank & kQueenSide;
     Bitboard old_position = (rook >> 3);
@@ -288,7 +288,7 @@ void Position::UpdateInternals() {
   Bitboard pawns = board_.pieces[turn_][PAWN];
   Bitboard king = board_.pieces[turn_][KING];
   int ep_sq = square::Index(en_passant_target_);
-  Bitboard ep_rank = RankMask(ep_sq);
+  Bitboard ep_rank = square::RankMask(ep_sq);
   int king_sq = square::Index(king);
 
   if (en_passant_target_ && (ep_rank & king) && (ep_rank & enemy_rook_queen) &&
