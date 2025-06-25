@@ -1,7 +1,6 @@
 #ifndef MOVE_GEN_HPP
 #define MOVE_GEN_HPP
 
-#include <cstdint>
 #include <utility>
 
 #include "constants.hpp"
@@ -47,7 +46,7 @@
    MOVE_NORTH_WEST(bitboard) | MOVE_SOUTH_EAST(bitboard) |             \
    MOVE_SOUTH_WEST(bitboard))
 
-#define LOOP_INDEX static_cast<std::uint_fast8_t>(_loop_i)
+#define LOOP_INDEX static_cast<int>(_loop_i)
 #define BITLOOP(X)                                                      \
   for (Bitboard _x_copy = X, _loop_i = square::Index(_x_copy); _x_copy; \
        _x_copy ^= square::BB(LOOP_INDEX), _loop_i = square::Index(_x_copy))
@@ -59,25 +58,21 @@ std::pair<Bitboard, Bitboard> PinMask(Position &position);
 
 MoveList GenerateMoves(Position &position);
 
-void AddMovesToList(MoveList &moves, std::uint_fast8_t from, Bitboard targets,
-                    Piece piece, const Mailbox &mailbox, Bitboard enemy_bb);
+void AddMovesToList(MoveList &moves, int from, Bitboard targets, Piece piece,
+                    const Mailbox &mailbox, Bitboard enemy_bb);
 
-constexpr Bitboard RankMask(std::uint_fast8_t square) {
-  return kRank1 << (square & 56);
-}
+constexpr Bitboard RankMask(int square) { return kRank1 << (square & 56); }
 
-constexpr Bitboard FileMask(std::uint_fast8_t square) {
-  return kAFile << (square & 7);
-}
+constexpr Bitboard FileMask(int square) { return kAFile << (square & 7); }
 
-constexpr Bitboard DiagonalMask(std::uint_fast8_t square) {
+constexpr Bitboard DiagonalMask(int square) {
   int diagonal = (square & 7) - (square >> 3);
 
   return diagonal >= 0 ? kA1H8Diagonal >> diagonal * 8
                        : kA1H8Diagonal << -diagonal * 8;
 }
 
-constexpr Bitboard AntiDiagonalMask(std::uint_fast8_t square) {
+constexpr Bitboard AntiDiagonalMask(int square) {
   int diagonal = 7 - (square & 7) - (square >> 3);
 
   return diagonal >= 0 ? kH1A8Diagonal >> diagonal * 8
@@ -105,15 +100,13 @@ constexpr Bitboard SquaresInBetween(unsigned int from, unsigned int to) {
 }
 
 constexpr Bitboard BishopXRayAttacks(Bitboard attacks, Bitboard occupied_sqs,
-                                     Bitboard blockers,
-                                     std::uint_fast8_t square) {
+                                     Bitboard blockers, int square) {
   return attacks ^
          kSlidingAttacks.Bishop(occupied_sqs ^ (blockers & attacks), square);
 }
 
 constexpr Bitboard RookXRayAttacks(Bitboard attacks, Bitboard occupied_sqs,
-                                   Bitboard blockers,
-                                   std::uint_fast8_t square) {
+                                   Bitboard blockers, int square) {
   return attacks ^
          kSlidingAttacks.Rook(occupied_sqs ^ (blockers & attacks), square);
 }

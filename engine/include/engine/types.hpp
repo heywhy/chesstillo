@@ -11,55 +11,20 @@
 #define MIN_SCORE -INT_MAX
 #define SCORE_INF INT_MAX
 
-#define CASTLE_LEFT(color)           \
-  (static_cast<std::uint_fast8_t>(1) \
-   << (color == WHITE ? LEFT + color : LEFT + color + 1))
-#define CASTLE_RIGHT(color)          \
-  (static_cast<std::uint_fast8_t>(1) \
-   << (color == WHITE ? RIGHT + color : RIGHT + color + 1))
-#define CASTLE_LEFT_WHITE (LEFT + WHITE)
-#define CASTLE_LEFT_BLACK (LEFT + BLACK + 1)
-#define CASTLE_RIGHT_WHITE (RIGHT + WHITE)
-#define CASTLE_RIGHT_BLACK (RIGHT + BLACK + 1)
-
 namespace engine {
 
 using Bitboard = std::uint64_t;
 using PieceList = std::array<Bitboard, 6>;
 
-enum Color : std::uint_fast8_t { WHITE, BLACK };
+enum Color { WHITE, BLACK };
 
-enum CastleDir : std::uint_fast8_t { LEFT, RIGHT };
-
-enum Piece : std::uint_fast8_t {
-  ROOK,
-  BISHOP,
-  KNIGHT,
-  KING,
-  QUEEN,
-  PAWN,
-  NONE
-};
-
-using Mailbox = std::array<Piece, 64>;
+enum Piece { ROOK, BISHOP, KNIGHT, KING, QUEEN, PAWN, NONE };
 
 // exact, lower bound, upper bound
-enum NodeType : std::uint_fast8_t { PV, CUT, ALL };
-
-enum Flag : std::uint_fast8_t {
-  CHECK,
-  CAPTURE,
-  EN_PASSANT,
-  CASTLE_RIGHT,
-  CASTLE_LEFT,
-  CHECKMATE,
-  PROMOTION,
-  // DISCOVERY,
-  // DOUBLE
-};
+enum NodeType { PV, CUT, ALL };
 
 // clang-format off
-enum ESquare : std::uint_fast8_t {
+enum ESquare {
   a1, b1, c1, d1, e1, f1, g1, h1,
   a2, b2, c2, d2, e2, f2, g2, h2,
   a3, b3, c3, d3, e3, f3, g3, h3,

@@ -9,16 +9,32 @@
 #include "types.hpp"
 
 namespace engine {
+namespace move {
+
+using Flag = std::uint8_t;
+
+constexpr Flag CHECK = static_cast<Flag>(1) << 0;
+constexpr Flag CAPTURE = static_cast<Flag>(1) << 1;
+constexpr Flag EN_PASSANT = static_cast<Flag>(1) << 2;
+constexpr Flag CASTLE_KING_SIDE = static_cast<Flag>(1) << 3;
+constexpr Flag CASTLE_QUEEN_SIDE = static_cast<Flag>(1) << 4;
+constexpr Flag CHECKMATE = static_cast<Flag>(1) << 5;
+constexpr Flag PROMOTION = static_cast<Flag>(1) << 6;
+// constexpr Flag DISCOVERY = static_cast<Flag>(1) << 0;
+// constexpr Flag DOUBLE = static_cast<Flag>(1) << 0;
+
+}  // namespace move
 
 class Move;
 typedef std::vector<Move> MoveList;
 
 class Move {
  public:
-  std::uint_fast8_t from;
-  std::uint_fast8_t to;
+  std::uint8_t from;
+  std::uint8_t to;
+  move::Flag flags;
+
   Piece piece;
-  std::uint_fast8_t flags;
   Piece captured;
   Piece promoted;
 
@@ -29,16 +45,15 @@ class Move {
 
   static const Move NONE;
 
-  Move(std::uint_fast8_t from, std::uint_fast8_t to, Piece piece)
-      : from(from), to(to), piece(piece), flags(0), score(SCORE_INF) {}
+  Move(std::uint8_t from, std::uint8_t to, Piece piece)
+      : from(from), to(to), flags(0), piece(piece), score(SCORE_INF) {}
 
-  Move(std::uint_fast8_t from, std::uint_fast8_t to, Piece piece,
-       std::uint_fast8_t flags)
-      : from(from), to(to), piece(piece), flags(flags), score(SCORE_INF) {}
+  Move(std::uint8_t from, std::uint8_t to, Piece piece, std::uint8_t flags)
+      : from(from), to(to), flags(flags), piece(piece), score(SCORE_INF) {}
 
-  void Set(std::uint_fast8_t flag) { flags |= 1U << flag; }
+  void Set(move::Flag flag) { flags |= flag; }
 
-  bool Is(std::uint_fast8_t flag) const { return flags & (1U << flag); }
+  bool Is(move::Flag flag) const { return flags & flag; }
 
   friend inline bool operator==(const Move &lhs, const Move &rhs) {
     return lhs.from == rhs.from && lhs.to == rhs.to && lhs.piece == rhs.piece;

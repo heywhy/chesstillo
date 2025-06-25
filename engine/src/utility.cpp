@@ -1,8 +1,8 @@
 #include <cstddef>
-#include <cstdint>
 #include <cstring>
 
 #include <engine/board.hpp>
+#include <engine/move.hpp>
 #include <engine/square.hpp>
 #include <engine/types.hpp>
 #include <engine/utility.hpp>
@@ -41,13 +41,12 @@ bool PieceToChar(char *c, Piece piece, Color color) {
     return false;
   }
 
-  *c = color == BLACK ? *c : toupper(*c);
+  *c = color == BLACK ? *c : std::toupper(*c);
 
   return true;
 }
 
-Move DeduceMove(const Position &position, std::uint_fast8_t from,
-                std::uint_fast8_t to) {
+Move DeduceMove(const Position &position, int from, int to) {
   Piece piece;
   Piece captured;
 
@@ -57,19 +56,19 @@ Move DeduceMove(const Position &position, std::uint_fast8_t from,
 
   if (position.PieceAt(&captured, to)) {
     move.captured = captured;
-    move.Set(CAPTURE);
+    move.Set(move::CAPTURE);
   }
 
   if (square::BB(to) & position.EnPassantSquare()) {
-    move.Set(EN_PASSANT);
+    move.Set(move::EN_PASSANT);
   }
 
   if (piece == KING && (from == e1 || from == e8) && (to == c1 || to == c8)) {
-    move.Set(Flag::CASTLE_LEFT);
+    move.Set(move::CASTLE_QUEEN_SIDE);
   }
 
   if (piece == KING && (from == e1 || from == e8) && (to == g1 || to == g8)) {
-    move.Set(Flag::CASTLE_RIGHT);
+    move.Set(move::CASTLE_KING_SIDE);
   }
 
   return move;
@@ -89,7 +88,7 @@ bool ToString(char *buf, const Move &move) {
   buf[2] = to.file;
   buf[3] = 48 + to.rank;
 
-  if (move.Is(PROMOTION)) {
+  if (move.Is(move::PROMOTION)) {
     char piece;
     PieceToChar(&piece, move.promoted);
 

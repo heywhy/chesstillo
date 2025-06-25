@@ -2,24 +2,19 @@
 #define ENGINE_SQUARE_HPP
 
 #include <bit>
-#include <cstdint>
 
 #include "types.hpp"
 
 namespace engine {
 namespace square {
 
-constexpr Bitboard BB(const std::uint_fast8_t square) {
-  return Bitboard(1) << square;
+constexpr Bitboard BB(const int square) {
+  return static_cast<Bitboard>(1) << square;
 }
 
-constexpr std::uint_fast8_t Index(const Bitboard bb) {
-  return std::countr_zero(bb);
-}
+constexpr int Index(const Bitboard bb) { return std::countr_zero(bb); }
 
-constexpr std::uint_fast8_t MIndex(const Bitboard bb) {
-  return 63 - std::countl_zero(bb);
-}
+constexpr int MIndex(const Bitboard bb) { return 63 - std::countl_zero(bb); }
 
 constexpr Bitboard Occupancy(const Bitboard* pieces) {
   return pieces[KING] | pieces[QUEEN] | pieces[BISHOP] | pieces[KNIGHT] |
@@ -30,18 +25,11 @@ constexpr Bitboard Occupancy(const PieceList& pieces) {
   return Occupancy(pieces.data());
 }
 
-constexpr std::uint_fast8_t Rank(const std::uint_fast8_t square) {
-  return (square / 8) + 1;
-}
+constexpr int Rank(const int square) { return (square / 8) + 1; }
 
-constexpr std::uint_fast8_t File(const std::uint_fast8_t square) {
-  return square % 8;
-}
+constexpr int File(const int square) { return square % 8; }
 
-constexpr std::uint_fast8_t From(const std::uint_fast8_t file,
-                                 const std::uint_fast8_t rank) {
-  return 8 * rank + file;
-}
+constexpr int From(const int file, const int rank) { return 8 * rank + file; }
 
 }  // namespace square
 }  // namespace engine

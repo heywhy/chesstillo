@@ -7,11 +7,18 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(FTXUI_QUIET ON)
+set(LINK_OPTIONS)
 
 if(NOT MSVC)
   set(COMPILE_OPTIONS -Wall -Wextra)
 else()
   set(COMPILE_OPTIONS /std:c++20)
+endif()
+
+if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+  set(LINK_OPTIONS -O0)
+elseif (${CMAKE_BUILD_TYPE} STREQUAL "Release" AND NOT ${MSVC})
+  set(COMPILE_OPTIONS -O3)
 endif()
 
 list(APPEND CMAKE_MODULE_PATH "${chesstillo_SOURCE_DIR}/cmake")

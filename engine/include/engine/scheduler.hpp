@@ -87,10 +87,10 @@ class Scheduler {
 
   ~Scheduler() { Stop(); }
 
-  size_t Size() { return size_; }
+  std::size_t Size() { return size_; }
 
   void Init();
-  size_t Busy();
+  std::size_t Busy();
   void MakeAvailable(Worker *worker);
   Status *Dispatch(Callback callback);
 

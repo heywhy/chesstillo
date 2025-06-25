@@ -33,7 +33,7 @@ endif()
 target_include_directories(engine PUBLIC include)
 
 target_compile_options(engine PRIVATE ${COMPILE_OPTIONS})
-target_link_options(engine PRIVATE -O3)
+target_link_options(engine PRIVATE ${LINK_OPTIONS})
 
 target_link_libraries(engine
   PUBLIC magic_bits

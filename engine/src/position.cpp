@@ -1,10 +1,10 @@
-#include <cstdint>
 #include <tuple>
 #include <utility>
 
 #include <engine/board.hpp>
 #include <engine/constants.hpp>
 #include <engine/fill.hpp>
+#include <engine/move.hpp>
 #include <engine/move_gen.hpp>
 #include <engine/position.hpp>
 #include <engine/square.hpp>
@@ -53,13 +53,13 @@ Position::Position(const Position &src) {
   mailbox_ = src.mailbox_;
 }
 
-bool Position::PieceAt(Piece *piece, std::uint_fast8_t index) const {
+bool Position::PieceAt(Piece *piece, int index) const {
   *piece = mailbox_[index];
 
   return *piece != NONE;
 }
 
-bool Position::PieceAt(char *c, std::uint_fast8_t index) const {
+bool Position::PieceAt(char *c, int index) const {
   Piece piece;
 
   if (!PieceAt(&piece, index)) {
@@ -105,13 +105,13 @@ void Position::Make(const Move &move) {
   mailbox_[move.from] = NONE;
   mailbox_[move.to] = move.piece;
 
-  if (move.Is(CAPTURE)) {
+  if (move.Is(move::CAPTURE)) {
     Bitboard &piece = board_.pieces[opp][move.captured];
 
     piece ^= to;
   }
 
-  if (move.piece == KING && move.Is(CASTLE_RIGHT)) [[unlikely]] {
+  if (move.piece == KING && move.Is(move::CASTLE_KING_SIDE)) [[unlikely]] {
     int king_square = square::Index(piece);
     Bitboard rank = RankMask(king_square);
     Bitboard &rooks = board_.pieces[turn_][ROOK];
@@ -124,7 +124,7 @@ void Position::Make(const Move &move) {
     mailbox_[square::Index(new_position)] = ROOK;
   }
 
-  if (move.piece == KING && move.Is(CASTLE_LEFT)) [[unlikely]] {
+  if (move.piece == KING && move.Is(move::CASTLE_QUEEN_SIDE)) [[unlikely]] {
     int king_square = square::Index(piece);
     Bitboard rank = RankMask(king_square);
     Bitboard &rooks = board_.pieces[turn_][ROOK];
@@ -137,28 +137,29 @@ void Position::Make(const Move &move) {
     mailbox_[square::Index(new_position)] = ROOK;
   }
 
-  auto [left_rook, right_rook, single_push] =
-      turn_ == WHITE ? std::make_tuple(a1, h1, PushPawn<WHITE>)
-                     : std::make_tuple(a8, h8, PushPawn<BLACK>);
+  auto [queen_side_rook, king_side_rook, queen_side_castling_flag,
+        king_side_castling_flag, single_push] =
+      turn_ == WHITE
+          ? std::make_tuple(a1, h1, position::CASTLE_W_QUEEN_SIDE,
+                            position::CASTLE_W_KING_SIDE, PushPawn<WHITE>)
+          : std::make_tuple(a8, h8, position::CASTLE_B_QUEEN_SIDE,
+                            position::CASTLE_B_KING_SIDE, PushPawn<BLACK>);
 
   {
-    Bitboard castle_left = CASTLE_LEFT(turn_);
-    Bitboard castle_right = CASTLE_RIGHT(turn_);
-
     if ((move.piece == KING ||
-         (move.piece == ROOK && move.from == left_rook)) &&
-        castling_rights_ & castle_left) [[unlikely]] {
-      castling_rights_ ^= castle_left;
+         (move.piece == ROOK && move.from == queen_side_rook)) &&
+        castling_rights_ & queen_side_castling_flag) [[unlikely]] {
+      castling_rights_ ^= queen_side_castling_flag;
     }
 
     if ((move.piece == KING ||
-         (move.piece == ROOK && move.from == right_rook)) &&
-        castling_rights_ & castle_right) [[unlikely]] {
-      castling_rights_ ^= castle_right;
+         (move.piece == ROOK && move.from == king_side_rook)) &&
+        castling_rights_ & king_side_castling_flag) [[unlikely]] {
+      castling_rights_ ^= king_side_castling_flag;
     }
   }
 
-  if (move.Is(EN_PASSANT)) [[unlikely]] {
+  if (move.Is(move::EN_PASSANT)) [[unlikely]] {
     Bitboard &piece = board_.pieces[opp][PAWN];
 
     piece ^= en_passant_target_;
@@ -166,7 +167,7 @@ void Position::Make(const Move &move) {
     mailbox_[square::Index(en_passant_target_)] = NONE;
   }
 
-  if (move.Is(PROMOTION)) [[unlikely]] {
+  if (move.Is(move::PROMOTION)) [[unlikely]] {
     Bitboard &new_piece = board_.pieces[turn_][move.promoted];
 
     // unset the old piece & set the index on the promoted piece
@@ -186,7 +187,7 @@ void Position::Make(const Move &move) {
     en_passant_sq_ = single_push(from);
   }
 
-  if (move.piece == PAWN || move.Is(CAPTURE)) {
+  if (move.piece == PAWN || move.Is(move::CAPTURE)) {
     halfmove_clock_ = 0;
   } else {
     halfmove_clock_++;
@@ -211,7 +212,7 @@ void Position::Undo(const Move &move) {
 
   mailbox_[move.from] = move.piece;
 
-  if (move.Is(PROMOTION)) [[unlikely]] {
+  if (move.Is(move::PROMOTION)) [[unlikely]] {
     Bitboard &new_piece = board_.pieces[opp][move.promoted];
 
     // reset the old piece & unset the promoted piece
@@ -221,7 +222,7 @@ void Position::Undo(const Move &move) {
     mailbox_[move.to] = NONE;
   }
 
-  if (move.Is(CAPTURE)) {
+  if (move.Is(move::CAPTURE)) {
     PieceList &pieces = board_.pieces[turn_];
 
     pieces[move.captured] |= to;
@@ -229,8 +230,8 @@ void Position::Undo(const Move &move) {
     mailbox_[move.to] = move.captured;
   }
 
-  if (move.piece == KING && move.Is(CASTLE_RIGHT)) [[unlikely]] {
-    std::uint_fast8_t king_square = square::Index(piece);
+  if (move.piece == KING && move.Is(move::CASTLE_KING_SIDE)) [[unlikely]] {
+    int king_square = square::Index(piece);
     Bitboard rank = RankMask(king_square);
     Bitboard &rooks = board_.pieces[opp][ROOK];
     Bitboard rook = rooks & rank & kKingSide;
@@ -242,8 +243,8 @@ void Position::Undo(const Move &move) {
     mailbox_[square::Index(old_position)] = ROOK;
   }
 
-  if (move.piece == KING && move.Is(CASTLE_LEFT)) [[unlikely]] {
-    std::uint_fast8_t king_square = square::Index(piece);
+  if (move.piece == KING && move.Is(move::CASTLE_QUEEN_SIDE)) [[unlikely]] {
+    int king_square = square::Index(piece);
     Bitboard rank = RankMask(king_square);
     Bitboard &rooks = board_.pieces[opp][ROOK];
     Bitboard rook = rooks & rank & kQueenSide;
@@ -255,7 +256,7 @@ void Position::Undo(const Move &move) {
     mailbox_[square::Index(old_position)] = ROOK;
   }
 
-  if (move.Is(EN_PASSANT)) [[unlikely]] {
+  if (move.Is(move::EN_PASSANT)) [[unlikely]] {
     PieceList &pieces = board_.pieces[turn_];
 
     pieces[PAWN] |= en_passant_target_;
@@ -286,9 +287,9 @@ void Position::UpdateInternals() {
 
   Bitboard pawns = board_.pieces[turn_][PAWN];
   Bitboard king = board_.pieces[turn_][KING];
-  std::uint_fast8_t ep_sq = square::Index(en_passant_target_);
+  int ep_sq = square::Index(en_passant_target_);
   Bitboard ep_rank = RankMask(ep_sq);
-  std::uint_fast8_t king_sq = square::Index(king);
+  int king_sq = square::Index(king);
 
   if (en_passant_target_ && (ep_rank & king) && (ep_rank & enemy_rook_queen) &&
       (ep_rank & pawns)) {

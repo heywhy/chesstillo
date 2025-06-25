@@ -103,10 +103,10 @@ void Scheduler::MakeAvailable(Worker *worker) {
   cv_.notify_all();
 }
 
-size_t Scheduler::Busy() {
+std::size_t Scheduler::Busy() {
   std::unique_lock lock(mutex_);
 
-  size_t size = busy_.size();
+  std::size_t size = busy_.size();
 
   lock.unlock();
 

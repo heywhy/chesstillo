@@ -1,7 +1,6 @@
 #include <array>
 #include <bit>
 #include <cmath>
-#include <cstdint>
 #include <cstdlib>
 #include <tuple>
 #include <utility>
@@ -288,9 +287,9 @@ int KingPosition(EvalState &state) {
   Bitboard shelter_pawns = shelter_files & side_pieces[PAWN];
 
   BITLOOP(shelter_pawns) {
-    std::uint_fast8_t distance;
-    std::uint_fast8_t square = LOOP_INDEX;
-    std::uint_fast8_t rank = square::Rank(square);
+    int distance;
+    int square = LOOP_INDEX;
+    int rank = square::Rank(square);
     Bitboard bb = square::BB(square);
 
     if constexpr (side == WHITE) {
@@ -329,7 +328,7 @@ int KingPosition(EvalState &state) {
   Bitboard hostile_pawns = shelter_files & storm_area & enemy_pieces[PAWN];
 
   BITLOOP(hostile_pawns) {
-    std::uint_fast8_t square = LOOP_INDEX;
+    int square = LOOP_INDEX;
     Bitboard bb = square::BB(square);
 
     // clang-format off
@@ -354,7 +353,7 @@ int KingPosition(EvalState &state) {
   Bitboard bishop_and_queen = side_pieces[BISHOP] | side_pieces[QUEEN];
 
   BITLOOP(enemy_pieces[KNIGHT]) {
-    std::uint_fast8_t square = LOOP_INDEX;
+    int square = LOOP_INDEX;
     Bitboard targets = kAttackMaps[KNIGHT][square];
 
     if (targets & enemy_king_adjacents || enemy_king_adjacents_x2 & targets) {
@@ -366,7 +365,7 @@ int KingPosition(EvalState &state) {
   }
 
   BITLOOP(bishop_and_queen) {
-    std::uint_fast8_t square = LOOP_INDEX;
+    int square = LOOP_INDEX;
     Bitboard targets = kSlidingAttacks.Bishop(state.occupied_sqs, square);
 
     if (kAttackMaps[BISHOP][square] & enemy_king_adjacents ||
@@ -381,7 +380,7 @@ int KingPosition(EvalState &state) {
   Bitboard rook_and_queen = side_pieces[ROOK] | side_pieces[QUEEN];
 
   BITLOOP(rook_and_queen) {
-    std::uint_fast8_t square = LOOP_INDEX;
+    int square = LOOP_INDEX;
     Bitboard bb = square::BB(square);
     Bitboard targets = kSlidingAttacks.Rook(state.occupied_sqs, square);
 
@@ -501,7 +500,7 @@ int DoublePawns(Bitboard pawns) {
   constexpr auto file_fills = side == BLACK ? NorthFill : SouthFill;
 
   while (pawns) {
-    std::uint_fast8_t square = square::MIndex(pawns);
+    int square = square::MIndex(pawns);
     Bitboard bb = square::BB(square);
     Bitboard targets = file_fills(bb) & pawns;
 
@@ -522,7 +521,7 @@ std::pair<int, int> IsolatedPawns(Bitboard pawns, Bitboard empty_sqs) {
   int count = 0;
 
   while (pawns) {
-    std::uint_fast8_t square = square::Index(pawns);
+    int square = square::Index(pawns);
     Bitboard bb = square::BB(square);
 
     Bitboard targets = FileFill((MOVE_WEST(bb)) | (MOVE_EAST(bb))) & pawns;
@@ -548,7 +547,7 @@ std::pair<int, int> BackwardPawns(Bitboard side_pawns, Bitboard enemy_pawns) {
   constexpr auto file_fills = side == WHITE ? NorthFill : SouthFill;
 
   while (side_pawns) {
-    std::uint_fast8_t square = square::Index(side_pawns);
+    int square = square::Index(side_pawns);
     Bitboard bb = square::BB(square);
 
     Bitboard push_target = PushPawn<side>(bb);
@@ -857,7 +856,7 @@ std::pair<float, float> PassedPawns(EvalState &state) {
   }
 
   BITLOOP(side_pawns) {
-    std::uint_fast8_t square = LOOP_INDEX;
+    int square = LOOP_INDEX;
     int rank = square::Rank(square);
     Bitboard bb = square::BB(square);
     Bitboard front_targets = front_fill(bb) ^ bb;

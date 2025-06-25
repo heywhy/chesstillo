@@ -51,14 +51,14 @@ TEST_F(SchedulerTestSuite, DispatchASimpleCallback1) {
 
 TEST_F(SchedulerTestSuite, OutOfWorkers) {
   std::vector<Status *> jobs;
-  size_t size = scheduler_.Size();
+  std::size_t size = scheduler_.Size();
   size += size / 2;
 
   jobs.reserve(size);
 
   EXPECT_CALL(mock, Invoke()).Times(AtLeast(size + 1));
 
-  for (size_t i = 0; i < size; i++) {
+  for (std::size_t i = 0; i < size; i++) {
     Status *s = scheduler_.Dispatch([this] { mock.Invoke(); });
 
     jobs.push_back(s);

@@ -1,4 +1,3 @@
-#include <cstdint>
 #include <format>
 #include <string>
 
@@ -16,11 +15,11 @@ Position Position::FromFen(const std::string_view fen) {
   PieceList &black_pieces = board.pieces[BLACK];
   PieceList &white_pieces = board.pieces[WHITE];
 
-  std::uint_fast8_t rank = 7;
-  std::uint_fast8_t file = 0;
-  std::uint_fast8_t spaces = 0;
-  std::uint16_t move_count = 0;
-  std::uint_fast8_t en_passant_rank;
+  int rank = 7;
+  int file = 0;
+  int spaces = 0;
+  int move_count = 0;
+  int en_passant_rank;
   char en_passant_file;
 
   for (const char c : fen) {
@@ -43,12 +42,14 @@ Position Position::FromFen(const std::string_view fen) {
 
       case 'q':
         piece = &black_pieces[QUEEN];
-        if (spaces == 2) position.castling_rights_ |= CASTLE_LEFT(BLACK);
+        if (spaces == 2)
+          position.castling_rights_ |= position::CASTLE_B_QUEEN_SIDE;
         break;
 
       case 'k':
         piece = &black_pieces[KING];
-        if (spaces == 2) position.castling_rights_ |= CASTLE_RIGHT(BLACK);
+        if (spaces == 2)
+          position.castling_rights_ |= position::CASTLE_B_KING_SIDE;
         break;
 
       case 'p':
@@ -69,13 +70,15 @@ Position Position::FromFen(const std::string_view fen) {
 
       case 'Q':
         piece = &white_pieces[QUEEN];
-        if (spaces == 2) position.castling_rights_ |= CASTLE_LEFT(WHITE);
+        if (spaces == 2)
+          position.castling_rights_ |= position::CASTLE_W_QUEEN_SIDE;
         break;
 
       case 'K':
         piece = &white_pieces[KING];
 
-        if (spaces == 2) position.castling_rights_ |= CASTLE_RIGHT(WHITE);
+        if (spaces == 2)
+          position.castling_rights_ |= position::CASTLE_W_KING_SIDE;
         break;
 
       case 'P':
@@ -128,15 +131,15 @@ Position Position::FromFen(const std::string_view fen) {
     }
 
     if (spaces == 0 && piece) {
-      std::uint_fast8_t square = square::From(file, rank);
+      int square = square::From(file, rank);
       *piece |= square::BB(square);
 
       file++;
     } else if (spaces == 3 && (en_passant_rank == 3 || en_passant_rank == 6) &&
                en_passant_file >= 'a' && en_passant_file <= 'h') {
-      std::uint_fast8_t rank = en_passant_rank - 1;
-      std::uint_fast8_t file = en_passant_file - 97;
-      std::uint_fast8_t square = square::From(file, rank);
+      int rank = en_passant_rank - 1;
+      int file = en_passant_file - 97;
+      int square = square::From(file, rank);
 
       position.en_passant_sq_ = square::BB(square);
     } else if (spaces == 4) {
@@ -159,7 +162,7 @@ std::string Position::ToFen() const {
 
   for (int rank = 7; rank >= 0; rank--) {
     for (int file = 0; file < 8; file++) {
-      std::uint_fast8_t square = square::From(file, rank);
+      int square = square::From(file, rank);
       Bitboard bb = square::BB(square);
 
       if (occupied_sqs & bb) {
@@ -192,16 +195,19 @@ std::string Position::ToFen() const {
     fen += {' ', 'b', ' '};
   }
 
-  if (CanCastle(CASTLE_RIGHT_WHITE)) {
+  if (castling_rights_ & position::CASTLE_W_KING_SIDE) {
     fen += 'K';
   }
-  if (CanCastle(CASTLE_LEFT_WHITE)) {
+
+  if (castling_rights_ & position::CASTLE_W_QUEEN_SIDE) {
     fen += 'Q';
   }
-  if (CanCastle(CASTLE_RIGHT_BLACK)) {
+
+  if (castling_rights_ & position::CASTLE_B_KING_SIDE) {
     fen += 'k';
   }
-  if (CanCastle(CASTLE_LEFT_BLACK)) {
+
+  if (castling_rights_ & position::CASTLE_B_QUEEN_SIDE) {
     fen += 'q';
   }
 
@@ -210,7 +216,7 @@ std::string Position::ToFen() const {
   }
 
   Coord coord;
-  std::uint_fast8_t en_passant_square = square::Index(en_passant_sq_);
+  int en_passant_square = square::Index(en_passant_sq_);
 
   if (CoordForSquare(&coord, en_passant_square)) {
     char rank = '0' + coord.rank;

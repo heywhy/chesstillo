@@ -26,7 +26,7 @@ class Result {
  private:
   Line pv_;
   int depth_;
-  uint64_t nodes_;
+  std::uint64_t nodes_;
   SpinLock spin_;
 
   int best_score_;
@@ -95,7 +95,7 @@ class Search {
 struct Stack {
   int depth;
   int cmove;
-  size_t nps;
+  std::size_t nps;
   Bitboard check_mask;
   Move *moves;
 

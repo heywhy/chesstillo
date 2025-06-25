@@ -11,10 +11,10 @@ namespace engine {
 
 struct Coord {
   char file;
-  std::uint_fast8_t rank;
+  std::uint8_t rank;
 };
 
-bool CoordForSquare(Coord *coord, std::uint_fast8_t square);
+bool CoordForSquare(Coord *coord, int square);
 
 class Board {
  public:

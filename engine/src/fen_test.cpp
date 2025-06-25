@@ -16,20 +16,20 @@ TEST(FenTestSuite, TestCastlingRightsDefinedInFenIsMaintained) {
   Position position = Position::FromFen(
       "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w Kq - 0 1");
 
-  ASSERT_TRUE(position.CanCastle(CASTLE_RIGHT_WHITE));
-  ASSERT_TRUE(position.CanCastle(CASTLE_LEFT_BLACK));
-  ASSERT_FALSE(position.CanCastle(CASTLE_LEFT_WHITE));
-  ASSERT_FALSE(position.CanCastle(CASTLE_RIGHT_BLACK));
+  ASSERT_TRUE(position.CanCastle(position::CASTLE_W_KING_SIDE));
+  ASSERT_FALSE(position.CanCastle(position::CASTLE_W_QUEEN_SIDE));
+  ASSERT_FALSE(position.CanCastle(position::CASTLE_B_KING_SIDE));
+  ASSERT_TRUE(position.CanCastle(position::CASTLE_B_QUEEN_SIDE));
 }
 
 TEST(FenTestSuite, TestIgnoreCastlingRightsIfMissing) {
   Position position = Position::FromFen(
       "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1");
 
-  ASSERT_FALSE(position.CanCastle(CASTLE_RIGHT_WHITE));
-  ASSERT_FALSE(position.CanCastle(CASTLE_RIGHT_BLACK));
-  ASSERT_FALSE(position.CanCastle(CASTLE_LEFT_WHITE));
-  ASSERT_FALSE(position.CanCastle(CASTLE_LEFT_BLACK));
+  ASSERT_FALSE(position.CanCastle(position::CASTLE_W_KING_SIDE));
+  ASSERT_FALSE(position.CanCastle(position::CASTLE_W_QUEEN_SIDE));
+  ASSERT_FALSE(position.CanCastle(position::CASTLE_B_KING_SIDE));
+  ASSERT_FALSE(position.CanCastle(position::CASTLE_B_QUEEN_SIDE));
 }
 
 TEST(FenTestSuite, TestSetEnPassantSquare) {

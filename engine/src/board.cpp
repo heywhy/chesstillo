@@ -8,13 +8,12 @@
 
 namespace engine {
 
-bool CoordForSquare(Coord *coord, std::uint_fast8_t square) {
+bool CoordForSquare(Coord *coord, int square) {
   if (square >= 0 && square < 64) {
-    std::uint_fast8_t file = square::File(square);
-    std::uint_fast8_t rank = square::Rank(square);
+    int file = square::File(square);
+    int rank = square::Rank(square);
 
-    *coord = {static_cast<char>(file + 97),
-              static_cast<std::uint_fast8_t>(rank)};
+    *coord = {static_cast<char>(file + 97), static_cast<std::uint8_t>(rank)};
 
     return true;
   }

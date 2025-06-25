@@ -367,7 +367,7 @@ int Search::Quiesce(Position &position, int alpha, int beta) {
 
   for (Move &move : move_list) {
     // INFO: ignore if move isn't a capture
-    if (!move.Is(CAPTURE)) {
+    if (!move.Is(move::CAPTURE)) {
       continue;
     }
 
