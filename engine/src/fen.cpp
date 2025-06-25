@@ -18,7 +18,7 @@ Position Position::FromFen(const std::string_view fen) {
   int rank = 7;
   int file = 0;
   int spaces = 0;
-  int move_count = 0;
+  long move_count = 0;
   int en_passant_rank;
   char en_passant_file;
 
