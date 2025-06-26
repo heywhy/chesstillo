@@ -12,6 +12,7 @@ add_library(uci
   src/parser.cpp
   src/uci.cpp
   src/engine.cpp
+  src/link.cpp
   src/command/debug.cpp
   src/command/go.cpp
   src/command/position.cpp

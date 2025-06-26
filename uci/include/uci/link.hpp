@@ -1,30 +1,30 @@
-#ifndef UCI_ENGINE_HPP
-#define UCI_ENGINE_HPP
+#ifndef UCI_LINK_HPP
+#define UCI_LINK_HPP
 
+#include <iostream>
 #include <string>
-#include <string_view>
-#include <thread>
-
-#include <boost/asio.hpp>
-#include <boost/process.hpp>
 
 #include <uci/command.hpp>
-#include <uci/ui.hpp>
-
-namespace asio = boost::asio;
-namespace process = boost::process;
+#include <uci/process.hpp>
 
 namespace uci {
-class Engine : Visitor {
+class Link : Visitor {
  public:
-  Engine(const std::string_view &path, UI *ui);
-  ~Engine();
+  Link(std::istream &in, std::ostream &out, Process *);
 
-  bool IsRunning();
-  void Send(uci::Command &command);
-  void Send(uci::Command &&command);
+  void Loop();
+  void Send(Command &command);
+  void Send(Command &&command);
 
- protected:
+ private:
+  std::istream &in_;
+  std::ostream &out_;
+  Process *process_;
+
+  bool quit_;
+
+  void WriteToUI(std::string &&line);
+
   void VisitInput(command::Input *) override;
   void VisitDebug(command::Debug *) override;
   void VisitPosition(command::Position *) override;
@@ -37,18 +37,6 @@ class Engine : Visitor {
   void VisitRegistration(command::Registration *) override;
   void VisitInfo(command::Info *) override;
   void VisitOption(command::Option *) override;
-
- private:
-  UI *ui_;
-  bool stop_;
-
-  asio::io_context context_;
-  process::popen instance_;
-
-  std::thread thread_;
-
-  void Loop();
-  void WriteToProcess(std::string &&line);
 };
 }  // namespace uci
 

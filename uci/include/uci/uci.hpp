@@ -3,6 +3,7 @@
 
 #include "command.hpp"
 #include "engine.hpp"
+#include "link.hpp"
 #include "parser.hpp"
 #include "scanner.hpp"
 
