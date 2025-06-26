@@ -5,8 +5,7 @@
 #include <uci/parser.hpp>
 #include <uci/types.hpp>
 
-using namespace uci;
-
+namespace uci {
 Parser::Parser(const Tokens &tokens) : tokens_(tokens), current_(0) {}
 
 std::unique_ptr<Command> Parser::Parse() {
@@ -135,3 +134,4 @@ Tokens::const_reference Parser::Advance() { return tokens_[current_++]; }
 Tokens::const_reference Parser::Previous() { return tokens_[current_ - 1]; }
 
 Tokens::const_reference Parser::Peek() { return tokens_[current_]; }
+}  // namespace uci

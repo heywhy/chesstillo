@@ -9,8 +9,7 @@
 #include <uci/parser.hpp>
 #include <uci/types.hpp>
 
-using namespace uci;
-
+namespace uci {
 std::unique_ptr<Command> Parser::Go() {
   std::unique_ptr<command::Go> command = std::make_unique<command::Go>();
 
@@ -133,3 +132,4 @@ std::string command::Go::ToString() const {
 
   return str;
 }
+}  // namespace uci

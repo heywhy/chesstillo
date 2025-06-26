@@ -8,8 +8,7 @@
 #include <uci/parser.hpp>
 #include <uci/types.hpp>
 
-using namespace uci;
-
+namespace uci {
 #define IS_ATTR(token) \
   token.type ==        \
       TokenType::WORD &&M.contains(std::get<std::string_view>(token.literal))
@@ -391,3 +390,4 @@ std::string command::Info::Currline::ToString() {
 
   return str;
 }
+}  // namespace uci

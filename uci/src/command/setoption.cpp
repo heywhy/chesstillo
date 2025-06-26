@@ -9,8 +9,7 @@
 #include <uci/parser.hpp>
 #include <uci/types.hpp>
 
-using namespace uci;
-
+namespace uci {
 std::unique_ptr<Command> Parser::SetOption() {
   const std::string_view msg("Expected 'name' after 'setoption'.");
 
@@ -86,3 +85,4 @@ std::string command::SetOption::ToString() const {
 
   return str;
 }
+}  // namespace uci

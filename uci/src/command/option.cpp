@@ -10,8 +10,7 @@
 #include <uci/parser.hpp>
 #include <uci/types.hpp>
 
-using namespace uci;
-
+namespace uci {
 std::unique_ptr<Command> Parser::Option() {
   std::unique_ptr<command::Option> command =
       std::make_unique<command::Option>();
@@ -209,3 +208,4 @@ std::string command::Option::ToString() const {
 
   return str;
 }
+}  // namespace uci

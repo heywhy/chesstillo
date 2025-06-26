@@ -7,8 +7,7 @@
 #include <uci/parser.hpp>
 #include <uci/types.hpp>
 
-using namespace uci;
-
+namespace uci {
 std::unique_ptr<Command> Parser::Register() {
   static std::array<std::string_view, 3> M = {"later", "name", "code"};
   const std::string_view msg("Expected later, name or code after 'register'.");
@@ -103,3 +102,4 @@ std::string command::Register::ToString() const {
 
   return str;
 }
+}  // namespace uci

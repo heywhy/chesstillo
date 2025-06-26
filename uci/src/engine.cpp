@@ -16,11 +16,10 @@
 #include <uci/scanner.hpp>
 #include <uci/types.hpp>
 
-using namespace uci;
-
 namespace asio = boost::asio;
 namespace bsystem = boost::system;
 
+namespace uci {
 Engine::Engine(const std::string_view &path, UI *ui)
     : ui_(ui),
       stop_(false),
@@ -129,3 +128,4 @@ void Engine::WriteToProcess(std::string &&line) {
 
   asio::write(instance_, asio::buffer(line));
 }
+}  // namespace uci

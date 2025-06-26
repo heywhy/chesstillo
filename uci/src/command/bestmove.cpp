@@ -5,8 +5,7 @@
 #include <uci/parser.hpp>
 #include <uci/types.hpp>
 
-using namespace uci;
-
+namespace uci {
 std::unique_ptr<Command> Parser::BestMove() {
   const auto &token = Consume(TokenType::WORD, "Expected best move.");
   const auto &literal = std::get<std::string_view>(token.literal);
@@ -45,3 +44,4 @@ std::string command::BestMove::ToString() const {
 
   return str;
 }
+}  // namespace uci

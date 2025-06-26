@@ -5,8 +5,7 @@
 #include <uci/parser.hpp>
 #include <uci/types.hpp>
 
-using namespace uci;
-
+namespace uci {
 std::unique_ptr<Command> Parser::Registration() {
   const auto &token =
       Consume(TokenType::WORD, "Expected checking, ok or error.");
@@ -38,3 +37,4 @@ std::string command::Registration::ToString() const {
 
   return str;
 }
+}  // namespace uci

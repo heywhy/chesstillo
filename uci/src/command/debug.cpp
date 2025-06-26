@@ -6,8 +6,7 @@
 #include <uci/parser.hpp>
 #include <uci/types.hpp>
 
-using namespace uci;
-
+namespace uci {
 std::unique_ptr<Command> Parser::Debug() {
   std::unique_ptr<command::Debug> command;
   const auto &token = Consume(TokenType::WORD, "Expected on or off.");
@@ -29,3 +28,4 @@ std::string command::Debug::ToString() const {
 
   return value ? str.append("on") : str.append("off");
 }
+}  // namespace uci

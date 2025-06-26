@@ -6,8 +6,7 @@
 #include <uci/scanner.hpp>
 #include <uci/types.hpp>
 
-using namespace uci;
-
+namespace uci {
 static const std::unordered_map<std::string_view, uci::TokenType> kKeywords{
     {"uci", TokenType::UCI},
     {"debug", TokenType::DEBUG},
@@ -136,3 +135,4 @@ void Scanner::AddToken(TokenType type, auto value) {
 }
 
 bool Scanner::IsAtEnd() { return current_ >= input_.size(); }
+}  // namespace uci

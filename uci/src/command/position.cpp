@@ -7,8 +7,7 @@
 #include <uci/parser.hpp>
 #include <uci/types.hpp>
 
-using namespace uci;
-
+namespace uci {
 std::unique_ptr<Command> Parser::Position() {
   std::unique_ptr<command::Position> command;
   const auto &token = Consume(TokenType::WORD, "Expected 'startpos' or 'fen'.");
@@ -105,3 +104,4 @@ std::string command::Position::ToString() const {
 
   return str;
 }
+}  // namespace uci

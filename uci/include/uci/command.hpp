@@ -1,5 +1,5 @@
-#ifndef UCI_EXPRESSIONS_HPP
-#define UCI_EXPRESSIONS_HPP
+#ifndef UCI_COMMAND_HPP
+#define UCI_COMMAND_HPP
 
 #include <cstdint>
 #include <string>

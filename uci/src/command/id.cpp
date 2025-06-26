@@ -5,8 +5,7 @@
 #include <uci/parser.hpp>
 #include <uci/types.hpp>
 
-using namespace uci;
-
+namespace uci {
 std::unique_ptr<Command> Parser::ID() {
   std::unique_ptr<command::ID> command;
   const std::string_view msg("Expected author or name after 'id'.");
@@ -49,3 +48,4 @@ std::string command::ID::ToString() const {
 
   return str;
 }
+}  // namespace uci

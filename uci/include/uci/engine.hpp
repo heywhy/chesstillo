@@ -24,7 +24,18 @@ class Engine : Visitor {
   void Send(uci::Command &command);
   void Send(uci::Command &&command);
 
- protected:
+ private:
+  UI *ui_;
+  bool stop_;
+
+  asio::io_context context_;
+  process::popen instance_;
+
+  std::thread thread_;
+
+  void Loop();
+  void WriteToProcess(std::string &&line);
+
   void VisitInput(command::Input *) override;
   void VisitDebug(command::Debug *) override;
   void VisitPosition(command::Position *) override;
@@ -37,18 +48,6 @@ class Engine : Visitor {
   void VisitRegistration(command::Registration *) override;
   void VisitInfo(command::Info *) override;
   void VisitOption(command::Option *) override;
-
- private:
-  UI *ui_;
-  bool stop_;
-
-  asio::io_context context_;
-  process::popen instance_;
-
-  std::thread thread_;
-
-  void Loop();
-  void WriteToProcess(std::string &&line);
 };
 }  // namespace uci
 
