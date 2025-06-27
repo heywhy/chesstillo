@@ -50,7 +50,8 @@ class Position {
   Position();
   Position(const Position &src);
 
-  static Position FromFen(const std::string_view fen);
+  static Position FromFen(const std::string_view &fen);
+  static void ApplyFen(Position *position, const std::string_view &fen);
 
   std::string ToFen() const;
 
@@ -82,6 +83,7 @@ class Position {
 
   void UpdateKingBan();
   void UpdateMailbox();
+  void UpdateEnPassantSq();
   void UpdateInternals();
 
   friend struct position::State;

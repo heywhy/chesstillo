@@ -277,7 +277,36 @@ void Position::UpdateInternals() {
   board_.UpdateOccupiedSqs();
 
   UpdateKingBan();
+  UpdateEnPassantSq();
+  UpdateMailbox();
+}
 
+void Position::UpdateKingBan() {
+  king_ban_ = kEmpty;
+  Color opp = OPP(turn_);
+
+  Bitboard enemy_pawns = board_.pieces[opp][PAWN];
+  Bitboard enemy_bishop_queen =
+      board_.pieces[opp][BISHOP] | board_.pieces[opp][QUEEN];
+  Bitboard enemy_rook_queen =
+      board_.pieces[opp][ROOK] | board_.pieces[opp][QUEEN];
+
+  auto [pawn_east_targets, pawn_west_targets] =
+      turn_ == WHITE
+          ? std::make_pair(PawnTargets<BLACK, EAST>, PawnTargets<BLACK, WEST>)
+          : std::make_pair(PawnTargets<WHITE, EAST>, PawnTargets<WHITE, WEST>);
+
+  king_ban_ |=
+      (KING_ATTACKS(board_.pieces[opp][KING])) |
+      (KNIGHT_ATTACKS(board_.pieces[opp][KNIGHT])) |
+      (BISHOP_ATTACKS(enemy_bishop_queen,
+                      ~board_.occupied_sqs | board_.pieces[turn_][KING])) |
+      (ROOK_ATTACKS(enemy_rook_queen,
+                    ~board_.occupied_sqs | board_.pieces[turn_][KING])) |
+      pawn_east_targets(enemy_pawns) | pawn_west_targets(enemy_pawns);
+}
+
+void Position::UpdateEnPassantSq() {
   en_passant_target_ = (PushPawn<WHITE>(en_passant_sq_) & kRank4) |
                        (PushPawn<BLACK>(en_passant_sq_) & kRank5);
 
@@ -322,31 +351,6 @@ void Position::UpdateInternals() {
       }
     }
   }
-}
-
-void Position::UpdateKingBan() {
-  king_ban_ = kEmpty;
-  Color opp = OPP(turn_);
-
-  Bitboard enemy_pawns = board_.pieces[opp][PAWN];
-  Bitboard enemy_bishop_queen =
-      board_.pieces[opp][BISHOP] | board_.pieces[opp][QUEEN];
-  Bitboard enemy_rook_queen =
-      board_.pieces[opp][ROOK] | board_.pieces[opp][QUEEN];
-
-  auto [pawn_east_targets, pawn_west_targets] =
-      turn_ == WHITE
-          ? std::make_pair(PawnTargets<BLACK, EAST>, PawnTargets<BLACK, WEST>)
-          : std::make_pair(PawnTargets<WHITE, EAST>, PawnTargets<WHITE, WEST>);
-
-  king_ban_ |=
-      (KING_ATTACKS(board_.pieces[opp][KING])) |
-      (KNIGHT_ATTACKS(board_.pieces[opp][KNIGHT])) |
-      (BISHOP_ATTACKS(enemy_bishop_queen,
-                      ~board_.occupied_sqs | board_.pieces[turn_][KING])) |
-      (ROOK_ATTACKS(enemy_rook_queen,
-                    ~board_.occupied_sqs | board_.pieces[turn_][KING])) |
-      pawn_east_targets(enemy_pawns) | pawn_west_targets(enemy_pawns);
 }
 
 void Position::UpdateMailbox() {

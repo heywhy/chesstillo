@@ -8,9 +8,18 @@
 
 namespace engine {
 
-Position Position::FromFen(const std::string_view fen) {
+Position Position::FromFen(const std::string_view &fen) {
   Position position;
-  Board &board = position.board_;
+
+  ApplyFen(&position, fen);
+
+  return position;
+}
+
+void Position::ApplyFen(Position *position, const std::string_view &fen) {
+  position->Reset();
+
+  Board &board = position->board_;
 
   PieceList &black_pieces = board.pieces[BLACK];
   PieceList &white_pieces = board.pieces[WHITE];
@@ -36,20 +45,20 @@ Position Position::FromFen(const std::string_view fen) {
 
       case 'b':
         piece = &black_pieces[BISHOP];
-        position.turn_ = BLACK;
+        position->turn_ = BLACK;
         en_passant_file = c;
         break;
 
       case 'q':
         piece = &black_pieces[QUEEN];
         if (spaces == 2)
-          position.castling_rights_ |= position::CASTLE_B_QUEEN_SIDE;
+          position->castling_rights_ |= position::CASTLE_B_QUEEN_SIDE;
         break;
 
       case 'k':
         piece = &black_pieces[KING];
         if (spaces == 2)
-          position.castling_rights_ |= position::CASTLE_B_KING_SIDE;
+          position->castling_rights_ |= position::CASTLE_B_KING_SIDE;
         break;
 
       case 'p':
@@ -71,14 +80,14 @@ Position Position::FromFen(const std::string_view fen) {
       case 'Q':
         piece = &white_pieces[QUEEN];
         if (spaces == 2)
-          position.castling_rights_ |= position::CASTLE_W_QUEEN_SIDE;
+          position->castling_rights_ |= position::CASTLE_W_QUEEN_SIDE;
         break;
 
       case 'K':
         piece = &white_pieces[KING];
 
         if (spaces == 2)
-          position.castling_rights_ |= position::CASTLE_W_KING_SIDE;
+          position->castling_rights_ |= position::CASTLE_W_KING_SIDE;
         break;
 
       case 'P':
@@ -119,7 +128,7 @@ Position Position::FromFen(const std::string_view fen) {
         break;
 
       case 'w':
-        position.turn_ = WHITE;
+        position->turn_ = WHITE;
         break;
 
       case ' ':
@@ -141,18 +150,15 @@ Position Position::FromFen(const std::string_view fen) {
       int file = en_passant_file - 97;
       int square = square::From(file, rank);
 
-      position.en_passant_sq_ = square::BB(square);
+      position->en_passant_sq_ = square::BB(square);
     } else if (spaces == 4) {
-      position.halfmove_clock_ = move_count;
+      position->halfmove_clock_ = move_count;
     } else if (spaces == 5) {
-      position.fullmove_counter_ = move_count;
+      position->fullmove_counter_ = move_count;
     }
   }
 
-  position.UpdateInternals();
-  position.UpdateMailbox();
-
-  return position;
+  position->UpdateInternals();
 }
 
 std::string Position::ToFen() const {
