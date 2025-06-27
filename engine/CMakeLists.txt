@@ -24,6 +24,7 @@ add_library(engine
   src/threads.cpp
   # src/transposition.cpp
   src/ybwc.cpp
+  src/uci.cpp
 )
 
 if(TARGET engine_format)
@@ -37,7 +38,7 @@ target_link_options(engine PRIVATE ${LINK_OPTIONS})
 
 target_link_libraries(engine
   PUBLIC magic_bits
-  PRIVATE uci
+  PUBLIC uci
 )
 
 add_executable(chesstillo src/main.cpp)
