@@ -342,7 +342,8 @@ void Main::ShowEngineInfo() {
                ftxui::separatorEmpty(),
                ftxui::text(engine_author_) | ftxui::center,
            }) |
-           ftxui::borderEmpty | ftxui::color(color::gray400);
+           ftxui::borderEmpty | ftxui::color(color::gray400) |
+           ftxui::size(ftxui::WIDTH, ftxui::GREATER_THAN, 50);
   });
 
   view_->ShowModal(component);
