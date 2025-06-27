@@ -67,13 +67,13 @@ void Engine::Loop() {
         continue;
       }
 
-      PARSE(command, tokens)
+      try {
+        PARSE(command, tokens)
 
-      if (command.get() == nullptr) {
-        continue;
+        command->Accept(*this);
+      } catch (ParseError &e) {
+        // INFO: write both line read and error to log?
       }
-
-      command->Accept(*this);
     }
   } catch (boost::wrapexcept<bsystem::system_error> &e) {
   }

@@ -1,3 +1,4 @@
+#include <format>
 #include <iostream>
 #include <memory>
 
@@ -9,79 +10,75 @@ namespace uci {
 Parser::Parser(const Tokens &tokens) : tokens_(tokens), current_(0) {}
 
 std::unique_ptr<Command> Parser::Parse() {
-  try {
-    std::unique_ptr<Command> command;
-    Tokens::const_reference token = Advance();
+  std::unique_ptr<Command> command;
+  Tokens::const_reference token = Advance();
 
-    switch (token.type) {
-      case TokenType::UCI:
-      case TokenType::IS_READY:
-      case TokenType::UCI_NEW_GAME:
-      case TokenType::STOP:
-      case TokenType::PONDER_HIT:
-      case TokenType::QUIT:
-      case TokenType::UCI_OK:
-      case TokenType::READY_OK:
-        command.reset(new command::Input(token.lexeme));
-        break;
+  switch (token.type) {
+    case TokenType::UCI:
+    case TokenType::IS_READY:
+    case TokenType::UCI_NEW_GAME:
+    case TokenType::STOP:
+    case TokenType::PONDER_HIT:
+    case TokenType::QUIT:
+    case TokenType::UCI_OK:
+    case TokenType::READY_OK:
+      command.reset(new command::Input(token.lexeme));
+      break;
 
-      case TokenType::DEBUG:
-        command = Debug();
-        break;
+    case TokenType::DEBUG:
+      command = Debug();
+      break;
 
-      case TokenType::POSITION:
-        command = Position();
-        break;
+    case TokenType::POSITION:
+      command = Position();
+      break;
 
-      case TokenType::GO:
-        command = Go();
-        break;
+    case TokenType::GO:
+      command = Go();
+      break;
 
-      case TokenType::SET_OPTION:
-        command = SetOption();
-        break;
+    case TokenType::SET_OPTION:
+      command = SetOption();
+      break;
 
-      case TokenType::REGISTER:
-        command = Register();
-        break;
+    case TokenType::REGISTER:
+      command = Register();
+      break;
 
-      case uci::TokenType::ID:
-        command = ID();
-        break;
+    case uci::TokenType::ID:
+      command = ID();
+      break;
 
-      case TokenType::BEST_MOVE:
-        command = BestMove();
-        break;
+    case TokenType::BEST_MOVE:
+      command = BestMove();
+      break;
 
-      case TokenType::COPY_PROTECTION:
-        command = CopyProtection();
-        break;
+    case TokenType::COPY_PROTECTION:
+      command = CopyProtection();
+      break;
 
-      case TokenType::REGISTRATION:
-        command = Registration();
-        break;
+    case TokenType::REGISTRATION:
+      command = Registration();
+      break;
 
-      case TokenType::INFO:
-        command = Info();
-        break;
+    case TokenType::INFO:
+      command = Info();
+      break;
 
-      case TokenType::OPTION:
-        command = Option();
-        break;
+    case TokenType::OPTION:
+      command = Option();
+      break;
 
-      default:
-        command = nullptr;
-        break;
-    }
-
-    if (!IsAtEnd()) {
-      throw Error(Peek(), "Unexpected token.");
-    }
-
-    return command;
-  } catch (ParseError &) {
-    return nullptr;
+    default:
+      throw Error(token, "Unknown command.");
+      break;
   }
+
+  if (!IsAtEnd()) {
+    throw Error(Peek(), "Unexpected token.");
+  }
+
+  return command;
 }
 
 bool Parser::Match(TokenType type) {
@@ -103,20 +100,9 @@ Tokens::const_reference Parser::Consume(TokenType type,
 }
 
 ParseError Parser::Error(const Token &token, const std::string_view &message) {
-  std::string where(" at '");
+  std::string reason = std::format("Error at '{}': {}", token.lexeme, message);
 
-  where += token.lexeme;
-  where += "'";
-
-  Report(token.line, where, message);
-
-  return message;
-}
-
-void Parser::Report(int line, const std::string_view &where,
-                    const std::string_view &message) {
-  std::cerr << "[line " << line << "] Error" << where << ": " << message
-            << std::endl;
+  return {reason};
 }
 
 bool Parser::Check(TokenType type) {

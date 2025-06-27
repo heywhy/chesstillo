@@ -38,9 +38,6 @@ class Parser {
   Tokens::const_reference Advance();
   Tokens::const_reference Previous();
 
-  static void Report(int line, const std::string_view &where,
-                     const std::string_view &message);
-
   bool IsAtEnd();
   bool Check(TokenType type);
   bool Match(TokenType type);

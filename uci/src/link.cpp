@@ -12,7 +12,7 @@
 #include <uci/types.hpp>
 
 namespace uci {
-constexpr const char *kUnknownMsg = "Unknown command '{}'.";
+constexpr const char *kUnknownMsg = "Error at '{}': Unknown command.";
 
 Link::Link(std::istream &in, std::ostream &out)
     : in_(in), out_(out), quit_(false) {}
@@ -47,17 +47,13 @@ void Link::Loop() {
       continue;
     }
 
-    PARSE(command, tokens);
+    try {
+      PARSE(command, tokens);
 
-    if (command.get() == nullptr) {
-      if (!line.empty()) {
-        WriteToUI(std::format(kUnknownMsg, line));
-      }
-
-      continue;
+      command->Accept(*this);
+    } catch (ParseError &e) {
+      WriteToUI(e.what());
     }
-
-    command->Accept(*this);
   }
 }
 
