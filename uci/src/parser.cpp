@@ -110,7 +110,7 @@ ParseError Parser::Error(const Token &token, const std::string_view &message) {
 
   Report(token.line, where, message);
 
-  return {message};
+  return message;
 }
 
 void Parser::Report(int line, const std::string_view &where,

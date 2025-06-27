@@ -68,6 +68,8 @@ fen: {
   }
 
   fen.resize(fen.size() - 1);
+
+  // INFO: maybe verify that the fenstring is valid?.
   command = std::make_unique<command::Position>(fen);
 }
 

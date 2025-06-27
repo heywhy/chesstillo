@@ -1,5 +1,9 @@
 #include <format>
+#include <istream>
+#include <memory>
+#include <ostream>
 #include <string>
+#include <utility>
 
 #include <uci/command.hpp>
 #include <uci/link.hpp>
@@ -9,6 +13,7 @@
 #include <uci/types.hpp>
 
 namespace uci {
+constexpr const char *kUnknownMsg = "Unknown command '{}'.";
 
 Link::Link(std::istream &in, std::ostream &out, Process *process)
     : in_(in), out_(out), process_(process), quit_(false) {
@@ -29,6 +34,7 @@ void Link::Loop() {
   while (!quit_ && !in_.eof()) {
     Tokens tokens;
     std::string line;
+    command::Input *input;
     std::unique_ptr<Command> command(nullptr);
 
     std::getline(in_, line);
@@ -39,9 +45,18 @@ void Link::Loop() {
       continue;
     }
 
+    if (IsFeedback(tokens[0].type)) {
+      WriteToUI(std::format(kUnknownMsg, line));
+      continue;
+    }
+
     PARSE(command, tokens);
 
     if (command.get() == nullptr) {
+      if (!line.empty()) {
+        WriteToUI(std::format(kUnknownMsg, line));
+      }
+
       continue;
     }
 
@@ -69,10 +84,7 @@ void Link::VisitInput(command::Input *command) {
       break;
 
     default:
-      std::string message =
-          std::format("Unknown command '{}'.", command->ToString());
-
-      WriteToUI(std::move(message));
+      WriteToUI(std::format(kUnknownMsg, command->ToString()));
       break;
   }
 }

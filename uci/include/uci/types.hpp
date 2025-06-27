@@ -56,6 +56,8 @@ struct Token {
 
 using Tokens = std::vector<Token>;
 
+bool IsFeedback(TokenType type);
+
 }  // namespace uci
 
 #endif

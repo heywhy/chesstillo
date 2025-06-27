@@ -30,4 +30,34 @@ std::unordered_map<std::string_view, TokenType> Input::Known = {
     {"readyok", TokenType::READY_OK}};
 }
 
+bool IsFeedback(TokenType type) {
+  switch (type) {
+    case TokenType::UCI:
+    case TokenType::DEBUG:
+    case TokenType::IS_READY:
+    case TokenType::SET_OPTION:
+    case TokenType::REGISTER:
+    case TokenType::UCI_NEW_GAME:
+    case TokenType::POSITION:
+    case TokenType::GO:
+    case TokenType::STOP:
+    case TokenType::PONDER_HIT:
+    case TokenType::QUIT:
+      return false;
+
+    case TokenType::ID:
+    case TokenType::UCI_OK:
+    case TokenType::READY_OK:
+    case TokenType::BEST_MOVE:
+    case TokenType::COPY_PROTECTION:
+    case TokenType::REGISTRATION:
+    case TokenType::INFO:
+    case TokenType::OPTION:
+      return true;
+
+    default:
+      return false;
+  }
+}
+
 }  // namespace uci

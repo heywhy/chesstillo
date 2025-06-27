@@ -60,31 +60,15 @@ struct Input : public Command {
 
   Input(const std::string_view &input) : Input(Known.at(input), input) {}
 
-  Input(TokenType type, const std::string_view &input)
-      : type(type), input(input) {}
-
-  bool IsFeedback() {
-    switch (type) {
-      case TokenType::UCI:
-      case TokenType::IS_READY:
-      case TokenType::UCI_NEW_GAME:
-      case TokenType::STOP:
-      case TokenType::PONDER_HIT:
-      case TokenType::QUIT:
-        return false;
-
-      case TokenType::UCI_OK:
-      case TokenType::READY_OK:
-        return true;
-
-      default:
-        return false;
-    }
-  }
+  bool IsFeedback() { return uci::IsFeedback(type); }
 
   void Accept(Visitor &visitor) override { visitor.VisitInput(this); };
 
   std::string ToString() const override { return std::string(input); }
+
+ private:
+  Input(TokenType type, const std::string_view &input)
+      : type(type), input(input) {}
 };
 
 struct Debug : public Command {
@@ -158,6 +142,7 @@ struct ID : Command {
   std::string_view value;
 
   ID(Type type) : type(type) {}
+  ID(Type type, std::string_view value) : type(type), value(value) {}
 
   std::string ToString() const override;
 
