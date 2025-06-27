@@ -8,17 +8,14 @@
 #include <uci/command.hpp>
 #include <uci/link.hpp>
 #include <uci/parser.hpp>
-#include <uci/process.hpp>
 #include <uci/scanner.hpp>
 #include <uci/types.hpp>
 
 namespace uci {
 constexpr const char *kUnknownMsg = "Unknown command '{}'.";
 
-Link::Link(std::istream &in, std::ostream &out, Process *process)
-    : in_(in), out_(out), process_(process), quit_(false) {
-  process_->link = this;
-}
+Link::Link(std::istream &in, std::ostream &out)
+    : in_(in), out_(out), quit_(false) {}
 
 void Link::Send(Command &command) { command.Accept(*this); }
 
@@ -75,7 +72,7 @@ void Link::VisitInput(command::Input *command) {
     case TokenType::UCI_NEW_GAME:
     case TokenType::STOP:
     case TokenType::PONDER_HIT:
-      process_->Handle(command);
+      Handle(command);
       break;
 
     case TokenType::UCI_OK:
@@ -89,21 +86,15 @@ void Link::VisitInput(command::Input *command) {
   }
 }
 
-void Link::VisitDebug(command::Debug *command) { process_->Handle(command); }
+void Link::VisitDebug(command::Debug *command) { Handle(command); }
 
-void Link::VisitPosition(command::Position *command) {
-  process_->Handle(command);
-}
+void Link::VisitPosition(command::Position *command) { Handle(command); }
 
-void Link::VisitGo(command::Go *command) { process_->Handle(command); }
+void Link::VisitGo(command::Go *command) { Handle(command); }
 
-void Link::VisitSetOption(command::SetOption *command) {
-  process_->Handle(command);
-}
+void Link::VisitSetOption(command::SetOption *command) { Handle(command); }
 
-void Link::VisitRegister(command::Register *command) {
-  process_->Handle(command);
-}
+void Link::VisitRegister(command::Register *command) { Handle(command); }
 
 void Link::VisitID(command::ID *command) { WriteToUI(command->ToString()); }
 

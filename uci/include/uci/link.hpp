@@ -5,21 +5,27 @@
 #include <string>
 
 #include <uci/command.hpp>
-#include <uci/process.hpp>
 
 namespace uci {
 class Link : Visitor {
  public:
-  Link(std::istream &in, std::ostream &out, Process *);
+  Link(std::istream &in, std::ostream &out);
 
   void Loop();
   void Send(Command &command);
   void Send(Command &&command);
 
+ protected:
+  virtual void Handle(command::Input *) = 0;
+  virtual void Handle(command::Debug *) = 0;
+  virtual void Handle(command::SetOption *) = 0;
+  virtual void Handle(command::Register *) = 0;
+  virtual void Handle(command::Position *) = 0;
+  virtual void Handle(command::Go *) = 0;
+
  private:
   std::istream &in_;
   std::ostream &out_;
-  Process *process_;
 
   bool quit_;
 
