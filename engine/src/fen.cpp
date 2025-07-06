@@ -125,6 +125,7 @@ void Position::ApplyFen(Position *position, const std::string_view &fen) {
       case '/':
         rank--;
         file = 0;
+        move_count = 0;
         break;
 
       case 'w':

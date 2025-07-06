@@ -1,115 +1,109 @@
 #ifndef SEARCH_HPP
 #define SEARCH_HPP
 
+#include <condition_variable>
 #include <cstddef>
-#include <cstdint>
-#include <cstdlib>
+#include <mutex>
+#include <thread>
 #include <vector>
 
-#include "constants.hpp"
-#include "move.hpp"
-#include "position.hpp"
-#include "threads.hpp"
-#include "types.hpp"
+#include <engine/position.hpp>
+#include <engine/transposition.hpp>
+#include <engine/types.hpp>
 
-#define MAX_STACK_MOVES 2000000
+// #define MAX_DEPTH 10  // 125
+#define MAX_DEPTH 8
+#define MAX_THREADS 256
 
 namespace engine {
+class Search;
 
-class Node;
-class Task;
-class TaskStack;
+namespace search {
 
-enum Stop { RUNNING, STOP_PARALLEL, STOP_END };
+class Node {
+ public:
+  Search *search;
+  int alpha;
+  int beta;
+  int depth;
 
-class Result {
- private:
-  Line pv_;
-  int depth_;
-  std::uint64_t nodes_;
-  SpinLock spin_;
+  Node *parent;
 
-  int best_score_;
-  Move *best_move_;
+  int score;
+  NodeType type;
+  Move best_move;
 
-  int moves_;
-  int moves_left_;
+  Node(Search *search, int alpha, int beta, int depth);
+  Node(Search *search, int alpha, int beta, int depth, Node *parent);
 
-  friend class Node;
-  friend class Task;
-  friend class Search;
+  Node(const Node &) = delete;
 };
+
+class WorkerRegistry;
+
+class Worker {
+ public:
+  WorkerRegistry *registry;
+
+  Worker();
+  ~Worker();
+
+  void Search();
+  void Assign(Node *node);
+
+ private:
+  bool loop_;
+  Node *node_;
+  std::size_t nodes_;
+
+  class Search *search_;
+
+  std::mutex mutex_;
+  std::thread thread_;
+  std::condition_variable cv_;
+
+  void Loop();
+};
+
+class WorkerRegistry {
+ public:
+  WorkerRegistry(std::size_t count);
+
+  Worker *GetIdleWorker();
+  std::size_t IdleWorkers();
+  void PutIdleWorker(Worker *worker);
+
+ private:
+  std::size_t idle_;
+
+  std::vector<Worker> workers_;
+  std::vector<Worker *> stack_;
+
+  std::mutex mutex_;
+};
+
+}  // namespace search
 
 class Search {
  public:
-  TaskStack *tasks;
+  TT *tt;
   Position *position;
 
-  bool allow_node_splitting;
-  Stop stop;
-  int depth;
-
-  Search();
-  Search(int tasks);
-  ~Search();
+  Search(search::WorkerRegistry *workers);
+  Search(const Search &) = delete;
 
   void Run();
-  void Clone(Search *);
-  void SetState(Stop state);
-  void StopAll(Stop state);
-  int Midgame(Move &move, int alpha, int depth, Node *node);
+  void Clone(Search *search);
 
  private:
-  Task *task_;
-  Search *master_;
-  Search *parent_;
+  int depth_;
+  search::WorkerRegistry *workers_;
 
-  int nodes_;
-  int height_;
-  Result *result_;
-  NodeType node_type_[MAX_DEPTH];
-  std::vector<Search *> children_;
+  template <enum NodeType T>
+  int search(int alpha, int beta, int depth, search::Node *parent);
 
-  SpinLock spin_;
-
-  void UpdateMidgame(Move &move);
-  void RestoreMidgame(Move &move);
-  void Iterative(int alpha, int depth);
-  int Aspiration(int alpha, int beta, int depth, int score);
-
-  int PVS(int alpha, int beta, int depth, Node *parent);
-
-  int PVS_Root(int alpha, int beta, int depth);
-  int NWS_Midgame(int alpha, int depth, Node *node);
-  int PVS_Midgame(int alpha, int beta, int depth, Node *node);
-
-  void RecordBestMove(const Move &move, const int alpha, const int beta,
-                      const int depth);
-
-  static int Quiesce(Position &position, int alpha, int beta);
-
-  friend class Node;
-  friend class Task;
+  int Quiesce(int alpha, int beta);
 };
-
-struct Stack {
-  int depth;
-  int cmove;
-  std::size_t nps;
-  Bitboard check_mask;
-  Move *moves;
-
-  Stack()
-      : depth(0),
-        cmove(0),
-        nps(0),
-        check_mask(kEmpty),
-        moves(static_cast<Move *>(std::calloc(MAX_STACK_MOVES, sizeof(Move)))) {
-  }
-
-  ~Stack() { std::free(moves); }
-};
-
 }  // namespace engine
 
 #endif

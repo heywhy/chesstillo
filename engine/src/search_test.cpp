@@ -4,22 +4,35 @@
 
 #include <engine/position.hpp>
 #include <engine/search.hpp>
+#include <engine/transposition.hpp>
 
 using namespace engine;
 
+static const auto kHardwareThreads = std::thread::hardware_concurrency();
+
 class SearchTestSuite : public testing::Test {
  protected:
-  Search *search_;
-  Position position_;
+  TT tt;
+  Search search;
+  Position position;
+  search::WorkerRegistry workers;
+
+  SearchTestSuite()
+      : tt(MAX_TRANSPOSITION_SIZE),
+        workers(kHardwareThreads),
+        search(&workers) {}
 
   void SetUp() override {
-    search_ = new Search(std::thread::hardware_concurrency());
+    Position::ApplyFen(&position, kStartPos);
 
-    position_ = Position::FromFen(kStartPos);
+    search.position = &position;
+    search.tt = &tt;
   }
 
-  void TearDown() override {
-    delete search_;
-    position_.Reset();
-  }
+  void TearDown() override { position.Reset(); }
 };
+
+TEST_F(SearchTestSuite, TestAssignNodeToWorker) {
+  // mm
+  search.Run();
+}

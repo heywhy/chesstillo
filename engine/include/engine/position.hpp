@@ -49,6 +49,7 @@ class Position {
  public:
   Position();
   Position(const Position &src);
+  Position &operator=(const Position &src);
 
   static Position FromFen(const std::string_view &fen);
   static void ApplyFen(Position *position, const std::string_view &fen);
@@ -66,6 +67,8 @@ class Position {
   inline Bitboard EnPassantSquare() const { return en_passant_sq_; }
 
   inline bool CanCastle(Castling flag) const { return castling_rights_ & flag; }
+
+  inline PieceList &Pieces(Color color) { return board_.pieces[color]; }
 
  private:
   Color turn_;
@@ -97,8 +100,6 @@ class Position {
   friend MoveList GenerateMoves(Position &position);
   friend Bitboard CheckMask(Position &position);
   friend std::pair<Bitboard, Bitboard> PinMask(Position &position);
-
-  inline PieceList &Pieces(Color color) { return board_.pieces[color]; }
 };
 
 }  // namespace engine

@@ -6,9 +6,6 @@
 
 #include "types.hpp"
 
-#define MAX_DEPTH 10  // 125
-#define MAX_THREADS 256
-
 namespace engine {
 
 inline constexpr Bitboard kEmpty = 0;

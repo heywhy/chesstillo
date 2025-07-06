@@ -22,8 +22,9 @@ add_library(engine
   src/search.cpp
   src/scheduler.cpp
   src/threads.cpp
-  # src/transposition.cpp
-  src/ybwc.cpp
+  src/transposition.cpp
+  src/worker.cpp
+  # src/ybwc.cpp
   src/uci.cpp
 )
 
@@ -34,7 +35,7 @@ endif()
 target_include_directories(engine PUBLIC include)
 
 target_compile_options(engine PRIVATE ${COMPILE_OPTIONS})
-target_link_options(engine PRIVATE ${LINK_OPTIONS})
+target_link_options(engine PUBLIC ${LINK_OPTIONS})
 
 target_link_libraries(engine
   PUBLIC magic_bits

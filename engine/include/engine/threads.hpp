@@ -4,12 +4,14 @@
 #include <atomic>
 
 class SpinLock {
-public:
+ public:
+  SpinLock();
+
   void Lock();
   void Unlock();
 
-private:
-  std::atomic_flag atomic_flag_ = ATOMIC_FLAG_INIT;
+ private:
+  std::atomic_flag atomic_flag_;
 };
 
 #endif

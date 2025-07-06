@@ -1,17 +1,21 @@
 #ifndef TRANSPOSITION_HPP
 #define TRANSPOSITION_HPP
 
-#include <atomic>
+#include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <vector>
 
+#include "move.hpp"
 #include "position.hpp"
+#include "threads.hpp"
 #include "types.hpp"
 
 #define MAX_TRANSPOSITION_SIZE 2000
 #define ZOBRIST_INDEX(piece, color, square) \
   ((piece * 128) + (64 * color) + square)
+
+namespace engine {
 
 struct TTEntry {
   std::uint64_t hash;
@@ -20,26 +24,28 @@ struct TTEntry {
   Move best_move;
   std::uint8_t age;
   NodeType node;
+
+  SpinLock spin;
+
+  TTEntry();
+  TTEntry &operator=(const TTEntry &entry);
 };
 
-class Zobrist {
- private:
-  std::uint64_t color_;
-  std::uint64_t piece_sq_[6 * 2 * 64];
-  std::uint64_t castling_rights_[4];
-  std::uint64_t en_passant_file_[8];
+struct Zobrist {
+  std::uint64_t color;
+  std::uint64_t piece_sq[6 * 2 * 64];
+  std::uint64_t castling_rights[4];
+  std::uint64_t en_passant_file[8];
 
   void Init();
-
-  friend class TT;
 };
 
 class TT {
  public:
   // INFO: check if the UCI option for TT is a size or capacity.
-  TT(std::uint64_t size) : size_(size), entries_(size) { zobrist_.Init(); };
+  TT(std::size_t size);
 
-  void Add(Position &position, int depth, int score, Move best_move,
+  void Add(Position &position, int depth, int score, const Move &best_move,
            NodeType node);
   bool Probe(Position &position, TTEntry *entry);
   bool CutOff(Position &position, int depth, int alpha, int beta,
@@ -47,8 +53,8 @@ class TT {
   void Clear() noexcept;
 
  private:
-  std::uint64_t size_;
-  std::vector<std::atomic<TTEntry>> entries_;
+  std::size_t size_;
+  std::vector<TTEntry> entries_;
 
   Zobrist zobrist_;
 
@@ -56,4 +62,6 @@ class TT {
 
   void FreeEntry(TTEntry *entry) { free(entry); }
 };
+
+}  // namespace engine
 #endif

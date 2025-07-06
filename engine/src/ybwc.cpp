@@ -1,4 +1,5 @@
 #include <cassert>
+#include <cstddef>
 #include <cstdlib>
 #include <mutex>
 #include <thread>
@@ -20,7 +21,6 @@ Node::Node(Search *search, int alpha, int beta, int depth, Node *parent)
       beta(beta),
       depth(depth),
       moves_done(0),
-      moves_todo(0),
       pv_node(false),
       parent_(parent),
       search_(search),
@@ -39,30 +39,14 @@ Node::~Node() { delete help_; }
 
 bool Node::Split(Move &move) {
   if (search_->allow_node_splitting && depth >= SPLIT_MIN_DEPTH && moves_done &&
-      slaves_.size() < SPLIT_MAX_SLAVE && moves_todo >= SPLIT_MIN_MOVES_TODO) {
+      slaves_.size() < SPLIT_MAX_SLAVE &&
+      (moves_.size() - moves_done) > SPLIT_MIN_MOVES_TODO) {
     Task *task;
 
     if (GetHelper(parent_, this, &move)) {
       return true;
     } else if ((task = search_->tasks->GetIdleTask()) != nullptr) {
-      task->node_ = this;
-      task->move_ = &move;
-      task->search_->Clone(search_);
-
-      {
-        std::unique_lock lock(mutex_);
-
-        slaves_.push_back(task->search_);
-      }
-
-      {
-        std::unique_lock lock(task->mutex_);
-
-        task->run_ = true;
-
-        lock.unlock();
-        task->cv_.notify_all();
-      }
+      task->AssignAndRun(this, &move);
 
       return true;
     }
@@ -74,18 +58,18 @@ bool Node::Split(Move &move) {
 void Node::WaitSlaves() {
   std::unique_lock lock(mutex_);
 
-  if (alpha >= beta || search_->stop) {
+  if (alpha >= beta || search_->state != search::State::RUNNING) {
     for (Search *search : slaves_) {
-      search->StopAll(STOP_PARALLEL);
+      search->StopAll(search::State::STOP_PARALLEL);
     }
   }
 
-  while (slaves_.size()) {
+  while (!slaves_.empty()) {
     waiting_ = true;
 
     assert(helping_ == false);
 
-    cv_.wait(lock);
+    cv_.wait(lock, [&] { return helping_ || help_ || slaves_.empty(); });
 
     if (helping_) {
       assert(help_->run_);
@@ -98,8 +82,8 @@ void Node::WaitSlaves() {
     }
   }
 
-  if (search_->stop == STOP_PARALLEL && stop_point_) {
-    search_->stop = RUNNING;
+  if (search_->state == search::State::STOP_PARALLEL && stop_point_) {
+    search_->state = search::State::RUNNING;
     stop_point_ = false;
   }
 }
@@ -109,12 +93,11 @@ Move *Node::FirstMove(MoveList &move_list) {
   std::unique_lock lock(mutex_);
 
   moves_done = 0;
-  moves_todo = move_list.size();
-  move_ = move_list.data();
+  moves_ = move_list;
 
-  if (move_ && !search_->stop) {
+  if (!moves_.empty() && search_->state == search::State::RUNNING) {
     assert(alpha < beta);
-    move = move_;
+    move = &moves_[moves_done];
   }
 
   lock.unlock();
@@ -135,11 +118,12 @@ Move *Node::NextMove() {
 Move *Node::NextMoveLockless() {
   Move *move = nullptr;
 
-  if (move_ && alpha < beta && !search_->stop && moves_todo > 1) {
+  if (!moves_.empty() && alpha < beta &&
+      search_->state == search::State::RUNNING &&
+      (moves_.size() - moves_done) > 1) {
     ++moves_done;
-    --moves_todo;
 
-    move = ++move_;
+    move = &moves_[moves_done];
   }
 
   return move;
@@ -148,7 +132,7 @@ Move *Node::NextMoveLockless() {
 void Node::Update(Move &move) {
   std::unique_lock lock(mutex_);
 
-  if (!search_->stop && move.score > best_score_) {
+  if (search_->state == search::State::RUNNING && move.score > best_score_) {
     best_score_ = move.score;
     best_move_ = move;
 
@@ -165,7 +149,7 @@ void Node::Update(Move &move) {
   // INFO: stop slaves
   if (alpha >= beta) {
     for (Search *search : slaves_) {
-      search->StopAll(STOP_PARALLEL);
+      search->StopAll(search::State::STOP_PARALLEL);
     }
   }
 
@@ -177,29 +161,19 @@ bool GetHelper(Node *master, Node *node, Move *move) {
     return false;
   }
 
-  if (master->waiting_ && !master->helping_) {
-    std::unique_lock lock(master->mutex_);
-
-    if (master->slaves_.size() && master->waiting_ && !master->helping_) {
-      master->helping_ = true;
-      Task *task = master->help_ == nullptr ? new Task() : master->help_;
-
-      task->node_ = node;
-      task->move_ = move;
-      task->search_->Clone(node->search_);
-
-      std::unique_lock lock(node->mutex_);
-
-      node->slaves_.push_back(task->search_);
-
-      task->run_ = true;
-
-      lock.unlock();
-      task->cv_.notify_all();
-
-      return true;
-    }
-  }
+  // TODO: reintroduce parent node helper
+  // if (master->waiting_ && !master->helping_) {
+  //   std::unique_lock lock(master->mutex_);
+  //
+  //   if (!master->slaves_.empty() && master->waiting_ && !master->helping_) {
+  //     master->helping_ = true;
+  //     Task *task = master->help_ ? master->help_ : new Task();
+  //
+  //     task->Assign(node, move);
+  //
+  //     return true;
+  //   }
+  // }
 
   return GetHelper(master->parent_, node, move);
 }
@@ -228,6 +202,27 @@ Task::~Task() {
   std::free(search_);
 }
 
+void Task::Assign(Node *node, Move *move) {
+  node_ = node;
+  move_ = move;
+  search_->Clone(node_->search_);
+
+  std::unique_lock lock(node->mutex_);
+
+  node_->slaves_.push_back(search_);
+}
+
+void Task::AssignAndRun(Node *node, Move *move) {
+  Assign(node, move);
+
+  std::unique_lock lock(mutex_);
+
+  run_ = true;
+
+  lock.unlock();
+  cv_.notify_all();
+}
+
 void Task::Loop() {
   std::unique_lock lock(mutex_);
 
@@ -236,15 +231,18 @@ void Task::Loop() {
 
     if (run_) {
       Search();
-      container_->PutIdleTask(this);
+
+      if (container_) {
+        container_->PutIdleTask(this);
+      }
     }
   }
 }
 
 void Task::Search() {
-  search_->SetState(node_->search_->stop);
+  search_->SetState(node_->search_->state);
 
-  while (move_ && !search_->stop) {
+  while (move_ && search_->state == search::State::RUNNING) {
     const int alpha = node_->alpha;
 
     if (alpha >= node_->beta) {
@@ -261,7 +259,8 @@ void Task::Search() {
 
     std::unique_lock lock(node_->mutex_);
 
-    if (!search_->stop && move_->score > node_->best_score_) {
+    if (search_->state == search::State::RUNNING &&
+        move_->score > node_->best_score_) {
       node_->best_score_ = move_->score;
       node_->best_move_ = *move_;
 
@@ -275,9 +274,10 @@ void Task::Search() {
         node_->alpha = node_->best_score_;
 
         // stop the master thread?
-        if (node_->alpha >= node_->beta && node_->search_->stop == RUNNING) {
+        if (node_->alpha >= node_->beta &&
+            node_->search_->state == search::State::RUNNING) {
           node_->stop_point_ = true;
-          node_->search_->stop = STOP_PARALLEL;
+          node_->search_->state = search::State::STOP_PARALLEL;
         }
       }
     }
@@ -286,11 +286,13 @@ void Task::Search() {
     move_ = node_->NextMoveLockless();
   }
 
-  search_->SetState(STOP_END);
+  search_->SetState(search::State::STOP_END);
 
   search_->parent_->spin_.Lock();
 
-  std::erase(search_->parent_->children_, search_);
+  std::size_t m = std::erase(search_->parent_->children_, search_);
+
+  assert(m == 1);
 
   search_->parent_->spin_.Unlock();
 
@@ -298,7 +300,9 @@ void Task::Search() {
 
   run_ = false;
 
-  std::erase(node_->slaves_, search_);
+  std::size_t n = std::erase(node_->slaves_, search_);
+
+  assert(n == 1);
 
   lock.unlock();
   node_->cv_.notify_all();

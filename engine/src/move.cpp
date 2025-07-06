@@ -2,7 +2,5 @@
 #include <engine/types.hpp>
 
 namespace engine {
-
-const Move Move::NONE = {0, 0, Piece::NONE};
-
+const Move kNullMove(0, 0, Piece::NONE);
 }

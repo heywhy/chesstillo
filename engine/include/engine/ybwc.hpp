@@ -3,13 +3,12 @@
 
 #include <condition_variable>
 #include <mutex>
+#include <span>
 #include <thread>
 #include <vector>
 
 #include "move.hpp"
 #include "search.hpp"
-#include "settings.hpp"
-#include "types.hpp"
 
 namespace engine {
 
@@ -19,6 +18,9 @@ class Task {
  public:
   Task();
   ~Task();
+
+  void Assign(Node *node, Move *move);
+  void AssignAndRun(Node *node, Move *move);
 
  private:
   bool run_;
@@ -49,7 +51,6 @@ class Node {
   int beta;
   int depth;
   int moves_done;
-  int moves_todo;
   bool pv_node;
 
   Node(Search *search, int alpha, int beta, int depth);
@@ -68,7 +69,7 @@ class Node {
   int height_;
   int best_score_;
 
-  Move *move_;
+  std::span<Move> moves_;
   Move best_move_;
   std::vector<Search *> slaves_;
 
@@ -87,8 +88,6 @@ class Node {
   Move *NextMoveLockless();
   Move *FirstMove(MoveList &move_list);
 };
-
-class TaskStack;
 
 class TaskStack {
  public:

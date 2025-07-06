@@ -41,10 +41,6 @@ class Move {
   int cost = 0;
   int score;
 
-  Move *next;
-
-  static const Move NONE;
-
   Move(std::uint8_t from, std::uint8_t to, Piece piece)
       : from(from), to(to), flags(0), piece(piece), score(SCORE_INF) {}
 
@@ -59,6 +55,8 @@ class Move {
     return lhs.from == rhs.from && lhs.to == rhs.to && lhs.piece == rhs.piece;
   }
 };
+
+extern const Move kNullMove;
 
 struct Line {
   Color color;

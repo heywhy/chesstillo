@@ -25,7 +25,7 @@ TEST(PositionTestSuite, TestPawnCaptureMove) {
   std::array<std::pair<int, int>, 6> moves = {
       {{e2, e4}, {d7, d5}, {e4, d5}, {c7, c6}, {d2, d4}, {c6, d5}}};
 
-  for (auto [from, to] : moves) {
+  for (auto &[from, to] : moves) {
     Move move = DeduceMove(position, from, to);
 
     position.Make(move);
@@ -49,7 +49,7 @@ TEST(PositionTestSuite, TestBishopMove) {
 
   std::array<std::array<int, 2>, 2> moves = {{{d4, b6}, {d5, f7}}};
 
-  for (auto [from, to] : moves) {
+  for (auto &[from, to] : moves) {
     Move move = DeduceMove(position, from, to);
 
     position.Make(move);
@@ -63,7 +63,7 @@ TEST(PositionTestSuite, TestRookMove) {
 
   std::array<std::array<int, 2>, 2> moves = {{{f1, f7}, {c7, f7}}};
 
-  for (auto [from, to] : moves) {
+  for (auto &[from, to] : moves) {
     Move move = DeduceMove(position, from, to);
 
     position.Make(move);
@@ -86,7 +86,7 @@ TEST(PositionTestSuite, TestQueenMove) {
       {h6, a6},
   }};
 
-  for (auto [from, to] : moves) {
+  for (auto &[from, to] : moves) {
     Move move = DeduceMove(position, from, to);
 
     position.Make(move);

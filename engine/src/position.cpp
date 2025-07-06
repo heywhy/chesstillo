@@ -53,6 +53,22 @@ Position::Position(const Position &src) {
   mailbox_ = src.mailbox_;
 }
 
+Position &Position::operator=(const Position &src) {
+  turn_ = src.turn_;
+  king_ban_ = src.king_ban_;
+  en_passant_sq_ = src.en_passant_sq_;
+  en_passant_target_ = src.en_passant_target_;
+  castling_rights_ = src.castling_rights_;
+  fullmove_counter_ = src.fullmove_counter_;
+  halfmove_clock_ = src.halfmove_clock_;
+
+  board_ = src.board_;
+  history_ = src.history_;
+  mailbox_ = src.mailbox_;
+
+  return *this;
+}
+
 bool Position::PieceAt(Piece *piece, int index) const {
   *piece = mailbox_[index];
 

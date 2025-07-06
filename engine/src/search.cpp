@@ -1,381 +1,144 @@
-#include <cassert>
+#include <cstddef>
 #include <cstdio>
 
-#include <engine/constants.hpp>
 #include <engine/evaluation.hpp>
 #include <engine/move.hpp>
 #include <engine/move_gen.hpp>
 #include <engine/search.hpp>
 #include <engine/types.hpp>
-#include <engine/utility.hpp>
-#include <engine/ybwc.hpp>
 
 namespace engine {
+namespace search {
 
-Search::Search() : Search(0) {}
+Node::Node(Search *search, int alpha, int beta, int depth)
+    : Node(search, alpha, beta, depth, nullptr) {}
 
-Search::Search(int n_tasks)
-    : tasks(nullptr),
-      allow_node_splitting(n_tasks > 1),
-      stop(STOP_END),
-      nodes_(0),
-      result_(new Result()),
-      children_(0) {
-  if (n_tasks) {
-    tasks = new TaskStack(n_tasks);
-  }
-}
+Node::Node(Search *search, int alpha, int beta, int depth, Node *parent)
+    : search(search),
+      alpha(alpha),
+      beta(beta),
+      depth(depth),
+      parent(parent),
+      score(MIN_SCORE),
+      best_move(kNullMove) {}
 
-Search::~Search() {
-  delete tasks;
-  delete result_;
-}
+}  // namespace search
 
-void Search::Clone(Search *master) {
-  stop = STOP_END;
-  tasks = master->tasks;
-  height_ = master->height_;
-  position = master->position;
+Search::Search(search::WorkerRegistry *workers)
+    : tt(nullptr), position(nullptr), workers_(workers) {}
 
-  depth = master->depth;
-  result_ = master->result_;
-  allow_node_splitting = master->allow_node_splitting;
-
-  master->spin_.Lock();
-  assert(master->children_.size() < MAX_THREADS);
-  master->children_.push_back(this);
-  master->spin_.Unlock();
-
-  parent_ = master;
-  parent_->master_ = master->master_;
-}
-
-void Search::SetState(Stop stop) {
-  spin_.Lock();
-
-  this->stop = stop;
-
-  spin_.Unlock();
-}
-
-void Search::StopAll(Stop stop) {
-  spin_.Lock();
-
-  this->stop = stop;
-
-  for (Search *search : children_) {
-    search->StopAll(stop);
-  }
-
-  spin_.Unlock();
-}
+void Search::Clone(Search *) {}
 
 void Search::Run() {
-  stop = RUNNING;
-  height_ = 0;
-  node_type_[height_] = PV;
-
-  Iterative(-SCORE_INF, SCORE_INF);
-
-  if (stop == RUNNING) {
-    stop = STOP_END;
-  }
-
-  assert(height_ == 0);
-}
-
-void Search::Iterative(int alpha, int beta) {
-  int score = -SCORE_INF;
-
-  for (depth = 1; depth <= MAX_DEPTH; depth++) {
-    std::printf("Depth %d\n", depth);
-    score = Aspiration(alpha, beta, depth, score);
-  }
-
-  char str[6];
-
-  ToString(str, *result_->best_move_);
-
-  std::printf("Iterative %d - %s\n", result_->best_score_, str);
-}
-
-// TODO: aspiration window?
-int Search::Aspiration(int alpha, int beta, int depth, int score) {
-  assert(alpha < beta);
-  assert(MIN_SCORE <= alpha && alpha <= MAX_SCORE);
-  assert(MIN_SCORE <= beta && beta <= MAX_SCORE);
-  assert(MIN_SCORE <= score && score <= MAX_SCORE);
-  assert(depth >= 0);
-
-  return PVS_Root(alpha, beta, depth);
-}
-
-int Search::PVS_Root(int alpha, int beta, int depth) {
-  assert(alpha < beta);
-  assert(MIN_SCORE <= alpha && alpha <= MAX_SCORE);
-  assert(MIN_SCORE <= beta && beta <= MAX_SCORE);
-  assert(depth > 0);
-
-  Move *temp;
-  Node node(this, alpha, beta, depth);
-  MoveList move_list = GenerateMoves(*position);
-
-  node_type_[0] = PV;
-  node.pv_node = true;
-
-  if ((temp = node.FirstMove(move_list))) {
-    Move &move = *temp;
-
-    UpdateMidgame(move);
-
-    node_type_[height_] = PV;
-    move.score = -PVS(-beta, -alpha, depth - 1, &node);
-
-    assert(MIN_SCORE <= move.score && move.score <= MAX_SCORE);
-
-    RestoreMidgame(move);
-    node.Update(move);
-  }
-
-  while ((temp = node.NextMove())) {
-    Move &move = *temp;
-    UpdateMidgame(move);
-
-    move.score = -PVS(-alpha - 1, -alpha, depth - 1, &node);
-
-    if (alpha < move.score && move.score < beta) {
-      node_type_[height_] = PV;
-
-      move.score = -PVS(-beta, -alpha, depth - 1, &node);
-    }
-
-    assert(MIN_SCORE <= move.score && move.score <= MAX_SCORE);
-
-    RestoreMidgame(move);
-    node.Update(move);
-
-    assert(MIN_SCORE <= node.best_score_ && node.best_score_ <= MAX_SCORE);
-  }
-
-  node.WaitSlaves();
-
-  if (!stop) {
-    assert(MIN_SCORE <= node.best_score_ && node.best_score_ <= MAX_SCORE);
-  }
-
-  return node.best_score_;
-}
-
-int Search::PVS(int alpha, int beta, int depth, Node *parent) {
   int score;
 
-  assert(alpha < beta);
-  assert(MIN_SCORE <= alpha && alpha <= MAX_SCORE);
-  assert(MIN_SCORE <= beta && beta <= MAX_SCORE);
-  assert(depth >= 0);
+  for (depth_ = 1; depth_ <= MAX_DEPTH; depth_++) {
+    score = search<PV>(MIN_SCORE, MAX_SCORE, depth_, nullptr);
+  }
 
+  // depth_ = MAX_DEPTH;
+  // score = search<PV>(MIN_SCORE, MAX_SCORE, depth_, nullptr);
+
+  std::printf("got score %d\n", score);
+}
+
+template <enum NodeType T>
+int Search::search(int alpha, int beta, int depth, search::Node *parent) {
   if (depth == 0) {
-    score = Quiesce(*position, alpha, beta);
-  } else {
-    score = PVS_Midgame(alpha, beta, depth, parent);
+    return Quiesce(alpha, beta);
   }
 
-  score = -score;
+  search::Node node(this, alpha, beta, depth, parent);
 
-  assert(MIN_SCORE <= score && score <= MAX_SCORE);
+  node.type = T;
 
-  return score;
-}
-
-int Search::NWS_Midgame(int alpha, int depth, Node *parent) {
-  assert(MIN_SCORE <= alpha && alpha <= MAX_SCORE);
-  assert(parent != nullptr);
-
-  // std::printf("rawdogging: %d - %d\n", stop, depth);
-  if (stop) {
-    return alpha;
-  } else if (depth == 0) {
-    return Quiesce(*position, alpha, parent->beta);
+  if (tt->CutOff(*position, node.depth, node.alpha, node.beta, &node.best_move,
+                 &node.score)) {
+    return node.score;
   }
 
-  Move *move;
-  const int beta = alpha + 1;
+  MoveList moves_list = GenerateMoves(*position);
+  auto it = moves_list.begin();
+  auto end_it = moves_list.end();
 
-  Node node(this, alpha, beta, depth, parent);
+  constexpr NodeType NNT =
+      T == NodeType::PV ? NodeType::CUT
+                        : (T == NodeType::CUT ? NodeType::ALL : NodeType::CUT);
 
-  MoveList move_list = GenerateMoves(*position);
+  if constexpr (T == NodeType::PV) {
+    Move &move = *it;
+    position->Make(move);
 
-  if (move_list.empty()) {
-    node.FirstMove(move_list);
-    node.best_score_ = Quiesce(*position, alpha, beta);
-  } else {
-    for (move = node.FirstMove(move_list); move; move = node.NextMove()) {
-      if (!node.Split(*move)) {
-        UpdateMidgame(*move);
+    node.score = -search<PV>(-beta, -alpha, depth - 1, &node);
 
-        move->score = NWS_Midgame(-beta, depth - 1, &node);
+    position->Undo(move);
 
-        RestoreMidgame(*move);
-        node.Update(*move);
+    if (node.score > alpha) {
+      tt->Add(*position, node.depth, node.score, move, node.type);
+
+      if (node.score >= beta) {
+        return node.score;
       }
+
+      alpha = node.score;
     }
 
-    node.WaitSlaves();
+    it++;
   }
 
-  if (!stop) {
-    // TODO: record best move into the transposition table(s).
-    assert(MIN_SCORE <= node.best_score_ && node.best_score_ <= MAX_SCORE);
-  } else {
-    node.best_score_ = alpha;
-  }
+  for (; it != end_it; it++) {
+    Move &move = *it;
 
-  return node.best_score_;
-}
+    position->Make(move);
 
-int Search::PVS_Midgame(int alpha, int beta, int depth, Node *parent) {
-  assert((-MAX_SCORE <= alpha && alpha <= MAX_SCORE) ||
-         std::printf("alpha = %d\n", alpha));
-  assert((-MAX_SCORE <= beta && beta <= MAX_SCORE) ||
-         std::printf("beta = %d\n", beta));
-  assert(alpha <= beta);
+    // INFO: null window search
+    node.score = -search<NNT>(-alpha - 1, -alpha, depth - 1, &node);
 
-  if (stop) {
-    return alpha;
-  } else if (depth == 0) {
-    return Quiesce(*position, alpha, beta);
-  }
+    // INFO: re-search using the [alpha,beta] window
+    if (node.score > alpha && node.score < beta) {
+      node.score = -search<PV>(-beta, -alpha, depth - 1, &node);
+    }
 
-  Node node(this, alpha, beta, depth, parent);
-  MoveList move_list = GenerateMoves(*position);
+    position->Undo(move);
 
-  node.pv_node = true;
+    // TODO: wait for slaves here?
+    if (node.score > alpha) {
+      tt->Add(*position, node.depth, node.score, move, node.type);
 
-  if (move_list.empty()) {
-    node.alpha = -(node.beta = +SCORE_INF);
-    node.best_score_ = Quiesce(*position, alpha, beta);
-    node.best_move_ = Move::NONE;
-  } else {
-    Move *temp;
-
-    if ((temp = node.FirstMove(move_list))) {
-      Move &move = *temp;
-
-      UpdateMidgame(move);
-
-      node_type_[height_] = PV;
-      move.score = -PVS_Midgame(-beta, -alpha, depth - 1, &node);
-
-      RestoreMidgame(move);
-      node.Update(move);
-
-      while ((temp = node.NextMove())) {
-        Move &move = *temp;
-
-        if (!node.Split(move)) {
-          const int alpha = node.alpha;
-
-          UpdateMidgame(move);
-
-          move.score = -NWS_Midgame(-alpha - 1, depth - 1, &node);
-
-          if (!stop && alpha < move.score && move.score < beta) {
-            node_type_[height_] = PV;
-            move.score = -PVS_Midgame(-beta, -alpha, depth - 1, &node);
-          }
-
-          RestoreMidgame(move);
-          node.Update(move);
-        }
+      if (node.score >= beta) {
+        return node.score;
       }
 
-      node.WaitSlaves();
+      alpha = node.score;
     }
   }
 
-  if (!stop) {
-    // TODO: record best move into the transposition table(s).
-    assert(MIN_SCORE <= node.best_score_ && node.best_score_ <= MAX_SCORE);
-  } else {
-    node.best_score_ = alpha;
-  }
-
-  return node.best_score_;
+  return node.score;
 }
 
-int Search::Midgame(Move &move, int alpha, int depth, Node *node) {
-  UpdateMidgame(move);
-
-  int score = -NWS_Midgame(alpha, depth, node);
-
-  if (alpha < score && score < node->beta) {
-    score = -PVS_Midgame(-node->beta, -alpha, depth - 1, node);
-
-    assert(node->pv_node == true);
-  }
-
-  RestoreMidgame(move);
-
-  return score;
-}
-
-void Search::UpdateMidgame(Move &move) {
-  static const NodeType next_node_type[] = {CUT, ALL, CUT};
-
-  position->Make(move);
-
-  ++height_;
-  node_type_[height_] = next_node_type[node_type_[height_ - 1]];
-}
-
-void Search::RestoreMidgame(Move &move) {
-  position->Undo(move);
-
-  assert(height_ > 0);
-
-  --height_;
-}
-
-void Search::RecordBestMove(const Move &move, const int alpha, const int beta,
-                            const int depth) {
-  Move copy(move);
-  result_->spin_.Lock();
-
-  result_->best_score_ = move.score;
-
-  result_->depth_ = depth;
-  result_->pv_.color = position->GetTurn();
-  result_->pv_.moves.push_front(copy);
-
-  result_->best_move_ = &result_->pv_.moves.front();
-
-  result_->spin_.Unlock();
-}
-
-int Search::Quiesce(Position &position, int alpha, int beta) {
-  int standing_pat = Evaluate(position);
+int Search::Quiesce(int alpha, int beta) {
+  int standing_pat = Evaluate(*position);
 
   if (standing_pat >= beta) {
     return beta;
   }
 
-  if (alpha < standing_pat) {
+  if (standing_pat < alpha) {
     alpha = standing_pat;
   }
 
-  MoveList move_list = GenerateMoves(position);
+  MoveList moves_list = GenerateMoves(*position);
 
-  for (Move &move : move_list) {
-    // INFO: ignore if move isn't a capture
+  for (const Move &move : moves_list) {
     if (!move.Is(move::CAPTURE)) {
       continue;
     }
 
-    position.Make(move);
+    position->Make(move);
 
-    int score = -Quiesce(position, -beta, -alpha);
+    int score = -Quiesce(-beta, -alpha);
 
-    position.Undo(move);
+    position->Undo(move);
 
     if (score >= beta) {
       return beta;
