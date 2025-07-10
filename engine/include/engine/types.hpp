@@ -2,14 +2,10 @@
 #define TYPES_HPP
 
 #include <array>
-#include <climits>
 #include <cstdint>
 
 #define COLOR 2
 #define PIECES 6
-#define MAX_SCORE INT_MAX
-#define MIN_SCORE -INT_MAX
-#define SCORE_INF INT_MAX
 
 namespace engine {
 

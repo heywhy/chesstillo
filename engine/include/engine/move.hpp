@@ -6,6 +6,7 @@
 #include <forward_list>
 #include <vector>
 
+#include "config.hpp"
 #include "types.hpp"
 
 namespace engine {
@@ -42,10 +43,10 @@ class Move {
   int score;
 
   Move(std::uint8_t from, std::uint8_t to, Piece piece)
-      : from(from), to(to), flags(0), piece(piece), score(SCORE_INF) {}
+      : from(from), to(to), flags(0), piece(piece), score(MIN_SCORE) {}
 
   Move(std::uint8_t from, std::uint8_t to, Piece piece, std::uint8_t flags)
-      : from(from), to(to), flags(flags), piece(piece), score(SCORE_INF) {}
+      : from(from), to(to), flags(flags), piece(piece), score(MIN_SCORE) {}
 
   void Set(move::Flag flag) { flags |= flag; }
 

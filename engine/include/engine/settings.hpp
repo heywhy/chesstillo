@@ -1,8 +1,0 @@
-#ifndef ENGINE_SETTINGS_HPP
-#define ENGINE_SETTINGS_HPP
-
-#define SPLIT_MIN_DEPTH 5
-#define SPLIT_MAX_SLAVE 3
-#define SPLIT_MIN_MOVES_TODO 1
-
-#endif

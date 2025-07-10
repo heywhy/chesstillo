@@ -113,11 +113,17 @@ bool TT::Probe(Position &position, TTEntry *result) {
   uint64_t hash = Hash(position);
   TTEntry &entry = entries_[hash & size_];
 
+  entry.spin.Lock();
+
   if (entry.hash == hash) {
     *result = entry;
 
+    entry.spin.Unlock();
+
     return true;
   }
+
+  entry.spin.Unlock();
 
   return false;
 }

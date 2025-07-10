@@ -25,8 +25,9 @@ class SearchTestSuite : public testing::Test {
   void SetUp() override {
     Position::ApplyFen(&position, kStartPos);
 
-    search.position = &position;
     search.tt = &tt;
+    search.position = &position;
+    search.allow_node_splitting = true;
   }
 
   void TearDown() override { position.Reset(); }

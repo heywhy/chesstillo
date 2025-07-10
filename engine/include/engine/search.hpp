@@ -7,18 +7,19 @@
 #include <thread>
 #include <vector>
 
+#include <engine/config.hpp>
+#include <engine/move.hpp>
 #include <engine/position.hpp>
+#include <engine/threads.hpp>
 #include <engine/transposition.hpp>
 #include <engine/types.hpp>
-
-// #define MAX_DEPTH 10  // 125
-#define MAX_DEPTH 8
-#define MAX_THREADS 256
 
 namespace engine {
 class Search;
 
 namespace search {
+
+enum class State { RUNNING, STOP_PARALLEL, END };
 
 class Node {
  public:
@@ -29,7 +30,7 @@ class Node {
 
   Node *parent;
 
-  int score;
+  int best_score;
   NodeType type;
   Move best_move;
 
@@ -37,33 +38,37 @@ class Node {
   Node(Search *search, int alpha, int beta, int depth, Node *parent);
 
   Node(const Node &) = delete;
-};
 
-class WorkerRegistry;
+  Move *NextMove();
+  Move *NextMoveLockless();
+  Move *FirstMove(const MoveList &move_list);
+  void Update(const Move &move);
 
-class Worker {
- public:
-  WorkerRegistry *registry;
+  void WaitSlaves();
+  void AddSlave(Search *search);
+  void RemoveSlave(Search *search);
 
-  Worker();
-  ~Worker();
-
-  void Search();
-  void Assign(Node *node);
+  bool Split(const Move &move);
 
  private:
-  bool loop_;
-  Node *node_;
-  std::size_t nodes_;
+  std::vector<Search *> slaves_;
 
-  class Search *search_;
+  bool helping_;
+  bool waiting_;
+  bool stop_point_;
+
+  const Move *move_;
+
+  std::size_t moves_done_;
+  std::size_t moves_todo_;
 
   std::mutex mutex_;
-  std::thread thread_;
   std::condition_variable cv_;
 
-  void Loop();
+  friend class Worker;
 };
+
+class Worker;
 
 class WorkerRegistry {
  public:
@@ -88,6 +93,9 @@ class Search {
  public:
   TT *tt;
   Position *position;
+  search::State state;
+  bool allow_node_splitting;
+  search::WorkerRegistry *workers;
 
   Search(search::WorkerRegistry *workers);
   Search(const Search &) = delete;
@@ -95,15 +103,60 @@ class Search {
   void Run();
   void Clone(Search *search);
 
+  void StopAll(search::State new_state);
+  void SetState(search::State new_state);
+
+  void Detach();
+  void AddChild(Search *child);
+  void RemoveChild(Search *child);
+
+  inline bool Continue() { return state == search::State::RUNNING; }
+
  private:
   int depth_;
-  search::WorkerRegistry *workers_;
+  SpinLock spin_;
+  std::vector<Search *> children_;
+
+  Search *parent_;
+  Search *master_;
+
+  friend class search::Worker;
 
   template <enum NodeType T>
   int search(int alpha, int beta, int depth, search::Node *parent);
 
+  int NWS_Search(int alpha, int depth, search::Node *parent);
+
   int Quiesce(int alpha, int beta);
 };
+
+namespace search {
+class Worker {
+ public:
+  WorkerRegistry *registry;
+
+  Worker();
+  ~Worker();
+
+  void Search();
+  void Assign(Node *node, Move *move);
+
+ private:
+  bool loop_;
+  Node *node_;
+  Move *move_;
+  std::size_t nodes_;
+
+  Position position_;
+  class Search search_;
+
+  std::mutex mutex_;
+  std::thread thread_;
+  std::condition_variable cv_;
+
+  void Loop();
+};
+}  // namespace search
 }  // namespace engine
 
 #endif

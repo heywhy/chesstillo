@@ -18,6 +18,7 @@ add_library(engine
   src/move.cpp
   src/move_gen.cpp
   src/evaluation.cpp
+  src/node.cpp
   src/options.cpp
   src/search.cpp
   src/scheduler.cpp
