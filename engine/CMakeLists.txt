@@ -14,7 +14,6 @@ add_library(engine
   src/position.cpp
   src/fen.cpp
   src/fill.cpp
-  # src/game.cpp
   src/move.cpp
   src/move_gen.cpp
   src/evaluation.cpp
@@ -25,7 +24,6 @@ add_library(engine
   src/threads.cpp
   src/transposition.cpp
   src/worker.cpp
-  # src/ybwc.cpp
   src/uci.cpp
 )
 
