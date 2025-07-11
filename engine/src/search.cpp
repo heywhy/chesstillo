@@ -65,7 +65,7 @@ void Search::Run() {
   state = search::State::RUNNING;
 
   for (depth_ = 1; depth_ <= MAX_DEPTH; depth_++) {
-    score = search<PV>(MIN_SCORE, MAX_SCORE, depth_, nullptr);
+    score = search<NodeType::PV>(MIN_SCORE, MAX_SCORE, depth_, nullptr);
 
     if (!Continue()) {
       break;
@@ -140,7 +140,8 @@ int Search::search(int alpha, int beta, int depth, search::Node *parent) {
 
       // INFO: re-search using the [alpha,beta] window
       if (alpha < move->score && move->score < beta) {
-        move->score = -search<PV>(-beta, -alpha, node.depth - 1, &node);
+        move->score =
+            -search<NodeType::PV>(-beta, -alpha, node.depth - 1, &node);
       }
 
       position->Undo(*move);

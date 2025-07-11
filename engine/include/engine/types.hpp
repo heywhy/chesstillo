@@ -17,7 +17,7 @@ enum Color { WHITE, BLACK };
 enum Piece { ROOK, BISHOP, KNIGHT, KING, QUEEN, PAWN, NONE };
 
 // exact, lower bound, upper bound
-enum NodeType { PV, CUT, ALL };
+enum class NodeType { PV, CUT, ALL };
 
 // clang-format off
 enum ESquare {

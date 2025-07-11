@@ -30,13 +30,13 @@ TEST_F(TranspositionTestSuite, TestAddEntry) {
 
   ASSERT_FALSE(tt.Probe(position, &entry));
 
-  tt.Add(position, 2, 100, move, PV);
+  tt.Add(position, 2, 100, move, NodeType::PV);
 
   ASSERT_TRUE(tt.Probe(position, &entry));
   ASSERT_EQ(entry.depth, 2);
   ASSERT_EQ(entry.score, 100);
   ASSERT_EQ(entry.best_move, move);
-  ASSERT_EQ(entry.node, PV);
+  ASSERT_EQ(entry.node, NodeType::PV);
   ASSERT_EQ(entry.age, 0);
 }
 
@@ -44,9 +44,9 @@ TEST_F(TranspositionTestSuite, TestIgnoreEntryBasedOnDepth) {
   TTEntry entry;
   Move move = DeduceMove(position, e2, e4);
 
-  tt.Add(position, 8, 100, move, ALL);
+  tt.Add(position, 8, 100, move, NodeType::ALL);
 
-  tt.Add(position, 2, 100, move, CUT);
+  tt.Add(position, 2, 100, move, NodeType::CUT);
 
   ASSERT_TRUE(tt.Probe(position, &entry));
   ASSERT_EQ(entry.depth, 8);
@@ -58,11 +58,11 @@ TEST_F(TranspositionTestSuite, TestAgedEntryIsOverwritten) {
 
   Position::ApplyFen(&position, "8/8/3N4/2r5/1p2RN2/1rk5/2p5/2K5 w - - 0 1");
 
-  tt.Add(position, 2, 100, move, ALL);
+  tt.Add(position, 2, 100, move, NodeType::ALL);
 
   Position::ApplyFen(&position, "8/8/3N4/2r5/1p2RN2/1rk5/2p5/2K5 w - - 5 1");
 
-  tt.Add(position, 6, -75, move, ALL);
+  tt.Add(position, 6, -75, move, NodeType::ALL);
 
   ASSERT_TRUE(tt.Probe(position, &entry));
   ASSERT_EQ(entry.depth, 6);
@@ -74,7 +74,7 @@ TEST_F(TranspositionTestSuite, TestApplyPVCutOff) {
   Move best_move(kNullMove);
   Move move = DeduceMove(position, e2, e4);
 
-  tt.Add(position, 4, 100, move, PV);
+  tt.Add(position, 4, 100, move, NodeType::PV);
 
   ASSERT_TRUE(tt.CutOff(position, 1, 10, 10, &best_move, &score));
   ASSERT_EQ(best_move, move);
@@ -86,7 +86,7 @@ TEST_F(TranspositionTestSuite, TestApplyAlphaCutOff) {
   Move best_move(kNullMove);
   Move move = DeduceMove(position, g2, e4);
 
-  tt.Add(position, 5, -25, move, ALL);
+  tt.Add(position, 5, -25, move, NodeType::ALL);
 
   ASSERT_TRUE(tt.CutOff(position, 2, -10, 20, &best_move, &score));
   ASSERT_EQ(best_move, move);
@@ -99,7 +99,7 @@ TEST_F(TranspositionTestSuite, TestApplyBetaCutOff) {
   Move best_move(kNullMove);
   Move move = DeduceMove(position, g2, e4);
 
-  tt.Add(position, 5, 25, move, CUT);
+  tt.Add(position, 5, 25, move, NodeType::CUT);
 
   ASSERT_TRUE(tt.CutOff(position, 2, -50, 20, &best_move, &score));
   ASSERT_EQ(best_move, move);

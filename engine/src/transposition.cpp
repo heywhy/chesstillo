@@ -1,5 +1,4 @@
 #include <cstdint>
-#include <utility>
 
 #include <engine/move_gen.hpp>
 #include <engine/position.hpp>
@@ -136,8 +135,9 @@ bool TT::CutOff(Position &position, int depth, int alpha, int beta,
     *best_move = entry.best_move;
     *score = entry.score;
 
-    return (entry.node == PV) || (entry.node == CUT && entry.score >= beta) ||
-           (entry.node == ALL && entry.score < alpha);
+    return (entry.node == NodeType::PV) ||
+           (entry.node == NodeType::CUT && entry.score >= beta) ||
+           (entry.node == NodeType::ALL && entry.score < alpha);
   }
 
   return false;

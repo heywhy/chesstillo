@@ -5,6 +5,7 @@
 
 #include <engine/move.hpp>
 #include <engine/search.hpp>
+#include <engine/types.hpp>
 
 namespace engine {
 namespace search {
@@ -92,8 +93,8 @@ void Worker::Search() {
     move_->score = -search_.NWS_Search(alpha, node_->depth - 1, node_);
 
     if (alpha < move_->score && move_->score < node_->beta) {
-      move_->score = search_.search<PV>(-node_->beta, -node_->alpha,
-                                        node_->depth - 1, node_);
+      move_->score = search_.search<NodeType::PV>(-node_->beta, -node_->alpha,
+                                                  node_->depth - 1, node_);
 
       assert(node_->type == NodeType::PV);
     }
