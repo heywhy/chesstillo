@@ -34,7 +34,7 @@ endif()
 target_include_directories(tui PUBLIC include)
 
 target_compile_options(tui PRIVATE ${COMPILE_OPTIONS})
-target_link_options(tui PRIVATE ${LINK_OPTIONS})
+target_link_options(tui PUBLIC ${LINK_OPTIONS})
 
 target_link_libraries(tui
   PUBLIC uci
