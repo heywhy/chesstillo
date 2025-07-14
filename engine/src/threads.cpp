@@ -2,8 +2,6 @@
 
 #include <engine/threads.hpp>
 
-SpinLock::SpinLock() : atomic_flag_(false) {}
-
 void SpinLock::Lock() {
   while (atomic_flag_.test_and_set(std::memory_order_acquire)) {
   }

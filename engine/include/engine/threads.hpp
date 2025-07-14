@@ -5,13 +5,11 @@
 
 class SpinLock {
  public:
-  SpinLock();
-
   void Lock();
   void Unlock();
 
  private:
-  std::atomic_flag atomic_flag_;
+  std::atomic_flag atomic_flag_ = ATOMIC_FLAG_INIT;
 };
 
 #endif

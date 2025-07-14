@@ -21,6 +21,8 @@ namespace search {
 
 enum class State { RUNNING, STOP_PARALLEL, END };
 
+class Worker;
+
 class Node {
  public:
   Search *search;
@@ -51,6 +53,7 @@ class Node {
   bool Split(const Move &move);
 
  private:
+  Worker *help_;
   std::vector<Search *> slaves_;
 
   bool helping_;
@@ -66,9 +69,9 @@ class Node {
   std::condition_variable cv_;
 
   friend class Worker;
-};
 
-class Worker;
+  static bool GetHelper(Node *master, Node *node, const Move &move);
+};
 
 class WorkerRegistry {
  public:
@@ -114,6 +117,7 @@ class Search {
 
  private:
   int depth_;
+  int height_;
   SpinLock spin_;
   std::vector<Search *> children_;
 
@@ -125,9 +129,12 @@ class Search {
   template <enum NodeType T>
   int search(int alpha, int beta, int depth, search::Node *parent);
 
-  int NWS_Search(int alpha, int depth, search::Node *parent);
+  template <enum NodeType T = NodeType::CUT>
+  int NW_Search(int alpha, int depth, search::Node *parent);
 
   int Quiesce(int alpha, int beta);
+  static bool OrderMove(const Move &a, const Move &b);
+  static void OrderMoves(MoveList &move_list);
 };
 
 namespace search {
@@ -135,7 +142,7 @@ class Worker {
  public:
   WorkerRegistry *registry;
 
-  Worker();
+  Worker(bool loop = true);
   ~Worker();
 
   void Search();

@@ -71,7 +71,7 @@ TEST_F(TranspositionTestSuite, TestAgedEntryIsOverwritten) {
 
 TEST_F(TranspositionTestSuite, TestApplyPVCutOff) {
   int score;
-  Move best_move(kNullMove);
+  Move best_move;
   Move move = DeduceMove(position, e2, e4);
 
   tt.Add(position, 4, 100, move, NodeType::PV);
@@ -83,7 +83,7 @@ TEST_F(TranspositionTestSuite, TestApplyPVCutOff) {
 
 TEST_F(TranspositionTestSuite, TestApplyAlphaCutOff) {
   int score;
-  Move best_move(kNullMove);
+  Move best_move;
   Move move = DeduceMove(position, g2, e4);
 
   tt.Add(position, 5, -25, move, NodeType::ALL);
@@ -96,7 +96,7 @@ TEST_F(TranspositionTestSuite, TestApplyAlphaCutOff) {
 
 TEST_F(TranspositionTestSuite, TestApplyBetaCutOff) {
   int score;
-  Move best_move(kNullMove);
+  Move best_move;
   Move move = DeduceMove(position, g2, e4);
 
   tt.Add(position, 5, 25, move, NodeType::CUT);

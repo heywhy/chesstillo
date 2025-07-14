@@ -5,6 +5,7 @@
 #include <engine/config.hpp>
 #include <engine/move.hpp>
 #include <engine/search.hpp>
+#include <engine/types.hpp>
 
 namespace engine {
 namespace search {
@@ -19,7 +20,7 @@ Node::Node(Search *search, int alpha, int beta, int depth, Node *parent)
       depth(depth),
       parent(parent),
       best_score(MIN_SCORE),
-      best_move(kNullMove),
+      help_(nullptr),
       helping_(false),
       waiting_(false),
       stop_point_(false),
@@ -35,7 +36,7 @@ Move *Node::FirstMove(const MoveList &move_list) {
   move_ = move_list.data();
   moves_todo_ = move_list.size();
 
-  if (moves_todo_ && move_ && search->state == search::State::RUNNING) {
+  if (move_ && search->state == search::State::RUNNING) {
     assert(alpha < beta);
     move = const_cast<Move *>(move_);
   }
@@ -52,11 +53,11 @@ Move *Node::NextMove() {
 Move *Node::NextMoveLockless() {
   Move *move = nullptr;
 
-  if (move_ && moves_done_ < moves_todo_ && alpha < beta &&
-      search->state == search::State::RUNNING) {
+  if (move_ && alpha < beta && search->state == search::State::RUNNING) {
     ++moves_done_;
     --moves_todo_;
-    move = const_cast<Move *>(++move_);
+
+    move_ = move = !moves_todo_ ? nullptr : const_cast<Move *>(move_ + 1);
   }
 
   return move;
@@ -117,8 +118,12 @@ void Node::WaitSlaves() {
     cv_.wait(lock, [&] { return slaves_.empty() || helping_; });
 
     if (helping_) {
-      // TODO: master thread to do some work
+      assert(help_ != nullptr);
 
+      help_->Search();
+
+      delete help_;
+      help_ = nullptr;
       helping_ = false;
     } else {
       waiting_ = false;
@@ -132,13 +137,40 @@ void Node::WaitSlaves() {
   }
 }
 
+bool Node::GetHelper(Node *master, Node *node, const Move &move) {
+  bool found = false;
+
+  if (master) {
+    if (master->waiting_ && !master->helping_) {
+      std::lock_guard lock(master->mutex_);
+
+      if (!master->slaves_.empty() && master->waiting_ && !master->helping_) {
+        master->helping_ = true;
+        master->help_ = new Worker(false);
+
+        master->help_->Assign(node, const_cast<Move *>(&move));
+
+        master->cv_.notify_all();
+
+        found = true;
+      }
+
+    } else {
+      found = GetHelper(master->parent, node, move);
+    }
+  }
+
+  return found;
+}
+
 bool Node::Split(const Move &move) {
   // INFO: maybe not split on last node?
   if (search->allow_node_splitting && depth >= SPLIT_MIN_DEPTH && moves_done_ &&
       moves_todo_ > 1 && slaves_.size() < SPLIT_MAX_SLAVES) {
-    Worker *worker = search->workers->GetIdleWorker();
+    Worker *worker = nullptr;
 
-    if (worker) {
+    if (GetHelper(parent, this, move)) {
+    } else if ((worker = search->workers->GetIdleWorker())) {
       worker->Assign(this, const_cast<Move *>(&move));
 
       return true;

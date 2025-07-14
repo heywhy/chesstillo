@@ -42,8 +42,10 @@ class Move {
   int cost = 0;
   int score;
 
+  Move() : Move(0, 0, Piece::NONE) {}
+
   Move(std::uint8_t from, std::uint8_t to, Piece piece)
-      : from(from), to(to), flags(0), piece(piece), score(MIN_SCORE) {}
+      : Move(from, to, piece, 0) {}
 
   Move(std::uint8_t from, std::uint8_t to, Piece piece, std::uint8_t flags)
       : from(from), to(to), flags(flags), piece(piece), score(MIN_SCORE) {}
@@ -56,8 +58,6 @@ class Move {
     return lhs.from == rhs.from && lhs.to == rhs.to && lhs.piece == rhs.piece;
   }
 };
-
-extern const Move kNullMove;
 
 struct Line {
   Color color;

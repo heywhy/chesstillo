@@ -38,7 +38,8 @@ void WorkerRegistry::PutIdleWorker(Worker *worker) {
   stack_[idle_++] = worker;
 }
 
-Worker::Worker() : loop_(true), node_(nullptr), nodes_(0), search_(nullptr) {
+Worker::Worker(bool loop)
+    : loop_(loop), node_(nullptr), nodes_(0), search_(nullptr) {
   std::lock_guard lock(mutex_);
 
   search_.position = &position_;
@@ -47,8 +48,6 @@ Worker::Worker() : loop_(true), node_(nullptr), nodes_(0), search_(nullptr) {
 
 Worker::~Worker() {
   std::unique_lock lock(mutex_);
-
-  assert(loop_);
 
   loop_ = false;
 
@@ -90,7 +89,7 @@ void Worker::Search() {
 
     search_.position->Make(*move_);
 
-    move_->score = -search_.NWS_Search(alpha, node_->depth - 1, node_);
+    move_->score = -search_.NW_Search(alpha, node_->depth - 1, node_);
 
     if (alpha < move_->score && move_->score < node_->beta) {
       move_->score = search_.search<NodeType::PV>(-node_->beta, -node_->alpha,
@@ -122,7 +121,6 @@ void Worker::Search() {
       }
     }
 
-    // TODO: node.next_move
     move_ = node_->NextMoveLockless();
   }
 
