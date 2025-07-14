@@ -56,5 +56,5 @@ TEST_F(UCILinkTestSuite, TestHandleUnknownCommand) {
 
   link.Loop();
 
-  ASSERT_EQ(out.str(), "Unknown command 'uciok'.\n");
+  ASSERT_EQ(out.str(), "Error at 'uciok': Unknown command.\n");
 }
