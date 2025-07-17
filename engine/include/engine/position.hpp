@@ -36,6 +36,8 @@ struct State {
   Castling castling_rights;
   std::uint8_t halfmove_clock;
 
+  std::uint64_t hash_;
+
   static State From(Position &position);
   static void Apply(Position &position, State &state);
 };
@@ -62,8 +64,6 @@ class Position {
   bool PieceAt(char *, int index) const;
   bool PieceAt(Piece *, int index) const;
 
-  Color GetTurn() const { return turn_; }
-
   inline Bitboard EnPassantSquare() const { return en_passant_sq_; }
 
   inline bool CanCastle(Castling flag) const { return castling_rights_ & flag; }
@@ -72,6 +72,8 @@ class Position {
 
  private:
   Color turn_;
+  std::uint64_t hash_;
+
   Board board_;
   Bitboard king_ban_;
   Bitboard en_passant_sq_;
@@ -89,10 +91,13 @@ class Position {
   void UpdateEnPassantSq();
   void UpdateInternals();
 
+  void Clone(const Position &src);
+
   friend struct position::State;
 
-  friend struct EvalState;
   friend class TT;
+
+  friend struct EvalState;
   friend class SearchManager;
 
   friend int SEE(Position &position);

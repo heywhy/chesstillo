@@ -4,7 +4,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
-#include <random>
 #include <vector>
 
 #include "move.hpp"
@@ -13,8 +12,6 @@
 #include "types.hpp"
 
 #define MAX_TRANSPOSITION_SIZE 2097152 * sizeof(engine::TTEntry)
-#define ZOBRIST_INDEX(piece, color, square) \
-  ((piece * 128) + (64 * color) + square)
 
 namespace engine {
 
@@ -40,18 +37,6 @@ struct TTEntry {
   }
 };
 
-struct Zobrist {
-  std::uint64_t color;
-  std::uint64_t piece_sq[6 * 2 * 64];
-  std::uint64_t castling_rights[4];
-  std::uint64_t en_passant_file[8];
-
-  void Init();
-
- private:
-  std::mt19937_64 rng_;
-};
-
 class TT {
  public:
   // INFO: check if the UCI option for TT is a size or capacity.
@@ -68,10 +53,6 @@ class TT {
  private:
   std::size_t size_;
   std::vector<TTEntry> entries_;
-
-  Zobrist zobrist_;
-
-  std::uint64_t Hash(Position &position);
 };
 
 }  // namespace engine

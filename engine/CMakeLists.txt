@@ -14,6 +14,7 @@ add_library(engine
   src/position.cpp
   src/fen.cpp
   src/fill.cpp
+  src/hash.cpp
   src/move_gen.cpp
   src/evaluation.cpp
   src/node.cpp

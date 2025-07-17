@@ -1,6 +1,6 @@
 #include <cstdint>
-#include <random>
 
+#include <engine/hash.hpp>
 #include <engine/move_gen.hpp>
 #include <engine/position.hpp>
 #include <engine/square.hpp>
@@ -10,32 +10,7 @@
 
 namespace engine {
 
-void Zobrist::Init() {
-  rng_.seed(42);
-
-  for (int piece = 0; piece < PIECES; piece++) {
-    for (int color = 0; color < COLOR; color++) {
-      for (int sq = 0; sq < 64; sq++) {
-        piece_sq[ZOBRIST_INDEX(piece, color, sq)] = rng_();
-      }
-    }
-  }
-
-  for (int i = 0; i < 4; i++) {
-    castling_rights[i] = rng_();
-  }
-
-  for (int i = 0; i < 8; i++) {
-    en_passant_file[i] = rng_();
-  }
-
-  color = rng_();
-}
-
-TT::TT(std::size_t size) {
-  zobrist_.Init();
-  Resize(size);
-};
+TT::TT(std::size_t size) { Resize(size); };
 
 void TT::Resize(std::size_t size) {
   if (size & (size - 1)) {
@@ -64,34 +39,9 @@ void TT::Clear() noexcept {
   }
 };
 
-std::uint64_t TT::Hash(Position &position) {
-  std::uint64_t hash = 0;
-
-  for (int color = 0; color < COLOR; color++) {
-    const PieceList &pieces = position.Pieces(static_cast<Color>(color));
-
-    for (int piece = 0; piece < PIECES; piece++) {
-      Bitboard piece_bb = pieces[piece];
-
-      BITLOOP(piece_bb) {
-        std::uint64_t index =
-            zobrist_.piece_sq[ZOBRIST_INDEX(piece, color, LOOP_INDEX)];
-
-        hash ^= index;
-      }
-    }
-  }
-
-  if (position.turn_ == BLACK) {
-    hash ^= zobrist_.color;
-  }
-
-  return hash;
-};
-
 void TT::Add(Position &position, int depth, int score, const Move &best_move,
              NodeType node) {
-  std::uint64_t hash = Hash(position);
+  std::uint64_t hash = position.hash_;
   TTEntry &entry = entries_[hash & size_];
 
   entry.spin.Lock();
@@ -113,7 +63,7 @@ void TT::Add(Position &position, int depth, int score, const Move &best_move,
 };
 
 bool TT::Probe(Position &position, TTEntry *result) {
-  std::uint64_t hash = Hash(position);
+  std::uint64_t hash = position.hash_;
   TTEntry &entry = entries_[hash & size_];
 
   entry.spin.Lock();

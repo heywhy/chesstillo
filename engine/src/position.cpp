@@ -4,6 +4,7 @@
 #include <engine/board.hpp>
 #include <engine/constants.hpp>
 #include <engine/fill.hpp>
+#include <engine/hash.hpp>
 #include <engine/move.hpp>
 #include <engine/move_gen.hpp>
 #include <engine/position.hpp>
@@ -15,9 +16,13 @@ namespace engine {
 namespace position {
 
 State State::From(Position &position) {
-  return {position.king_ban_,        position.board_.occupied_sqs,
-          position.en_passant_sq_,   position.en_passant_target_,
-          position.castling_rights_, position.halfmove_clock_};
+  return {position.king_ban_,
+          position.board_.occupied_sqs,
+          position.en_passant_sq_,
+          position.en_passant_target_,
+          position.castling_rights_,
+          position.halfmove_clock_,
+          position.hash_};
 }
 
 void State::Apply(Position &position, State &state) {
@@ -27,33 +32,30 @@ void State::Apply(Position &position, State &state) {
   position.en_passant_sq_ = state.en_passant_square;
   position.en_passant_target_ = state.en_passant_target;
   position.board_.occupied_sqs = state.occupied_sqs;
+
+  position.hash_ = state.hash_;
 }
 
 }  // namespace position
 
 Position::Position()
     : turn_(WHITE),
+      hash_(0),
       king_ban_(kEmpty),
       en_passant_sq_(kEmpty),
       castling_rights_(0),
       fullmove_counter_(1),
       halfmove_clock_(0) {};
 
-Position::Position(const Position &src) {
-  turn_ = src.turn_;
-  king_ban_ = src.king_ban_;
-  en_passant_sq_ = src.en_passant_sq_;
-  en_passant_target_ = src.en_passant_target_;
-  castling_rights_ = src.castling_rights_;
-  fullmove_counter_ = src.fullmove_counter_;
-  halfmove_clock_ = src.halfmove_clock_;
-
-  board_ = src.board_;
-  history_ = src.history_;
-  mailbox_ = src.mailbox_;
-}
+Position::Position(const Position &src) { Clone(src); }
 
 Position &Position::operator=(const Position &src) {
+  Clone(src);
+
+  return *this;
+}
+
+void Position::Clone(const Position &src) {
   turn_ = src.turn_;
   king_ban_ = src.king_ban_;
   en_passant_sq_ = src.en_passant_sq_;
@@ -65,8 +67,7 @@ Position &Position::operator=(const Position &src) {
   board_ = src.board_;
   history_ = src.history_;
   mailbox_ = src.mailbox_;
-
-  return *this;
+  hash_ = src.hash_;
 }
 
 bool Position::PieceAt(Piece *piece, int index) const {
@@ -102,6 +103,7 @@ void Position::Reset() {
   castling_rights_ = 0;
   en_passant_sq_ = kEmpty;
   history_ = kEmptyStack;
+  hash_ = 0;
 
   for (int i = 0; i < 64; i++) {
     mailbox_[i] = NONE;
@@ -121,10 +123,14 @@ void Position::Make(const Move &move) {
   mailbox_[move.from] = NONE;
   mailbox_[move.to] = move.piece;
 
+  hash_ ^= kZobrist.color;
+  hash_ ^= HASH2(move.from, move.to, turn_, move.piece);
+
   if (move.Is(move::CAPTURE)) {
     Bitboard &piece = board_.pieces[opp][move.captured];
 
     piece ^= to;
+    hash_ ^= HASH1(move.to, opp, move.captured);
   }
 
   if (move.piece == KING && move.Is(move::CASTLE_KING_SIDE)) [[unlikely]] {
@@ -134,10 +140,15 @@ void Position::Make(const Move &move) {
     Bitboard rook = rooks & rank & kKingSide;
     Bitboard new_position = rook >> 2;
 
+    int old_index = square::Index(rook);
+    int new_index = square::Index(new_position);
+
     rooks ^= rook | new_position;
 
-    mailbox_[square::Index(rook)] = NONE;
-    mailbox_[square::Index(new_position)] = ROOK;
+    mailbox_[old_index] = NONE;
+    mailbox_[new_index] = ROOK;
+
+    hash_ ^= HASH2(old_index, new_index, turn_, ROOK);
   }
 
   if (move.piece == KING && move.Is(move::CASTLE_QUEEN_SIDE)) [[unlikely]] {
@@ -147,10 +158,15 @@ void Position::Make(const Move &move) {
     Bitboard rook = rooks & rank & kQueenSide;
     Bitboard new_position = rook << 3;
 
+    int old_index = square::Index(rook);
+    int new_index = square::Index(new_position);
+
     rooks ^= rook | new_position;
 
-    mailbox_[square::Index(rook)] = NONE;
-    mailbox_[square::Index(new_position)] = ROOK;
+    mailbox_[old_index] = NONE;
+    mailbox_[new_index] = ROOK;
+
+    hash_ ^= HASH2(old_index, new_index, turn_, ROOK);
   }
 
   auto [queen_side_rook, king_side_rook, queen_side_castling_flag,
@@ -165,22 +181,31 @@ void Position::Make(const Move &move) {
     if ((move.piece == KING ||
          (move.piece == ROOK && move.from == queen_side_rook)) &&
         castling_rights_ & queen_side_castling_flag) [[unlikely]] {
+      int index = square::Index(queen_side_castling_flag);
+
       castling_rights_ ^= queen_side_castling_flag;
+      hash_ ^= kZobrist.castling_rights[index];
     }
 
     if ((move.piece == KING ||
          (move.piece == ROOK && move.from == king_side_rook)) &&
         castling_rights_ & king_side_castling_flag) [[unlikely]] {
+      int index = square::Index(queen_side_castling_flag);
+
       castling_rights_ ^= king_side_castling_flag;
+      hash_ ^= kZobrist.castling_rights[index];
     }
   }
 
   if (move.Is(move::EN_PASSANT)) [[unlikely]] {
     Bitboard &piece = board_.pieces[opp][PAWN];
+    int index = square::Index(en_passant_target_);
 
     piece ^= en_passant_target_;
 
-    mailbox_[square::Index(en_passant_target_)] = NONE;
+    mailbox_[index] = NONE;
+    hash_ ^=
+        HASH1(index, opp, PAWN) ^ kZobrist.en_passant_file[square::File(index)];
   }
 
   if (move.Is(move::PROMOTION)) [[unlikely]] {
@@ -191,6 +216,17 @@ void Position::Make(const Move &move) {
     new_piece ^= to;
 
     mailbox_[move.to] = move.promoted;
+
+    // INFO: unset the pawn move before the promotion.
+    hash_ ^= HASH1(move.to, turn_, move.piece);
+    hash_ ^= HASH1(move.to, turn_, move.promoted);
+  }
+
+  if (en_passant_sq_) {
+    int index = square::Index(en_passant_sq_);
+    int file = square::File(index);
+
+    hash_ ^= kZobrist.en_passant_file[file];
   }
 
   turn_ = opp;
@@ -201,9 +237,14 @@ void Position::Make(const Move &move) {
 
   if (move.piece == PAWN && is_double_push) {
     en_passant_sq_ = single_push(from);
+    int index = square::Index(en_passant_sq_);
+    int file = square::File(index);
+
+    hash_ ^= kZobrist.en_passant_file[file];
   }
 
-  if (move.piece == PAWN || move.Is(move::CAPTURE)) {
+  if (move.piece == PAWN || move.Is(move::CAPTURE) ||
+      move.Is(move::EN_PASSANT)) {
     halfmove_clock_ = 0;
   } else {
     halfmove_clock_++;

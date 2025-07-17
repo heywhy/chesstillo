@@ -13,7 +13,10 @@ constexpr Bitboard BB(const int square) {
   return static_cast<Bitboard>(1) << square;
 }
 
-constexpr int Index(const Bitboard bb) { return std::countr_zero(bb); }
+template <typename T>
+constexpr int Index(const T bb) {
+  return std::countr_zero(bb);
+}
 
 constexpr int MIndex(const Bitboard bb) { return 63 - std::countl_zero(bb); }
 

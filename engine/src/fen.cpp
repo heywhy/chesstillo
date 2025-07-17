@@ -1,7 +1,9 @@
+#include <cstdint>
 #include <format>
 #include <string>
 
 #include <engine/board.hpp>
+#include <engine/hash.hpp>
 #include <engine/position.hpp>
 #include <engine/square.hpp>
 #include <engine/types.hpp>
@@ -32,66 +34,92 @@ void Position::ApplyFen(Position *position, const std::string_view &fen) {
   char en_passant_file;
 
   for (const char c : fen) {
-    Bitboard *piece = nullptr;
+    Piece piece = NONE;
+    Color color = WHITE;
+    Bitboard *bb = nullptr;
 
     switch (c) {
       case 'r':
-        piece = &black_pieces[ROOK];
+        piece = ROOK;
+        color = BLACK;
+        bb = &black_pieces[piece];
         break;
 
       case 'n':
-        piece = &black_pieces[KNIGHT];
+        color = BLACK;
+        piece = KNIGHT;
+        bb = &black_pieces[piece];
         break;
 
       case 'b':
-        piece = &black_pieces[BISHOP];
+        color = BLACK;
+        piece = BISHOP;
+        bb = &black_pieces[piece];
         position->turn_ = BLACK;
         en_passant_file = c;
         break;
 
       case 'q':
-        piece = &black_pieces[QUEEN];
+        color = BLACK;
+        piece = QUEEN;
+        bb = &black_pieces[piece];
         if (spaces == 2)
           position->castling_rights_ |= position::CASTLE_B_QUEEN_SIDE;
         break;
 
       case 'k':
-        piece = &black_pieces[KING];
+        piece = KING;
+        color = BLACK;
+        bb = &black_pieces[piece];
         if (spaces == 2)
           position->castling_rights_ |= position::CASTLE_B_KING_SIDE;
         break;
 
       case 'p':
-        piece = &black_pieces[PAWN];
+        piece = PAWN;
+        color = BLACK;
+        bb = &black_pieces[piece];
         break;
 
       case 'R':
-        piece = &white_pieces[ROOK];
+        piece = ROOK;
+        color = WHITE;
+        bb = &white_pieces[piece];
         break;
 
       case 'N':
-        piece = &white_pieces[KNIGHT];
+        color = WHITE;
+        piece = KNIGHT;
+        bb = &white_pieces[piece];
         break;
 
       case 'B':
-        piece = &white_pieces[BISHOP];
+        color = WHITE;
+        piece = BISHOP;
+        bb = &white_pieces[piece];
         break;
 
       case 'Q':
-        piece = &white_pieces[QUEEN];
+        color = WHITE;
+        piece = QUEEN;
+        bb = &white_pieces[piece];
         if (spaces == 2)
           position->castling_rights_ |= position::CASTLE_W_QUEEN_SIDE;
         break;
 
       case 'K':
-        piece = &white_pieces[KING];
+        piece = KING;
+        color = WHITE;
+        bb = &white_pieces[piece];
 
         if (spaces == 2)
           position->castling_rights_ |= position::CASTLE_W_KING_SIDE;
         break;
 
       case 'P':
-        piece = &white_pieces[PAWN];
+        piece = PAWN;
+        color = WHITE;
+        bb = &white_pieces[piece];
         break;
 
       case 'a':
@@ -140,11 +168,12 @@ void Position::ApplyFen(Position *position, const std::string_view &fen) {
         break;
     }
 
-    if (spaces == 0 && piece) {
+    if (spaces == 0 && bb && piece != NONE) {
       int square = square::From(file, rank);
-      *piece |= square::BB(square);
+      *bb |= square::BB(square);
 
       file++;
+      position->hash_ ^= HASH1(square, color, piece);
     } else if (spaces == 3 && (en_passant_rank == 3 || en_passant_rank == 6) &&
                en_passant_file >= 'a' && en_passant_file <= 'h') {
       int rank = en_passant_rank - 1;
@@ -152,11 +181,26 @@ void Position::ApplyFen(Position *position, const std::string_view &fen) {
       int square = square::From(file, rank);
 
       position->en_passant_sq_ = square::BB(square);
+      position->hash_ ^= kZobrist.en_passant_file[file];
     } else if (spaces == 4) {
       position->halfmove_clock_ = move_count;
     } else if (spaces == 5) {
       position->fullmove_counter_ = move_count;
     }
+  }
+
+  if (position->turn_ == BLACK) {
+    position->hash_ ^= kZobrist.color;
+  }
+
+  std::uint8_t copy = position->castling_rights_;
+  int index = square::Index(copy);
+
+  while (copy) {
+    position->hash_ ^= kZobrist.castling_rights[index];
+
+    copy ^= 1 << index;
+    index = square::Index(copy);
   }
 
   position->UpdateInternals();
