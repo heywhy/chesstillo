@@ -1,0 +1,34 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Engine Tests",
+      "type": "lldb",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/build",
+      "program": "${workspaceFolder}/build/engine/engine_tests",
+      "args": [
+        "--gtest_filter=-SearchTestSuite.*"
+      ],
+      "preLaunchTask": "Build"
+    },
+    {
+      "name": "TUI Tests",
+      "type": "lldb",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/build",
+      "program": "${workspaceFolder}/build/tui/tui_tests",
+      "args": [],
+      "preLaunchTask": "Build"
+    },
+    {
+      "name": "UCI Tests",
+      "type": "lldb",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/build",
+      "program": "${workspaceFolder}/build/uci/uci_tests",
+      "args": [],
+      "preLaunchTask": "Build"
+    }
+  ]
+}
