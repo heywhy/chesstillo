@@ -33,7 +33,7 @@ void State::Apply(Position &position, State &state) {
   position.en_passant_target_ = state.en_passant_target;
   position.board_.occupied_sqs = state.occupied_sqs;
 
-  position.hash_ = state.hash_;
+  position.hash_ = state.hash;
 }
 
 }  // namespace position

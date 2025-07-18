@@ -9,14 +9,16 @@
 #include <unordered_map>
 #include <vector>
 
-#include <chesstillo/board.hpp>
-#include <chesstillo/constants.hpp>
-#include <chesstillo/fen.hpp>
-#include <chesstillo/move_gen.hpp>
-#include <chesstillo/position.hpp>
-#include <chesstillo/scheduler.hpp>
-#include <chesstillo/types.hpp>
-#include <chesstillo/utility.hpp>
+#include <engine/board.hpp>
+#include <engine/constants.hpp>
+#include <engine/move.hpp>
+#include <engine/move_gen.hpp>
+#include <engine/position.hpp>
+#include <engine/scheduler.hpp>
+#include <engine/types.hpp>
+#include <engine/utility.hpp>
+
+using namespace engine;
 
 struct Stat {
   std::size_t nodes = 0;
@@ -51,9 +53,9 @@ Stat Perft(Position &position, int depth, bool divide) {
   }
 
   Stat stat;
-  std::vector<Move> moves = GenerateMoves(position);
+  MoveList move_list = GenerateMoves(position);
 
-  for (Move &move : moves) {
+  for (Move &move : move_list) {
     position.Make(move);
 
     Stat result = Perft(position, depth - 1, false);
@@ -63,13 +65,14 @@ Stat Perft(Position &position, int depth, bool divide) {
     if (depth - 1 == 0) {
       Bitboard check_mask = CheckMask(position);
       stat.checks += check_mask != kUniverse;
-      stat.captures += move.Is(CAPTURE) + move.Is(EN_PASSANT);
-      stat.en_passants += move.Is(EN_PASSANT);
-      stat.checkmates += move.Is(CHECKMATE);
+      stat.captures += move.Is(move::CAPTURE) + move.Is(move::EN_PASSANT);
+      stat.en_passants += move.Is(move::EN_PASSANT);
+      stat.checkmates += move.Is(move::CHECKMATE);
       // stat.discovery_checks += move.Is(DISCOVERY);
       stat.double_checks += check_mask == kEmpty;
-      stat.promotions += move.Is(PROMOTION);
-      stat.castles += move.Is(CASTLE_RIGHT) || move.Is(CASTLE_LEFT);
+      stat.promotions += move.Is(move::PROMOTION);
+      stat.castles +=
+          move.Is(move::CASTLE_QUEEN_SIDE) || move.Is(move::CASTLE_KING_SIDE);
     }
 
     position.Undo(move);
@@ -88,14 +91,14 @@ Stat Perft(Position &position, int depth, bool divide) {
 
 Stat BulkPerft(Position &position, int depth, bool divide) {
   Stat stat;
-  std::vector<Move> moves = GenerateMoves(position);
+  MoveList move_list = GenerateMoves(position);
 
   if (depth == 1) {
-    stat.nodes = moves.size();
+    stat.nodes = move_list.size();
     return stat;
   }
 
-  for (Move &move : moves) {
+  for (Move &move : move_list) {
     position.Make(move);
 
     Stat result = BulkPerft(position, depth - 1, false);
@@ -121,10 +124,10 @@ Stat ThreadedPerft(Scheduler *scheduler, Position &position, int depth,
   Stat stat;
   std::mutex m;
   std::vector<Status *> jobs;
-  std::vector<Move> moves = GenerateMoves(position);
+  MoveList move_list = GenerateMoves(position);
 
   if (depth == 1) {
-    stat.nodes = moves.size();
+    stat.nodes = move_list.size();
     return stat;
   }
 
@@ -145,7 +148,7 @@ Stat ThreadedPerft(Scheduler *scheduler, Position &position, int depth,
     }
   };
 
-  for (Move &move : moves) {
+  for (Move &move : move_list) {
     position.Make(move);
 
     Status *status = scheduler->Dispatch([&, position]() {
@@ -192,22 +195,22 @@ int main() {
   std::printf("starting perf tests\n");
   std::printf("============================================\n");
 
-  Position position;
   PerftFun perft = BulkPerft;
+  Position position = Position::FromFen(kStartPos);
 
   // TODO: allow workers count to be configurable
   Scheduler scheduler;
 
   scheduler.Init();
 
-  ApplyFen(position, START_FEN);
-  // ApplyFen(position, "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -");
+  // ApplyFen(position, "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R
+  // w KQkq -");
 
   perft = [&scheduler](Position &position, int depth, bool divide) {
     return ThreadedPerft(&scheduler, position, depth, divide);
   };
 
-  Run(position, perft, 8 - 1, true);
+  Run(position, perft, 8 - 2, true);
 
   return 0;
 }

@@ -48,6 +48,12 @@ target_link_options(chesstillo PRIVATE -O3)
 
 target_link_libraries(chesstillo PRIVATE engine)
 
+add_executable(perft src/perft.cpp)
+
+target_compile_options(perft PRIVATE ${COMPILE_OPTIONS})
+target_link_options(perft PRIVATE -O3)
+target_link_libraries(perft PRIVATE engine)
+
 file(
   GLOB
   ENGINE_TEST_SRC

@@ -36,7 +36,7 @@ struct State {
   Castling castling_rights;
   std::uint8_t halfmove_clock;
 
-  std::uint64_t hash_;
+  std::uint64_t hash;
 
   static State From(Position &position);
   static void Apply(Position &position, State &state);
