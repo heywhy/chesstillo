@@ -18,6 +18,7 @@ Search::Search(search::WorkerRegistry *workers)
       state(search::State::END),
       allow_node_splitting(false),
       workers(workers),
+      depth_(0),
       height_(0),
       parent_(nullptr),
       master_(this) {}

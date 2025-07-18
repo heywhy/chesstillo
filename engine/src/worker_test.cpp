@@ -14,7 +14,11 @@ class WorkerTestSuite : public testing::Test {
 
   WorkerTestSuite() : registry(2), search(&registry) {}
 
-  void SetUp() override { Position::ApplyFen(&position, kStartPos); }
+  void SetUp() override {
+    Position::ApplyFen(&position, kStartPos);
+
+    search.position = &position;
+  }
 };
 
 TEST_F(WorkerTestSuite, TestGetIdleWorker) {
