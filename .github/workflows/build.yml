@@ -70,6 +70,13 @@ jobs:
           gcovr: 7.0
           opencppcoverage: true
 
+      - name: Cache
+        uses: actions/cache@v4
+        id: cache
+        with:
+          path: build
+          key: ${{ matrix.os }}-${{ matrix.compiler }}-build
+
       # make sure coverage is only enabled for Debug builds, since it sets -O0
       # to make sure coverage has meaningful results
       - name: Configure CMake
