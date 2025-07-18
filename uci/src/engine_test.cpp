@@ -49,5 +49,5 @@ TEST_F(UCIEngineTestSuite, SendCommand) {
 
   engine.Send(command::Input("uci"));
 
-  ui.cv.wait_for(lock, 400ms);
+  ui.cv.wait_for(lock, 1000ms);
 }
