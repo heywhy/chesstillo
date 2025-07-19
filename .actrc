@@ -1,0 +1,6 @@
+--action-offline-mode
+--container-architecture linux/amd64
+-j test
+--matrix os:ubuntu-latest
+--matrix compiler:gcc
+--platform ubuntu-latest=node:24-bullseye-slim

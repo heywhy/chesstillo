@@ -46,23 +46,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Stockfish tools for Ubuntu
-        if: ${{ contains(matrix.os, 'ubuntu') }}
-        run: |
-          sudo apt update -y
-          sudo apt-get install -y stockfish
-
-      - name: Install Stockfish tools for MacOS
-        if: ${{ contains(matrix.os, 'macos') }}
-        run: |
-          brew update
-          brew install stockfish
-
-
-      - name: Install commandline tools for MacOS
-        if: ${{ contains(matrix.os, 'macos') }}
-        run: softwareupdate --install --install-rosetta --agree-to-license
-
       - name: Setup Cpp
         uses: aminya/setup-cpp@v1
         env:
@@ -71,12 +54,26 @@ jobs:
           compiler: ${{ !contains(matrix.os, 'macos') && matrix.compiler }}
           vcvarsall: ${{ contains(matrix.os, 'windows')}}
           msvc: ${{ contains(matrix.os, 'windows') && '2022' }}
-          cmake: 3.30.2
+          cmake: 4.0.3
           ninja: true
           clangtidy: false
           cppcheck: false
-          gcovr: 7.0
+          gcovr: 8.3
           opencppcoverage: true
+
+      - name: Install Stockfish tools for Ubuntu
+        if: ${{ contains(matrix.os, 'ubuntu') }}
+        run: apt-get install -y stockfish
+
+      - name: Install Stockfish tools for MacOS
+        if: ${{ contains(matrix.os, 'macos') }}
+        run: |
+          brew update
+          brew install stockfish
+
+      - name: Install commandline tools for MacOS
+        if: ${{ contains(matrix.os, 'macos') }}
+        run: softwareupdate --install --install-rosetta --agree-to-license
 
       - name: Cache
         uses: actions/cache@v4
