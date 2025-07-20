@@ -17,6 +17,12 @@ class Chessboard : public ftxui::ComponentBase {
   ftxui::Component ActiveChild() override;
   void SetActiveChild(ftxui::ComponentBase *child) override;
 
+  inline void SetPiece(const char piece, const int index) {
+    const auto square = static_cast<component::Square *>(ChildAt(index).get());
+
+    square->SetPiece(piece);
+  }
+
  private:
   ftxui::Box box_;
   int selector_;

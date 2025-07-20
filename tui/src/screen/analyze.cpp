@@ -11,6 +11,7 @@
 #include <variant>
 #include <vector>
 
+#include <engine/position.hpp>
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/event.hpp>
 #include <ftxui/component/screen_interactive.hpp>
@@ -27,8 +28,6 @@
 #include <tui/types.hpp>
 #include <tui/utility.hpp>
 
-#define START_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-
 using namespace std::chrono_literals;
 
 namespace tui {
@@ -42,6 +41,7 @@ void Analyze::BindKeymaps() {
 
   auto *main = dynamic_cast<analyze::Main *>(main_content_.get());
 
+  // TODO: remove piece on backspace in visual mode
   SetKeymap(tui::NORMAL, "R", std::bind(&analyze::Main::Stop, main));
   SetKeymap(tui::NORMAL, "r", std::bind(&analyze::Main::Start, main));
   SetKeymap(tui::NORMAL, "c", std::bind(&analyze::Main::ClearHash, main));
@@ -55,20 +55,27 @@ Main::Main(const Theme &theme, component::View *view,
     : theme_(theme),
       view_(view),
       engine_options_(engine_options),
-      fen_(START_FEN),
+      fen_(engine::kStartPos),
       engine_(uci::FindExecutable("stockfish"), this),
       thread_(&Main::InitEngine, this) {
+  engine::Position::ApplyFen(&position_, fen_);
+
   Add(MakeContainer());
+  UpdateBoard();
 }
 
 Main::~Main() { thread_.join(); }
 
 ftxui::Component Main::MakeContainer() {
-  auto fen_input = tui::Make<component::Input>("FEN", fen_);
-  auto pgn_input = tui::Make<component::Input>("PGN", pgn_, true);
-  auto chessboard = tui::Make<component::Chessboard>(theme_);
+  fen_input_ = tui::Make<component::Input>("FEN", fen_);
+  pgn_input_ = tui::Make<component::Input>("PGN", pgn_, true);
+  chessboard_ = tui::Make<component::Chessboard>(theme_);
 
-  return ftxui::Container::Vertical({chessboard, fen_input, pgn_input});
+  return ftxui::Container::Vertical({
+      chessboard_,
+      fen_input_,
+      pgn_input_,
+  });
 }
 
 ftxui::Element Main::OnRender() {
@@ -78,7 +85,6 @@ ftxui::Element Main::OnRender() {
       .align_content = ftxui::FlexboxConfig::AlignContent::Center,
   };
 
-  ftxui::Component container = ChildAt(0);
   ftxui::Element moves_block = RenderMoves();
 
   ftxui::Element status_bar =
@@ -87,11 +93,11 @@ ftxui::Element Main::OnRender() {
   moves_block |= ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 60) |
                  ftxui::size(ftxui::HEIGHT, ftxui::GREATER_THAN, 10);
 
-  auto decorate = ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 62);
+  static const auto kDecorate = ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 62);
 
-  ftxui::Element chessboard = container->ChildAt(0)->Render();
-  ftxui::Element fen_input = container->ChildAt(1)->Render() | decorate;
-  ftxui::Element pgn_input = container->ChildAt(2)->Render() | decorate;
+  ftxui::Element chessboard = chessboard_->Render();
+  ftxui::Element fen_input = fen_input_->Render() | kDecorate;
+  ftxui::Element pgn_input = pgn_input_->Render() | kDecorate;
 
   ftxui::Element content = ftxui::flexbox(
                                {
@@ -125,7 +131,7 @@ void Main::InitEngine() {
   // TODO: write to log file
   cv_.wait_for(lock, 10s);
 
-  if (!(engine_flags_ & engine::UCI)) {
+  if (!(engine_attrs_ & attrs::UCI)) {
     throw std::runtime_error(
         "engine didn't respond within 10s or isn't uci compatible.");
   }
@@ -171,28 +177,37 @@ void Main::InitEngine() {
   }
 
   if (engine_options_.contains("Clear Hash")) {
-    engine_flags_ |= engine::CLEAR_HASH;
+    engine_attrs_ |= attrs::CLEAR_HASH;
   }
 
   engine_.Send(uci::command::Input("isready"));
 
   cv_.wait_for(lock, 10s);
 
-  if (!(engine_flags_ & engine::READY)) {
+  if (!(engine_attrs_ & attrs::READY)) {
     throw std::runtime_error("engine wasn't ready within 10s.");
   }
 
   engine_.Send(uci::command::Input("ucinewgame"));
 }
 
+void Main::UpdateBoard() {
+  for (int i = 0; i < 64; i++) {
+    char c = '\0';
+
+    position_.PieceAt(&c, i);
+    chessboard_->SetPiece(c, i);
+  }
+}
+
 void Main::Handle(uci::command::Input *command) {
   switch (command->type) {
     case uci::TokenType::UCI_OK:
-      engine_flags_ |= engine::UCI;
+      engine_attrs_ |= attrs::UCI;
       break;
 
     case uci::TokenType::READY_OK:
-      engine_flags_ |= engine::READY;
+      engine_attrs_ |= attrs::READY;
       break;
 
     default:
@@ -375,16 +390,16 @@ ftxui::Element Main::RenderMoves() {
 ftxui::Element Main::RenderStatusBar() {
   component::ModalView::KeyPairs items;
 
-  if (view_->Mode() == tui::NORMAL && engine_flags_ & engine::READY) {
+  if (view_->Mode() == tui::NORMAL && engine_attrs_ & attrs::READY) {
     running_ ? items.emplace_back("R", "stop engine")
              : items.emplace_back("r", "run engine");
   }
 
-  if (view_->Mode() == tui::NORMAL && engine_flags_ & engine::CLEAR_HASH) {
+  if (view_->Mode() == tui::NORMAL && engine_attrs_ & attrs::CLEAR_HASH) {
     items.emplace_back("c", "clear hash");
   }
 
-  if (view_->Mode() == tui::NORMAL && engine_flags_ & engine::UCI) {
+  if (view_->Mode() == tui::NORMAL && engine_attrs_ & attrs::UCI) {
     items.emplace_back("s", "settings");
     items.emplace_back("a", "engine info");
   }

@@ -3,7 +3,7 @@ BasedOnStyle: InheritParentConfig
 ---
 Language: Cpp
 IncludeCategories:
-  - Regex:           '^(<(boost|ftxui|gmock|gtest|uci)/)'
+  - Regex:           '^(<(boost|engine|ftxui|gmock|gtest|uci)/)'
     Priority:        2
   - Regex:           '^<tui/'
     Priority:        3

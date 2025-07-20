@@ -1,5 +1,6 @@
 #include <cstddef>
 
+#include <engine/engine.hpp>
 #include <ftxui/component/component_base.hpp>
 #include <ftxui/component/event.hpp>
 
@@ -24,10 +25,9 @@ ftxui::Element Chessboard::OnRender() {
     ftxui::Elements row;
 
     for (int j = 0; j < 8; j++) {
-      // TODO: use the TO_SQUARE macro from chestillo
-      int index = 8 * i + j;
+      int index = engine::square::From(j, i);
 
-      row.push_back(children_[index]->Render());
+      row.push_back(ChildAt(index)->Render());
     }
 
     squares.push_back(ftxui::hbox(row));

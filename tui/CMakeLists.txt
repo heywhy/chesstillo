@@ -37,6 +37,7 @@ target_compile_options(tui PRIVATE ${COMPILE_OPTIONS})
 target_link_options(tui PUBLIC ${LINK_OPTIONS})
 
 target_link_libraries(tui
+  PUBLIC engine
   PUBLIC uci
   PUBLIC ftxui::screen
   PUBLIC ftxui::dom

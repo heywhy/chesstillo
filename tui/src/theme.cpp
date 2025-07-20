@@ -5,7 +5,9 @@
 namespace tui {
 
 const Theme Theme::Default = {
-    ftxui::Color::Grey93, ftxui::Color::Black, ftxui::Color::DarkGoldenrod,
-    ftxui::Color::White,  ftxui::Color::Green, ftxui::Color::DarkSlateGray1};
+    {ftxui::Color::Grey93, ftxui::Color::Black},
+    {ftxui::Color::White, ftxui::Color::DarkGoldenrod},
+    ftxui::Color::Green,
+    ftxui::Color::DarkSlateGray1};
 
 }

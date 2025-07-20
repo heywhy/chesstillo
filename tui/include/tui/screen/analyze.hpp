@@ -3,11 +3,13 @@
 
 #include <array>
 #include <condition_variable>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
 #include <vector>
 
+#include <engine/engine.hpp>
 #include <ftxui/component/component_base.hpp>
 #include <uci/uci.hpp>
 
@@ -48,6 +50,11 @@ class Main : public ftxui::ComponentBase, public uci::UI {
   std::string fen_;
   std::string pgn_;
 
+  engine::Position position_;
+  std::shared_ptr<component::Input> fen_input_;
+  std::shared_ptr<component::Input> pgn_input_;
+  std::shared_ptr<component::Chessboard> chessboard_;
+
   uci::Engine engine_;
   std::string engine_name_;
   std::string engine_author_;
@@ -58,7 +65,7 @@ class Main : public ftxui::ComponentBase, public uci::UI {
 
   bool running_ = false;
 
-  engine::Flag engine_flags_ = 0;
+  EngineAttrs engine_attrs_ = 0;
 
   struct PV {
     unsigned int id = 0;
@@ -100,6 +107,7 @@ class Main : public ftxui::ComponentBase, public uci::UI {
   void ShowSettings();
   void ShowEngineInfo();
 
+  void UpdateBoard();
   void OnChange(const tui::EngineOption *);
 
   template <typename T>

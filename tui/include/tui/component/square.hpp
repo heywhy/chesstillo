@@ -18,7 +18,10 @@ class Square : public ftxui::ComponentBase {
 
   bool Focusable() const override { return true; }
 
+  inline void SetPiece(const char piece) { piece_ = piece; }
+
  private:
+  char piece_;
   ftxui::Box box_;
   const Theme &theme_;
 };
