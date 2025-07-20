@@ -8,7 +8,9 @@ FetchContent_Declare(
 )
 
 set(BOOST_RUNTIME_LINK static)
-list(APPEND BOOST_INCLUDE_LIBRARIES asio filesystem process)
+list(APPEND BOOST_INCLUDE_LIBRARIES asio process)
+option(BOOST_PROCESS_USE_STD_FS ON)
+option(BOOST_FILESYSTEM_HAS_CXX20_ATOMIC_REF ON)
 
 FetchContent_MakeAvailable(boost)
 
