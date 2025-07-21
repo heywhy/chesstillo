@@ -83,10 +83,10 @@ bool ToString(char *buf, const Move &move) {
   }
 
   buf[0] = from.file;
-  buf[1] = 48 + from.rank;
+  buf[1] = 49 + from.rank;
 
   buf[2] = to.file;
-  buf[3] = 48 + to.rank;
+  buf[3] = 49 + to.rank;
 
   if (move.Is(move::PROMOTION)) {
     char piece;

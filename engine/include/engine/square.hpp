@@ -29,7 +29,7 @@ constexpr Bitboard Occupancy(const PieceList& pieces) {
   return Occupancy(pieces.data());
 }
 
-constexpr int Rank(const int square) { return (square / 8) + 1; }
+constexpr int Rank(const int square) { return square / 8; }
 
 constexpr int File(const int square) { return square % 8; }
 

@@ -76,7 +76,7 @@ void EvalState::ComputePhase() {
 // TODO: maybe apply pin masks to filter what pieces attacks are counted
 template <enum Color side>
 void EvalState::ComputeAttackMap() {
-  Bitboard *side_pieces;
+  const Bitboard *side_pieces;
 
   if constexpr (side == WHITE) {
     side_pieces = white_pieces;
@@ -101,9 +101,9 @@ void EvalState::ComputeAttackMap() {
   }
 }
 
-EvalState EvalState::For(Position &position) {
-  PieceList &white_pieces = position.Pieces(WHITE);
-  PieceList &black_pieces = position.Pieces(BLACK);
+EvalState EvalState::For(const Position &position) {
+  const PieceList &white_pieces = position.Pieces(WHITE);
+  const PieceList &black_pieces = position.Pieces(BLACK);
   Bitboard occupied_sqs = position.board_.occupied_sqs;
 
   // TODO: maybe move position mask computation into the position
@@ -249,8 +249,8 @@ template <enum Color side>
 int KingPosition(EvalState &state) {
   Bitboard king_bb;
   Bitboard storm_area;
-  Bitboard *side_pieces;
-  Bitboard *enemy_pieces;
+  const Bitboard *side_pieces;
+  const Bitboard *enemy_pieces;
   Bitboard (*file_fill)(Bitboard);
 
   if constexpr (side == WHITE) {
@@ -289,8 +289,8 @@ int KingPosition(EvalState &state) {
   BITLOOP(shelter_pawns) {
     int distance;
     int square = LOOP_INDEX;
-    int rank = square::Rank(square);
     Bitboard bb = square::BB(square);
+    int rank = square::Rank(square) + 1;
 
     if constexpr (side == WHITE) {
       distance = 8 - rank;
@@ -858,8 +858,8 @@ std::pair<float, float> PassedPawns(EvalState &state) {
 
   BITLOOP(side_pawns) {
     int square = LOOP_INDEX;
-    int rank = square::Rank(square);
     Bitboard bb = square::BB(square);
+    int rank = square::Rank(square) + 1;
     Bitboard front_targets = front_fill(bb) ^ bb;
 
     if (front_targets & all_pawns) {

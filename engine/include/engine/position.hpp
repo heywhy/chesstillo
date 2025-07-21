@@ -59,16 +59,19 @@ class Position {
   std::string ToFen() const;
 
   void Reset();
+  MoveList LegalMoves() const;
   void Make(const Move &move);
   void Undo(const Move &move);
   bool PieceAt(char *, int index) const;
   bool PieceAt(Piece *, int index) const;
 
+  inline Color Turn() const { return turn_; }
   inline Bitboard EnPassantSquare() const { return en_passant_sq_; }
-
   inline bool CanCastle(Castling flag) const { return castling_rights_ & flag; }
 
-  inline PieceList &Pieces(Color color) { return board_.pieces[color]; }
+  inline const PieceList &Pieces(Color color) const {
+    return board_.pieces[color];
+  }
 
  private:
   Color turn_;
@@ -102,9 +105,9 @@ class Position {
 
   friend int SEE(Position &position);
   friend int Evaluate(Position &position);
-  friend MoveList GenerateMoves(Position &position);
-  friend Bitboard CheckMask(Position &position);
-  friend std::pair<Bitboard, Bitboard> PinMask(Position &position);
+  friend MoveList GenerateMoves(const Position &position);
+  friend Bitboard CheckMask(const Position &position);
+  friend std::pair<Bitboard, Bitboard> PinMask(const Position &position);
 };
 
 }  // namespace engine

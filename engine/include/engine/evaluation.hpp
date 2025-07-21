@@ -44,8 +44,8 @@ extern const int kWeights[26][2];
 extern const float kRankBonus[6];
 
 struct EvalState {
-  Bitboard *white_pieces;
-  Bitboard *black_pieces;
+  const Bitboard *white_pieces;
+  const Bitboard *black_pieces;
   Bitboard occupied_sqs;
   Bitboard check_mask;
   Bitboard pin_hv_mask;
@@ -55,7 +55,7 @@ struct EvalState {
   int materials[4][6];
   Bitboard attack_map[2];
 
-  EvalState(Bitboard *white_pieces, Bitboard *black_pieces,
+  EvalState(const Bitboard *white_pieces, const Bitboard *black_pieces,
             Bitboard occupied_sqs, Bitboard check_mask, Bitboard pin_hv_mask,
             Bitboard pin_diag_mask)
       : white_pieces(white_pieces),
@@ -70,7 +70,7 @@ struct EvalState {
     ComputeAttackMap<BLACK>();
   }
 
-  static EvalState For(Position &position);
+  static EvalState For(const Position &position);
 
  private:
   void ComputePhase();

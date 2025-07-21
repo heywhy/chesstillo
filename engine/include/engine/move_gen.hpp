@@ -53,10 +53,10 @@
 
 namespace engine {
 
-Bitboard CheckMask(Position &position);
-std::pair<Bitboard, Bitboard> PinMask(Position &position);
+Bitboard CheckMask(const Position &position);
+std::pair<Bitboard, Bitboard> PinMask(const Position &position);
 
-MoveList GenerateMoves(Position &position);
+MoveList GenerateMoves(const Position &position);
 
 void AddMovesToList(MoveList &moves, int from, Bitboard targets, Piece piece,
                     const Mailbox &mailbox, Bitboard enemy_bb);

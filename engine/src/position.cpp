@@ -70,6 +70,8 @@ void Position::Clone(const Position &src) {
   hash_ = src.hash_;
 }
 
+MoveList Position::LegalMoves() const { return GenerateMoves(*this); }
+
 bool Position::PieceAt(Piece *piece, int index) const {
   *piece = mailbox_[index];
 

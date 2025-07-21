@@ -21,15 +21,15 @@ inline bool PieceAt(Piece *piece, const Mailbox &mailbox, int square) {
   return *piece != NONE;
 }
 
-MoveList GenerateMoves(Position &position) {
+MoveList GenerateMoves(const Position &position) {
   MoveList move_list;
 
   move_list.reserve(218);
 
   Color opp = OPP(position.turn_);
   Bitboard occupied_sqs = position.board_.occupied_sqs;
-  PieceList &enemy_pieces = position.Pieces(opp);
-  PieceList &own_pieces = position.Pieces(position.turn_);
+  const PieceList &enemy_pieces = position.Pieces(opp);
+  const PieceList &own_pieces = position.Pieces(position.turn_);
 
   Bitboard check_mask = CheckMask(position);
   auto [pin_hv_mask, pin_diag_mask] = PinMask(position);
@@ -449,12 +449,12 @@ void AddMovesToList(MoveList &move_list, int from, Bitboard targets,
   }
 }
 
-Bitboard CheckMask(Position &position) {
+Bitboard CheckMask(const Position &position) {
   Bitboard mask = kUniverse;
   Color opp = OPP(position.turn_);
   Bitboard occupied_sqs = position.board_.occupied_sqs;
-  PieceList &opp_pieces = position.Pieces(opp);
-  PieceList &own_pieces = position.Pieces(position.turn_);
+  const PieceList &opp_pieces = position.Pieces(opp);
+  const PieceList &own_pieces = position.Pieces(position.turn_);
   Bitboard king_bb = own_pieces[KING];
 
   auto [pawn_east_targets, pawn_west_targets, inverse_east_targets,
@@ -518,10 +518,10 @@ Bitboard CheckMask(Position &position) {
   return mask;
 }
 
-std::pair<Bitboard, Bitboard> PinMask(Position &position) {
+std::pair<Bitboard, Bitboard> PinMask(const Position &position) {
   Color opp = OPP(position.turn_);
-  PieceList &own_pieces = position.Pieces(position.turn_);
-  PieceList &opp_pieces = position.Pieces(opp);
+  const PieceList &own_pieces = position.Pieces(position.turn_);
+  const PieceList &opp_pieces = position.Pieces(opp);
   Bitboard occupied_sqs = position.board_.occupied_sqs;
   Bitboard king_bb = own_pieces[KING];
   Bitboard own_pieces_bb = square::Occupancy(own_pieces);
