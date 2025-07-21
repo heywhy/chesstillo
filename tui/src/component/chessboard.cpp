@@ -6,15 +6,30 @@
 
 #include <tui/component/chessboard.hpp>
 #include <tui/component/square.hpp>
+#include <tui/constants.hpp>
 #include <tui/theme.hpp>
 #include <tui/utility.hpp>
 
 namespace tui {
 namespace component {
 
-Chessboard::Chessboard(const Theme &theme) : selector_(0) {
+Chessboard::OnSelect Chessboard::OnSelectFn = [](Square *square) {
+  square->Toggle();
+};
+
+Chessboard::Chessboard(const Theme &theme, OnSelect on_select)
+    : selector_(12), on_select_(on_select) {
   for (int i = 0; i < 64; i++) {
     Add(tui::Make<component::Square>(theme, i));
+  }
+}
+
+void Chessboard::ToggleSquare(Square *square) {
+  for (std::size_t i = 0; i < children_.size(); i++) {
+    if (children_[i].get() == square) {
+      square->Toggle();
+      break;
+    }
   }
 }
 
@@ -69,6 +84,14 @@ bool Chessboard::OnMouseEvent(ftxui::Event &event) {
 
 bool Chessboard::OnKeyEvent(ftxui::Event &event) {
   int old_selected = selector_;
+
+  if (event.is_character() && event.input() == kSpaceChar) {
+    auto square = dynamic_cast<Square *>(ActiveChild().get());
+
+    on_select_(square);
+
+    return true;
+  }
 
   if (event == ftxui::Event::ArrowUp || event == ftxui::Event::k) {
     MoveSelector(8);

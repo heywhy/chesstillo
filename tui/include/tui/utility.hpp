@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cctype>
 #include <memory>
+#include <string>
 #include <type_traits>
 
 #include <ftxui/component/component_base.hpp>

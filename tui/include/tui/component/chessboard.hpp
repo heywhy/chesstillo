@@ -1,6 +1,8 @@
 #ifndef TUI_COMPONENT_CHESSBOARD_HPP
 #define TUI_COMPONENT_CHESSBOARD_HPP
 
+#include <functional>
+
 #include <ftxui/component/component_base.hpp>
 
 #include <tui/component/square.hpp>
@@ -10,12 +12,18 @@ namespace tui {
 namespace component {
 class Chessboard : public ftxui::ComponentBase {
  public:
-  Chessboard(const Theme &theme);
+  using OnSelect = std::function<void(Square *)>;
+
+  static OnSelect OnSelectFn;
+
+  Chessboard(const Theme &theme, OnSelect on_select = OnSelectFn);
 
   ftxui::Element OnRender() override;
   bool OnEvent(ftxui::Event event) override;
   ftxui::Component ActiveChild() override;
   void SetActiveChild(ftxui::ComponentBase *child) override;
+
+  void ToggleSquare(Square *square);
 
   inline void SetPiece(const char piece, const int index) {
     const auto square = static_cast<component::Square *>(ChildAt(index).get());
@@ -26,6 +34,7 @@ class Chessboard : public ftxui::ComponentBase {
  private:
   ftxui::Box box_;
   int selector_;
+  OnSelect on_select_;
 
   void MoveSelector(int dir);
   bool OnKeyEvent(ftxui::Event &);

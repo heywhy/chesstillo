@@ -10,14 +10,26 @@
 namespace tui {
 namespace component {
 
+Input::Input(const std::string_view label, std::string &value,
+             InputOption options)
+    : Input(label, value, false, options) {}
+
 Input::Input(const std::string_view label, std::string &value, bool multiline)
+    : Input(label, value, multiline, {}) {}
+
+Input::Input(const std::string_view label, std::string &value, bool multiline,
+             InputOption options)
     : label(label) {
   auto transform = std::bind(&Input::Transform, this, std::placeholders::_1);
 
-  Add(ftxui::Input({.content = &value,
-                    .transform = std::move(transform),
-                    .multiline = multiline,
-                    .cursor_position = value.length()}));
+  Add(ftxui::Input({
+      .content = &value,
+      .transform = std::move(transform),
+      .multiline = multiline,
+      .on_change = std::move(options.on_change),
+      .on_enter = std::move(options.on_enter),
+      .cursor_position = value.length(),
+  }));
 }
 
 ftxui::Element Input::OnRender() {

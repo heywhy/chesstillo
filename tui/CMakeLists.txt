@@ -10,6 +10,7 @@ add_library(tui
   STATIC
   src/color.cpp
   src/config.cpp
+  src/fonts.cpp
   src/theme.cpp
   src/hooks.cpp
   src/mapping.cpp

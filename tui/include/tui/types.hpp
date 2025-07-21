@@ -2,10 +2,14 @@
 #define TUI_TYPES_HPP
 
 #include <cstdint>
+#include <utility>
+
+#include <engine/engine.hpp>
 
 namespace tui {
 
 using EngineAttrs = std::uint8_t;
+using PieceFontMap = std::pair<const char *, engine::Color>;
 
 namespace attrs {
 

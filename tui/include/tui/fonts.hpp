@@ -10,6 +10,7 @@ inline const char *kKing = "\ued62";
 inline const char *kQueen = "\ued65";
 inline const char *kPawn = "\ued64";
 inline const char *kGear = "\ueb51";
+inline const char *kClose = "\uea76";
 
 }  // namespace tui
 #endif

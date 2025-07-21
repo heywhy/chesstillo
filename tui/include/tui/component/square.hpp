@@ -18,12 +18,18 @@ class Square : public ftxui::ComponentBase {
 
   bool Focusable() const override { return true; }
 
+  inline bool Empty() const { return piece_ == '\0'; }
   inline void SetPiece(const char piece) { piece_ = piece; }
 
  private:
   char piece_;
+  bool selected_;
   ftxui::Box box_;
   const Theme &theme_;
+
+  inline void Toggle() { selected_ = !selected_; }
+
+  friend class Chessboard;
 };
 }  // namespace component
 

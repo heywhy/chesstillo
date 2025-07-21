@@ -11,7 +11,7 @@
 #include <variant>
 #include <vector>
 
-#include <engine/position.hpp>
+#include <engine/engine.hpp>
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/event.hpp>
 #include <ftxui/component/screen_interactive.hpp>
@@ -22,6 +22,7 @@
 #include <tui/config.hpp>
 #include <tui/constants.hpp>
 #include <tui/contracts.hpp>
+#include <tui/fonts.hpp>
 #include <tui/mapping.hpp>
 #include <tui/screen/analyze.hpp>
 #include <tui/theme.hpp>
@@ -56,6 +57,7 @@ Main::Main(const Theme &theme, component::View *view,
       view_(view),
       engine_options_(engine_options),
       fen_(engine::kStartPos),
+      selected_(nullptr),
       engine_(uci::FindExecutable("stockfish"), this),
       thread_(&Main::InitEngine, this) {
   engine::Position::ApplyFen(&position_, fen_);
@@ -67,15 +69,93 @@ Main::Main(const Theme &theme, component::View *view,
 Main::~Main() { thread_.join(); }
 
 ftxui::Component Main::MakeContainer() {
-  fen_input_ = tui::Make<component::Input>("FEN", fen_);
-  pgn_input_ = tui::Make<component::Input>("PGN", pgn_, true);
-  chessboard_ = tui::Make<component::Chessboard>(theme_);
+  fen_input_ = tui::Make<component::Input>(
+      "FEN", fen_,
+      component::InputOption{.on_enter = std::bind(&Main::OnFenChange, this)});
+
+  pgn_input_ = tui::Make<component::Input>(
+      "PGN", pgn_, true,
+      component::InputOption{.on_enter = std::bind(&Main::OnPgnChange, this)});
+
+  chessboard_ = tui::Make<component::Chessboard>(
+      theme_, std::bind(&Main::MaybeMove, this, std::placeholders::_1));
 
   return ftxui::Container::Vertical({
       chessboard_,
       fen_input_,
       pgn_input_,
   });
+}
+
+void Main::OnFenChange() {
+  std::lock_guard lock(mutex_);
+  const bool restart = running_;
+
+  Stop();
+  engine::Position::ApplyFen(&position_, fen_);
+  engine_.Send(uci::command::Input("ucinewgame"));
+  UpdateBoard();
+
+  if (restart) {
+    Start();
+  }
+}
+
+void Main::OnPgnChange() {}
+
+void Main::MaybeMove(component::Square *square) {
+  if (selected_ == nullptr) {
+    chessboard_->ToggleSquare(square);
+
+    selected_ = square;
+  } else if (selected_ == square) {
+    chessboard_->ToggleSquare(selected_);
+
+    selected_ = nullptr;
+  } else if (selected_->Empty() && square->Empty()) {
+    chessboard_->ToggleSquare(selected_);
+    chessboard_->ToggleSquare(square);
+
+    selected_ = square;
+  } else [[likely]] {
+    const engine::Move *move = nullptr;
+    std::lock_guard lock(mutex_);
+    const engine::MoveList move_list = position_.LegalMoves();
+
+    for (const auto &m : move_list) {
+      if ((m.from == selected_->index && m.to == square->index) ||
+          (m.from == square->index && m.to == selected_->index)) {
+        move = &m;
+        break;
+      }
+    }
+
+    if (move) {
+      const bool restart = running_;
+
+      Stop();
+
+      position_.Make(*move);
+      chessboard_->ToggleSquare(selected_);
+
+      if (square->index != move->to) {
+        chessboard_->SetActiveChild(selected_);
+      }
+
+      UpdateBoard();
+
+      selected_ = nullptr;
+      fen_ = position_.ToFen();
+
+      if (restart) {
+        Start();
+      }
+    } else {
+      chessboard_->ToggleSquare(selected_);
+
+      selected_ = nullptr;
+    }
+  }
 }
 
 ftxui::Element Main::OnRender() {
@@ -93,7 +173,7 @@ ftxui::Element Main::OnRender() {
   moves_block |= ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 60) |
                  ftxui::size(ftxui::HEIGHT, ftxui::GREATER_THAN, 10);
 
-  static const auto kDecorate = ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 62);
+  static const auto kDecorate = ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 56);
 
   ftxui::Element chessboard = chessboard_->Render();
   ftxui::Element fen_input = fen_input_->Render() | kDecorate;
@@ -160,7 +240,7 @@ void Main::InitEngine() {
 
     option.max = std::min(cpus, option.max);
 
-    std::int64_t value = std::min(cpus, option.max);
+    std::int64_t value = std::min(1ll, option.max);
 
     SetAndSendOption("Threads", value);
   }
@@ -245,7 +325,7 @@ void Main::Handle(uci::command::Info *command) {
     return;
   }
 
-  std::unique_lock lock(mutex_);
+  std::lock_guard lock(mutex_);
 
   PV &pv = pvs_[command->multipv - 1];
 
@@ -257,8 +337,53 @@ void Main::Handle(uci::command::Info *command) {
 
   pv.moves.clear();
 
+  // TODO: find a way to check if fen is valid before applying
+  // engine::Position::ApplyFen(&pv.position, fen_);
+  pv.position = position_;
+
+  if (pv.position.Turn() == engine::BLACK) {
+    pv.value = -pv.value;
+    pv.moves.push_back("...");
+  }
+
   for (const auto &move : command->pv) {
-    pv.moves.emplace_back(move);
+    int from_file = move[0] - 97;
+    int from_rank = move[1] - 49;
+    int to_file = move[2] - 97;
+    int to_rank = move[3] - 49;
+
+    int from = engine::square::From(from_file, from_rank);
+    int to = engine::square::From(to_file, to_rank);
+
+    char piece;
+    std::string str;
+
+    // INFO: the position might not be valid anymore
+    if (!pv.position.PieceAt(&piece, from)) {
+      break;
+    }
+
+    auto move1 = engine::DeduceMove(pv.position, from, to);
+
+    pv.position.Make(move1);
+
+    if (move1.Is(engine::move::CASTLE_KING_SIDE)) {
+      str.append("O-O");
+    } else if (move1.Is(engine::move::CASTLE_QUEEN_SIDE)) {
+      str.append("O-O-O");
+    } else {
+      auto [font, _] = kPieceFontsMap[piece];
+
+      str.append(font).append("");
+
+      if (move1.Is(engine::move::CAPTURE)) {
+        str.append(kClose);
+      }
+
+      str.append(move.substr(2, 2));
+    }
+
+    pv.moves.emplace_back(str);
   }
 
   ftxui::ScreenInteractive::Active()->PostEvent(ftxui::Event::Custom);
@@ -300,7 +425,7 @@ void Main::OnChange(const tui::EngineOption *option) {
   auto command = option->ToCommand();
 
   if (command.id == "MultiPV") {
-    std::unique_lock lock(mutex_);
+    std::lock_guard lock(mutex_);
     auto it = pvs_.begin() + std::get<std::int64_t>(command.value);
 
     for (; it != pvs_.end(); it++) {
@@ -366,7 +491,7 @@ void Main::ShowEngineInfo() {
 
 ftxui::Element Main::RenderMoves() {
   ftxui::Elements pvs;
-  std::unique_lock lock(mutex_);
+  std::lock_guard lock(mutex_);
 
   for (const PV &pv : pvs_) {
     if (pv.id < 1) {

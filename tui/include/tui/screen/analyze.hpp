@@ -49,6 +49,7 @@ class Main : public ftxui::ComponentBase, public uci::UI {
 
   std::string fen_;
   std::string pgn_;
+  component::Square *selected_;
 
   engine::Position position_;
   std::shared_ptr<component::Input> fen_input_;
@@ -74,6 +75,7 @@ class Main : public ftxui::ComponentBase, public uci::UI {
     int nps = 0;
     uci::command::Info::Score score;
     std::vector<std::string> moves;
+    engine::Position position;
 
     ftxui::Element Render() const;
 
@@ -107,6 +109,10 @@ class Main : public ftxui::ComponentBase, public uci::UI {
   void ShowSettings();
   void ShowEngineInfo();
 
+  void MaybeMove(component::Square *);
+
+  void OnFenChange();
+  void OnPgnChange();
   void UpdateBoard();
   void OnChange(const tui::EngineOption *);
 
