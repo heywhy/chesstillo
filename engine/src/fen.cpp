@@ -270,7 +270,7 @@ std::string Position::ToFen() const {
   int en_passant_square = square::Index(en_passant_sq_);
 
   if (CoordForSquare(&coord, en_passant_square)) {
-    char rank = '0' + coord.rank;
+    char rank = '1' + coord.rank;
 
     fen += {' ', coord.file, rank, ' '};
   } else {
