@@ -240,7 +240,7 @@ void Main::InitEngine() {
 
     option.max = std::min(cpus, option.max);
 
-    std::int64_t value = std::min(1ll, option.max);
+    std::int64_t value = std::min(static_cast<std::int64_t>(1), option.max);
 
     SetAndSendOption("Threads", value);
   }
