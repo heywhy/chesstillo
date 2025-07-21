@@ -85,13 +85,11 @@ jobs:
       # make sure coverage is only enabled for Debug builds, since it sets -O0
       # to make sure coverage has meaningful results
       - name: Configure CMake
-        run: >
-          cmake -S .
-          -B ./build
-          -DCMAKE_BUILD_TYPE:STRING=Debug
-          -DCMAKE_BUILD_PARALLEL_LEVEL=${{ steps.cpu-cores.outputs.count }}
+        run: cmake -S . -B ./build -DCMAKE_BUILD_TYPE=Debug
 
       - name: Build
+        env:
+          CMAKE_BUILD_PARALLEL_LEVEL: ${{ steps.cpu-cores.outputs.count }}
         run: cmake --build ./build
 
       - name: Unix - Test and coverage
