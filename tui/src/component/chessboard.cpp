@@ -1,4 +1,5 @@
 #include <cstddef>
+#include <utility>
 
 #include <engine/engine.hpp>
 #include <ftxui/component/component_base.hpp>
@@ -13,14 +14,10 @@
 namespace tui {
 namespace component {
 
-Chessboard::OnSelect Chessboard::OnSelectFn = [](Square *square) {
-  square->Toggle();
-};
-
 Chessboard::Chessboard(const Theme &theme, OnSelect on_select)
-    : selector_(12), on_select_(on_select) {
+    : selector_(12), on_select_(std::move(on_select)) {
   for (int i = 0; i < 64; i++) {
-    Add(tui::Make<component::Square>(theme, i));
+    Add(tui::Make<component::Square>(theme, i, on_select_));
   }
 }
 
@@ -58,10 +55,6 @@ bool Chessboard::OnEvent(ftxui::Event event) {
 
   if (!Focused()) {
     return false;
-  }
-
-  if (ActiveChild() && ActiveChild()->OnEvent(event)) {
-    return true;
   }
 
   return OnKeyEvent(event);
@@ -118,11 +111,11 @@ ftxui::Component Chessboard::ActiveChild() {
   return selector_ >= 0 ? children_[selector_] : nullptr;
 }
 
-void Chessboard::SetActiveChild(ComponentBase *child) {
+void Chessboard::SetActiveChild(ftxui::ComponentBase *child) {
   for (std::size_t i = 0; i < children_.size(); ++i) {
     if (children_[i].get() == child) {
       selector_ = static_cast<int>(i);
-      return;
+      break;
     }
   }
 }

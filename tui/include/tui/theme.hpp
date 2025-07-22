@@ -5,11 +5,11 @@
 #include <ftxui/screen/color.hpp>
 
 namespace tui {
-enum Square { LIGHT, DARK, FOCUSED, SELECTED };
+enum Square { LIGHT, DARK, FOCUSED, SELECTED, HOVER };
 
 struct Theme {
   const ftxui::Color piece[2];
-  const ftxui::Color square[4];
+  const ftxui::Color square[5];
 
   static const Theme Default;
 };

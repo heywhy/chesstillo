@@ -115,6 +115,7 @@ class Main : public ftxui::ComponentBase, public uci::UI {
   void OnPgnChange();
   void UpdateBoard();
   void OnChange(const tui::EngineOption *);
+  void ToggleSquare(component::Square *square);
 
   template <typename T>
   void SetAndSendOption(std::string id, T value) {

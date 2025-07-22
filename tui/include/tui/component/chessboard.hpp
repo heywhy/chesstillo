@@ -14,9 +14,9 @@ class Chessboard : public ftxui::ComponentBase {
  public:
   using OnSelect = std::function<void(Square *)>;
 
-  static OnSelect OnSelectFn;
-
-  Chessboard(const Theme &theme, OnSelect on_select = OnSelectFn);
+  Chessboard(
+      const Theme &theme,
+      OnSelect on_select = [](Square *square) { square->Toggle(); });
 
   ftxui::Element OnRender() override;
   bool OnEvent(ftxui::Event event) override;

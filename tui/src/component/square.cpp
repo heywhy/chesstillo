@@ -1,3 +1,5 @@
+#include <utility>
+
 #include <engine/engine.hpp>
 #include <ftxui/component/component_base.hpp>
 #include <ftxui/component/event.hpp>
@@ -25,8 +27,13 @@ static const tui::Square kSquareColor[64] = {
 
 namespace component {
 
-Square::Square(const tui::Theme &theme, int index)
-    : index(index), piece_('\0'), selected_(false), theme_(theme) {}
+Square::Square(const tui::Theme &theme, int index, OnClick on_click)
+    : index(index),
+      piece_('\0'),
+      hover_(false),
+      selected_(false),
+      theme_(theme),
+      on_click_(std::move(on_click)) {}
 
 ftxui::Element component::Square::OnRender() {
   ftxui::Elements elements;
@@ -41,29 +48,41 @@ ftxui::Element component::Square::OnRender() {
                           ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 7) |
                           ftxui::size(ftxui::HEIGHT, ftxui::EQUAL, 3);
 
-  if (selected_) {
-    square |= ftxui::bgcolor(theme_.square[SELECTED]);
-  } else if (Focused()) {
-    square |= ftxui::bgcolor(theme_.square[FOCUSED]);
-  } else {
-    auto color = theme_.square[kSquareColor[index]];
+  auto state = kSquareColor[index];
 
-    square |= ftxui::bgcolor(color);
+  if (selected_) {
+    state = SELECTED;
+  } else if (Focused()) {
+    state = FOCUSED;
+  } else if (hover_) {
+    state = HOVER;
   }
+
+  square |= ftxui::bgcolor(theme_.square[state]);
 
   return square | ftxui::reflect(box_);
 }
 
 bool Square::OnEvent(ftxui::Event event) {
+  hover_ = false;
+
   if (event.is_mouse()) {
     ftxui::Mouse &mouse = event.mouse();
 
-    if (mouse.motion == ftxui::Mouse::Motion::Pressed &&
+    if ((mouse.motion == ftxui::Mouse::Motion::Pressed ||
+         mouse.motion == ftxui::Mouse::Motion::Released) &&
         mouse.button == ftxui::Mouse::Button::Left &&
         box_.Contain(mouse.x, mouse.y) && CaptureMouse(event)) {
       TakeFocus();
+      on_click_(this);
 
       return true;
+    }
+
+    if (mouse.motion == ftxui::Mouse::Motion::Moved &&
+        mouse.button == ftxui::Mouse::Button::Left &&
+        box_.Contain(mouse.x, mouse.y) && CaptureMouse(event)) {
+      hover_ = true;
     }
   }
 

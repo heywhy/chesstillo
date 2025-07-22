@@ -103,18 +103,24 @@ void Main::OnFenChange() {
 
 void Main::OnPgnChange() {}
 
+void Main::ToggleSquare(component::Square *square) {
+  if (view_->Mode() != tui::VISUAL) [[likely]] {
+    chessboard_->ToggleSquare(square);
+  }
+}
+
 void Main::MaybeMove(component::Square *square) {
   if (selected_ == nullptr) {
-    chessboard_->ToggleSquare(square);
+    ToggleSquare(square);
 
     selected_ = square;
   } else if (selected_ == square) {
-    chessboard_->ToggleSquare(selected_);
+    ToggleSquare(selected_);
 
     selected_ = nullptr;
   } else if (selected_->Empty() && square->Empty()) {
-    chessboard_->ToggleSquare(selected_);
-    chessboard_->ToggleSquare(square);
+    ToggleSquare(selected_);
+    ToggleSquare(square);
 
     selected_ = square;
   } else [[likely]] {
@@ -136,7 +142,7 @@ void Main::MaybeMove(component::Square *square) {
       Stop();
 
       position_.Make(*move);
-      chessboard_->ToggleSquare(selected_);
+      ToggleSquare(selected_);
 
       if (square->index != move->to) {
         chessboard_->SetActiveChild(selected_);
@@ -151,7 +157,8 @@ void Main::MaybeMove(component::Square *square) {
         Start();
       }
     } else {
-      chessboard_->ToggleSquare(selected_);
+      ToggleSquare(selected_);
+      chessboard_->SetActiveChild(selected_);
 
       selected_ = nullptr;
     }
@@ -560,7 +567,7 @@ ftxui::Element Main::PV::Render() const {
     attrs.push_back(ftxui::hbox(els));
   }
 
-  return ftxui::hbox({ftxui::text(std::format("{:.2f} ", value)),
+  return ftxui::hbox({ftxui::text(std::format("{:+.2f}", value)),
                       ftxui::separator(), ftxui::hflow(attrs)});
 }
 

@@ -128,7 +128,7 @@ bool View::OnEvent(ftxui::Event event) {
     return true;
   }
 
-  if (!ModalView::OnEvent(event) && ActiveChild().get()) {
+  if (!ModalView::OnEvent(event)) {
     ActiveChild()->OnEvent(event);
   }
 
@@ -146,7 +146,7 @@ void View::PopAndFocusTopComponent() {
 void View::SetActiveChild(ftxui::ComponentBase *child) {
   ModalView::SetActiveChild(child);
 
-  if (ActiveChild().get() == child &&
+  if (child->Active() &&
       (focus_history_.empty() || focus_history_.top() != child)) {
     focus_history_.push(child);
   }
