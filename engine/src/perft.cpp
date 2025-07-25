@@ -168,7 +168,7 @@ Stat ThreadedPerft(Scheduler *scheduler, Position &position, int depth,
   return stat;
 }
 
-typedef std::function<Stat(Position &, int, bool)> PerftFun;
+using PerftFun = std::function<Stat(Position &, int, bool)>;
 
 void Run(Position &position, PerftFun perft, int depth, bool divide) {
   Stat stat = perft(position, depth, divide);

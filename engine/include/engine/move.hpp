@@ -27,7 +27,7 @@ constexpr Flag PROMOTION = static_cast<Flag>(1) << 6;
 }  // namespace move
 
 class Move;
-typedef std::vector<Move> MoveList;
+using MoveList = std::vector<Move>;
 
 class Move {
  public:

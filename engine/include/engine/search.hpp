@@ -1,5 +1,5 @@
-#ifndef SEARCH_HPP
-#define SEARCH_HPP
+#ifndef ENGINE_SEARCH_HPP
+#define ENGINE_SEARCH_HPP
 
 #include <condition_variable>
 #include <cstddef>

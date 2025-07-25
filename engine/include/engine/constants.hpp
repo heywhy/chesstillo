@@ -37,8 +37,8 @@ inline constexpr Bitboard kCastleQueenSidePath = 0x0C0000000000000C;
 inline constexpr Bitboard kCenter = 0x0000001818000000;
 inline constexpr Bitboard kExtendedCenter = 0x00003C3C3C3C0000;
 
-typedef std::array<std::array<Bitboard, 64>, 4> AttackMaps;
-typedef std::array<std::array<std::array<Bitboard, 64>, 64>, 2> CheckBetween;
+using AttackMaps = std::array<std::array<Bitboard, 64>, 4>;
+using CheckBetween = std::array<std::array<std::array<Bitboard, 64>, 64>, 2>;
 
 extern const AttackMaps kAttackMaps;
 extern const CheckBetween kCheckBetween;

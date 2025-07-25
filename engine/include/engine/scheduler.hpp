@@ -13,7 +13,7 @@
 
 namespace engine {
 
-typedef std::function<void()> Callback;
+using Callback = std::function<void()>;
 
 class Status;
 class Scheduler;
