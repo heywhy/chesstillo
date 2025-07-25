@@ -40,6 +40,7 @@ class Main : public ftxui::ComponentBase, public uci::UI {
        EngineOptions &engine_options);
   ~Main();
 
+  bool OnEvent(ftxui::Event event) override;
   ftxui::Element OnRender() override;
 
  private:
@@ -73,11 +74,14 @@ class Main : public ftxui::ComponentBase, public uci::UI {
     float value;
     int depth;
     int nps = 0;
-    uci::command::Info::Score score;
     std::vector<std::string> moves;
     engine::Position position;
 
-    ftxui::Element Render() const;
+    ftxui::Box box;
+    bool show_all_moves = false;
+
+    ftxui::Element Render();
+    bool OnEvent(ftxui::Event &event);
 
     inline void Unset() {
       id = 0;

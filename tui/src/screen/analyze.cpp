@@ -165,6 +165,27 @@ void Main::MaybeMove(component::Square *square) {
   }
 }
 
+bool Main::OnEvent(ftxui::Event event) {
+  if (ftxui::ComponentBase::OnEvent(event)) {
+    return true;
+  }
+
+  bool handled = false;
+
+  for (auto &pv : pvs_) {
+    if (!pv.id) {
+      break;
+    }
+
+    if (pv.OnEvent(event)) {
+      handled = true;
+      break;
+    }
+  }
+
+  return handled;
+}
+
 ftxui::Element Main::OnRender() {
   static ftxui::FlexboxConfig config = {
       .direction = ftxui::FlexboxConfig::Direction::Column,
@@ -339,7 +360,7 @@ void Main::Handle(uci::command::Info *command) {
   pv.id = command->multipv;
   pv.nps = command->nps;
   pv.depth = command->depth;
-  pv.score = *command->score;
+  pv.nps = command->nps;
   pv.value = command->score->value / 100.00;
 
   pv.moves.clear();
@@ -436,7 +457,7 @@ void Main::OnChange(const tui::EngineOption *option) {
     auto it = pvs_.begin() + std::get<std::int64_t>(command.value);
 
     for (; it != pvs_.end(); it++) {
-      if (it->id < 1) {
+      if (!it->id) {
         break;
       }
 
@@ -448,7 +469,7 @@ void Main::OnChange(const tui::EngineOption *option) {
 }
 
 void Main::Start() {
-  if (!running_) {
+  if (!running_ && (engine_attrs_ & attrs::UCI)) {
     running_ = true;
     engine_.Send(uci::command::Position(fen_));
     engine_.Send(uci::command::Go());
@@ -499,10 +520,11 @@ void Main::ShowEngineInfo() {
 ftxui::Element Main::RenderMoves() {
   ftxui::Elements pvs;
   std::lock_guard lock(mutex_);
+  auto info = ftxui::emptyElement();
 
-  for (const PV &pv : pvs_) {
-    if (pv.id < 1) {
-      continue;
+  for (PV &pv : pvs_) {
+    if (!pv.id) {
+      break;
     }
 
     pvs.push_back(pv.Render());
@@ -512,8 +534,13 @@ ftxui::Element Main::RenderMoves() {
     }
   }
 
+  if (pvs_[0].id) {
+    auto str = std::format("depth: {} nps: {}", pvs_[0].depth, pvs_[0].nps);
+    info = ftxui::text(str);
+  }
+
   return ftxui::vbox({
-      ftxui::hbox({ftxui::text("Moves")}),
+      ftxui::hbox({ftxui::text("Moves"), ftxui::separator(), info}),
       ftxui::separator(),
       ftxui::vbox(pvs),
   });
@@ -539,14 +566,28 @@ ftxui::Element Main::RenderStatusBar() {
   return view_->RenderStatusBar(items);
 }
 
-ftxui::Element Main::PV::Render() const {
+bool Main::PV::OnEvent(ftxui::Event &event) {
+  if (event.is_mouse()) {
+    const auto &mouse = event.mouse();
+
+    if (mouse.motion == ftxui::Mouse::Motion::Pressed &&
+        mouse.button == ftxui::Mouse::Button::Left &&
+        box.Contain(mouse.x, mouse.y)) {
+      show_all_moves = !show_all_moves;
+
+      return true;
+    }
+  }
+
+  return false;
+}
+
+ftxui::Element Main::PV::Render() {
   int index = 1;
-  ftxui::Elements attrs;
+  ftxui::Elements els;
   auto it = moves.begin();
 
   while (it != moves.end()) {
-    ftxui::Elements els;
-
     els.push_back(ftxui::text(std::format("{}. ", index)));
     els.push_back(ftxui::text(*it));
 
@@ -563,12 +604,36 @@ ftxui::Element Main::PV::Render() const {
     }
 
     index++;
-
-    attrs.push_back(ftxui::hbox(els));
   }
 
-  return ftxui::hbox({ftxui::text(std::format("{:+.2f}", value)),
-                      ftxui::separator(), ftxui::hflow(attrs)});
+  auto other = ftxui::text(kCaretUp);
+
+  auto el = ftxui::hbox({
+                ftxui::text(std::format("{:+.2f}", value)),
+                ftxui::separator(),
+                ftxui::hflow(els),
+            }) |
+            ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 55);
+
+  if (!show_all_moves) {
+    el |= ftxui::size(ftxui::HEIGHT, ftxui::EQUAL, 1);
+
+    other = ftxui::text(kCaretDown);
+  }
+
+  static const auto config =
+      ftxui::FlexboxConfig()
+          .Set(ftxui::FlexboxConfig::Wrap::NoWrap)
+          .Set(ftxui::FlexboxConfig::Direction::Row)
+          .Set(ftxui::FlexboxConfig::JustifyContent::SpaceBetween);
+
+  return ftxui::flexbox(
+             {
+                 el | ftxui::flex_grow,
+                 other | ftxui::flex_shrink,
+             },
+             config) |
+         ftxui::reflect(box);
 }
 
 }  // namespace analyze
