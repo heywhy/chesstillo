@@ -36,6 +36,7 @@ enable_testing()
 add_subdirectory(uci)
 add_subdirectory(tui)
 add_subdirectory(engine)
+add_subdirectory(nn)
 
 # add_library(chesstillo_lib
 #   STATIC
