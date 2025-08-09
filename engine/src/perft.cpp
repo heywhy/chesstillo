@@ -15,7 +15,7 @@
 #include "engine/position.hpp"
 #include "engine/scheduler.hpp"
 #include "engine/types.hpp"
-#include "engine/utility.hpp"
+#include "engine/utils.hpp"
 
 using namespace engine;
 

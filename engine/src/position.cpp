@@ -10,7 +10,7 @@
 #include "engine/position.hpp"
 #include "engine/square.hpp"
 #include "engine/types.hpp"
-#include "engine/utility.hpp"
+#include "engine/utils.hpp"
 
 namespace engine {
 namespace position {

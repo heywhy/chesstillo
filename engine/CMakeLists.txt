@@ -9,7 +9,7 @@ format(engine "${ENGINE_SRC}")
 add_library(engine
   STATIC
   src/initializer.cpp
-  src/utility.cpp
+  src/utils.cpp
   src/board.cpp
   src/position.cpp
   src/fen.cpp

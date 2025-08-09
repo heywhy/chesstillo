@@ -1,5 +1,5 @@
-#ifndef ENGINE_UTILITY_HPP
-#define ENGINE_UTILITY_HPP
+#ifndef ENGINE_UTILS_HPP
+#define ENGINE_UTILS_HPP
 
 #include <cstddef>
 

@@ -4,7 +4,7 @@
 #include "engine/position.hpp"
 #include "engine/transposition.hpp"
 #include "engine/types.hpp"
-#include "engine/utility.hpp"
+#include "engine/utils.hpp"
 
 using namespace engine;
 

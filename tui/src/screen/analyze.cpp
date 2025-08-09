@@ -19,7 +19,7 @@
 #include "engine/position.hpp"
 #include "engine/square.hpp"
 #include "engine/types.hpp"
-#include "engine/utility.hpp"
+#include "engine/utils.hpp"
 #include "uci/command.hpp"
 #include "uci/engine.hpp"
 #include "uci/types.hpp"

@@ -5,7 +5,7 @@
 #include "engine/move.hpp"
 #include "engine/square.hpp"
 #include "engine/types.hpp"
-#include "engine/utility.hpp"
+#include "engine/utils.hpp"
 
 namespace engine {
 
