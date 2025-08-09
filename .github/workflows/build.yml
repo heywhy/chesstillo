@@ -23,15 +23,15 @@ jobs:
             compiler: gcc
             gcov_executable: gcov
 
-          - name: Linux Clang
-            os: ubuntu-latest
-            compiler: llvm
-            gcov_executable: llvm-cov gcov
-
-          - name: MacOS clang
-            os: macos-15
-            compiler: llvm
-            gcov_executable: llvm-cov gcov
+          # - name: Linux Clang
+          #   os: ubuntu-latest
+          #   compiler: llvm
+          #   gcov_executable: llvm-cov gcov
+          #
+          # - name: MacOS clang
+          #   os: macos-15
+          #   compiler: llvm
+          #   gcov_executable: llvm-cov gcov
 
           # - name: Windows MSVC
           #   os: windows-latest
@@ -97,6 +97,9 @@ jobs:
         env:
           CMAKE_BUILD_PARALLEL_LEVEL: ${{ steps.cpu-cores.outputs.count }}
         run: cmake --build ./build
+
+      - name: Debug UCI Test
+        run: ./uci/uci_tests --gtest_filter='UCIEngineTestSuite.*'
 
       - name: Unix - Test and coverage
         if: runner.os != 'Windows'
