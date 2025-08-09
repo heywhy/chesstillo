@@ -61,6 +61,11 @@ jobs:
           gcovr: 8.3
           opencppcoverage: true
 
+      - name: Setup Erlang & Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          version-file: ./nn/.tool-versions
+
       - name: Install Stockfish tools for Ubuntu
         if: ${{ contains(matrix.os, 'ubuntu') }}
         run: sudo apt-get install -y stockfish
