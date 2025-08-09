@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
 
-#include <engine/move.hpp>
-#include <engine/position.hpp>
-#include <engine/transposition.hpp>
-#include <engine/types.hpp>
-#include <engine/utility.hpp>
+#include "engine/move.hpp"
+#include "engine/position.hpp"
+#include "engine/transposition.hpp"
+#include "engine/types.hpp"
+#include "engine/utility.hpp"
 
 using namespace engine;
 

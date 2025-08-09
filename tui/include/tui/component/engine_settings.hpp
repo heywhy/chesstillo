@@ -8,7 +8,7 @@
 
 #include <ftxui/component/component_base.hpp>
 
-#include <tui/config.hpp>
+#include "tui/config.hpp"
 
 namespace tui {
 namespace component {

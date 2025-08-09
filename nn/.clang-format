@@ -3,12 +3,12 @@ BasedOnStyle: InheritParentConfig
 ---
 Language: Cpp
 IncludeCategories:
-  - Regex:           '^(<(boost|gmock|gtest)/)'
-    Priority:        -1
-  - Regex:           '<erl_nif.h>'
-    Priority:        -1
-  - Regex:           '<[[:alnum:]._]+>'
+  - Regex:           '^<(boost|erl_nif|gmock|gtest)/?'
     Priority:        -2
-  - Regex:           '^"(engine|nn|uci)/'
+  - Regex:           '<[[:alnum:]._]+>'
+    Priority:        -3
+  - Regex:           '^"(engine|uci)/'
+    Priority:        -1
+  - Regex:           '^"nn/'
     Priority:        0
 ---

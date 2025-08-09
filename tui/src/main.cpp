@@ -1,7 +1,9 @@
 #include <ftxui/component/component_base.hpp>
-#include <uci/uci.hpp>
 
-#include <tui/tui.hpp>
+#include "tui/hooks.hpp"
+#include "tui/screen/home.hpp"
+#include "tui/theme.hpp"
+#include "tui/utility.hpp"
 
 using namespace tui;
 

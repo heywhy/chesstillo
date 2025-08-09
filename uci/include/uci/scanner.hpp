@@ -3,7 +3,7 @@
 
 #include <string_view>
 
-#include <uci/types.hpp>
+#include "types.hpp"
 
 #define TOKENIZE(output, input)         \
   {                                     \

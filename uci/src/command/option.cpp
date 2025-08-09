@@ -6,9 +6,9 @@
 #include <unordered_map>
 #include <variant>
 
-#include <uci/command.hpp>
-#include <uci/parser.hpp>
-#include <uci/types.hpp>
+#include "uci/command.hpp"
+#include "uci/parser.hpp"
+#include "uci/types.hpp"
 
 namespace uci {
 std::unique_ptr<Command> Parser::Option() {

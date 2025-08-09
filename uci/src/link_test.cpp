@@ -5,7 +5,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <uci/link.hpp>
+#include "uci/link.hpp"
 
 using namespace uci;
 

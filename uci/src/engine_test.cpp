@@ -6,7 +6,10 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <uci/uci.hpp>
+#include "uci/command.hpp"
+#include "uci/engine.hpp"
+#include "uci/ui.hpp"
+#include "uci/utils.hpp"
 
 using namespace std::chrono_literals;
 using namespace testing;
@@ -35,7 +38,7 @@ class UCIEngineTestSuite : public Test {
   Engine engine{path_to_exe, &ui};
 };
 
-TEST_F(UCIEngineTestSuite, SendCommand) {
+TEST_F(UCIEngineTestSuite, TestSendCommand) {
   std::unique_lock lock(ui.mutex);
 
   ON_CALL(ui, Handle(testing::A<command::Input *>()))

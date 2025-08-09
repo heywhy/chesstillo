@@ -5,9 +5,9 @@
 
 #include <ftxui/component/component_base.hpp>
 
-#include <tui/component/command_input.hpp>
-#include <tui/component/modal_view.hpp>
-#include <tui/mapping.hpp>
+#include "tui/component/command_input.hpp"
+#include "tui/component/modal_view.hpp"
+#include "tui/mapping.hpp"
 
 namespace tui {
 namespace component {

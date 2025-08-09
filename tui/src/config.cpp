@@ -1,9 +1,10 @@
 #include <cstdint>
 #include <string>
 
-#include <uci/uci.hpp>
+#include "uci/command.hpp"
+#include "uci/types.hpp"
 
-#include <tui/config.hpp>
+#include "tui/config.hpp"
 
 namespace tui {
 

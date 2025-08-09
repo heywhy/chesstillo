@@ -4,8 +4,8 @@
 #include <memory>
 #include <stdexcept>
 
-#include <uci/command.hpp>
-#include <uci/types.hpp>
+#include "command.hpp"
+#include "types.hpp"
 
 #define PARSE(expr, tokens)                                 \
   {                                                         \

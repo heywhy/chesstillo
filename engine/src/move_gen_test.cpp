@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <engine/position.hpp>
-#include <engine/types.hpp>
+#include "engine/position.hpp"
 
 using namespace engine;
 

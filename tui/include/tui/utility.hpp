@@ -9,7 +9,7 @@
 
 #include <ftxui/component/component_base.hpp>
 
-#include <tui/contracts.hpp>
+#include "tui/contracts.hpp"
 
 #define NAVIGATE(component)                               \
   {                                                       \

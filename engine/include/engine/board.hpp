@@ -1,5 +1,5 @@
-#ifndef BOARD_HPP
-#define BOARD_HPP
+#ifndef ENGINE_BOARD_HPP
+#define ENGINE_BOARD_HPP
 
 #include <cstdint>
 

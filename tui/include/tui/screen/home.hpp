@@ -3,7 +3,7 @@
 
 #include <ftxui/component/component_base.hpp>
 
-#include <tui/theme.hpp>
+#include "tui/theme.hpp"
 
 namespace tui {
 namespace screen {

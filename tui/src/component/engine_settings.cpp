@@ -5,12 +5,13 @@
 #include <string_view>
 
 #include <ftxui/component/component.hpp>
-#include <uci/uci.hpp>
 
-#include <tui/color.hpp>
-#include <tui/component/engine_settings.hpp>
-#include <tui/config.hpp>
-#include <tui/utility.hpp>
+#include "uci/types.hpp"
+
+#include "tui/color.hpp"
+#include "tui/component/engine_settings.hpp"
+#include "tui/config.hpp"
+#include "tui/utility.hpp"
 
 namespace tui {
 namespace component {

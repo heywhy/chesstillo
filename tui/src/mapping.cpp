@@ -15,8 +15,8 @@
 
 #include <ftxui/component/event.hpp>
 
-#include <tui/constants.hpp>
-#include <tui/mapping.hpp>
+#include "tui/constants.hpp"
+#include "tui/mapping.hpp"
 
 namespace tui {
 

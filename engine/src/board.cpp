@@ -1,10 +1,9 @@
 #include <cstdint>
 
-#include <engine/board.hpp>
-#include <engine/constants.hpp>
-#include <engine/square.hpp>
-#include <engine/types.hpp>
-#include <engine/utility.hpp>
+#include "engine/board.hpp"
+#include "engine/constants.hpp"
+#include "engine/square.hpp"
+#include "engine/types.hpp"
 
 namespace engine {
 

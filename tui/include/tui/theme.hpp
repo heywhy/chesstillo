@@ -1,7 +1,6 @@
 #ifndef TUI_THEME_HPP
 #define TUI_THEME_HPP
 
-#include <engine/engine.hpp>
 #include <ftxui/screen/color.hpp>
 
 namespace tui {

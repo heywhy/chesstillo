@@ -6,11 +6,11 @@
 #include <ftxui/component/event.hpp>
 #include <ftxui/component/screen_interactive.hpp>
 
-#include <tui/component/command_input.hpp>
-#include <tui/component/modal_view.hpp>
-#include <tui/component/view.hpp>
-#include <tui/mapping.hpp>
-#include <tui/utility.hpp>
+#include "tui/component/command_input.hpp"
+#include "tui/component/modal_view.hpp"
+#include "tui/component/view.hpp"
+#include "tui/mapping.hpp"
+#include "tui/utility.hpp"
 
 namespace tui {
 namespace component {

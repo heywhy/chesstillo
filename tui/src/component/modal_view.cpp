@@ -7,10 +7,8 @@
 #include <ftxui/component/event.hpp>
 #include <ftxui/component/screen_interactive.hpp>
 
-#include <tui/component/modal_view.hpp>
-#include <tui/contracts.hpp>
-#include <tui/mapping.hpp>
-#include <tui/utility.hpp>
+#include "tui/component/modal_view.hpp"
+#include "tui/mapping.hpp"
 
 using namespace std::chrono_literals;
 

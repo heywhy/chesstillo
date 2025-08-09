@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string>
 
-#include <uci/command.hpp>
+#include "command.hpp"
 
 namespace uci {
 class Link : Visitor {

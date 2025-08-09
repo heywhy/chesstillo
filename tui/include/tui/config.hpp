@@ -7,7 +7,8 @@
 #include <variant>
 #include <vector>
 
-#include <uci/uci.hpp>
+#include "uci/command.hpp"
+#include "uci/types.hpp"
 
 namespace tui {
 class Config {};

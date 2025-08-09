@@ -3,8 +3,8 @@
 
 #include <boost/process/v2/environment.hpp>
 
-#include <uci/command.hpp>
-#include <uci/types.hpp>
+#include "uci/command.hpp"
+#include "uci/types.hpp"
 
 namespace process = boost::process;
 

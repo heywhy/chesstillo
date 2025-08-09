@@ -2,9 +2,9 @@
 #include <string>
 #include <string_view>
 
-#include <uci/command.hpp>
-#include <uci/parser.hpp>
-#include <uci/types.hpp>
+#include "uci/command.hpp"
+#include "uci/parser.hpp"
+#include "uci/types.hpp"
 
 namespace uci {
 std::unique_ptr<Command> Parser::Debug() {

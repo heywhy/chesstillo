@@ -1,17 +1,17 @@
 #include <cstdarg>
 #include <cstddef>
-#include <magic_bits.hpp>
 #include <tuple>
 #include <utility>
 
-#include <engine/board.hpp>
-#include <engine/constants.hpp>
-#include <engine/move.hpp>
-#include <engine/move_gen.hpp>
-#include <engine/position.hpp>
-#include <engine/square.hpp>
-#include <engine/types.hpp>
-#include <engine/utility.hpp>
+#include <magic_bits.hpp>
+
+#include "engine/board.hpp"
+#include "engine/constants.hpp"
+#include "engine/move.hpp"
+#include "engine/move_gen.hpp"
+#include "engine/position.hpp"
+#include "engine/square.hpp"
+#include "engine/types.hpp"
 
 namespace engine {
 

@@ -1,5 +1,5 @@
-#ifndef THREADS_HPP
-#define THREADS_HPP
+#ifndef ENGINE_THREADS_HPP
+#define ENGINE_THREADS_HPP
 
 #include <atomic>
 

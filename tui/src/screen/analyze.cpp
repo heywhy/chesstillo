@@ -11,23 +11,35 @@
 #include <variant>
 #include <vector>
 
-#include <engine/engine.hpp>
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/event.hpp>
 #include <ftxui/component/screen_interactive.hpp>
-#include <uci/uci.hpp>
 
-#include <tui/color.hpp>
-#include <tui/component/modal_view.hpp>
-#include <tui/config.hpp>
-#include <tui/constants.hpp>
-#include <tui/contracts.hpp>
-#include <tui/fonts.hpp>
-#include <tui/mapping.hpp>
-#include <tui/screen/analyze.hpp>
-#include <tui/theme.hpp>
-#include <tui/types.hpp>
-#include <tui/utility.hpp>
+#include "engine/move.hpp"
+#include "engine/position.hpp"
+#include "engine/square.hpp"
+#include "engine/types.hpp"
+#include "engine/utility.hpp"
+#include "uci/command.hpp"
+#include "uci/engine.hpp"
+#include "uci/types.hpp"
+#include "uci/utils.hpp"
+
+#include "tui/color.hpp"
+#include "tui/component/chessboard.hpp"
+#include "tui/component/engine_settings.hpp"
+#include "tui/component/input.hpp"
+#include "tui/component/modal_view.hpp"
+#include "tui/component/square.hpp"
+#include "tui/component/view.hpp"
+#include "tui/config.hpp"
+#include "tui/constants.hpp"
+#include "tui/fonts.hpp"
+#include "tui/mapping.hpp"
+#include "tui/screen/analyze.hpp"
+#include "tui/theme.hpp"
+#include "tui/types.hpp"
+#include "tui/utility.hpp"
 
 using namespace std::chrono_literals;
 

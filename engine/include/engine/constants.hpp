@@ -1,7 +1,8 @@
-#ifndef CONSTANTS_HPP
-#define CONSTANTS_HPP
+#ifndef ENGINE_CONSTANTS_HPP
+#define ENGINE_CONSTANTS_HPP
 
 #include <array>
+
 #include <magic_bits.hpp>
 
 #include "types.hpp"

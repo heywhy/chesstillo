@@ -1,5 +1,5 @@
-#ifndef TYPES_HPP
-#define TYPES_HPP
+#ifndef ENGINE_TYPES_HPP
+#define ENGINE_TYPES_HPP
 
 #include <array>
 #include <cstdint>

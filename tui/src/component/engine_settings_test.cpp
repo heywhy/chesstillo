@@ -1,9 +1,9 @@
 #include <ftxui/component/component.hpp>
 #include <gtest/gtest.h>
 
-#include <tui/component/engine_settings.hpp>
-#include <tui/config.hpp>
-#include <tui/utility.hpp>
+#include "tui/component/engine_settings.hpp"
+#include "tui/config.hpp"
+#include "tui/utility.hpp"
 
 using namespace tui;
 

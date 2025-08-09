@@ -4,9 +4,9 @@ BasedOnStyle: InheritParentConfig
 Language: Cpp
 IncludeCategories:
   - Regex:           '^<(boost|gmock|gtest)/'
-    Priority:        2
-  - Regex:           '^<uci/'
-    Priority:        3
+    Priority:        -1
   - Regex:           '<[[:alnum:]._]+>'
-    Priority:        1
+    Priority:        -2
+  - Regex:           '^("uci)/'
+    Priority:        0
 ---

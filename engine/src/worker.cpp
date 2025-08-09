@@ -3,9 +3,9 @@
 #include <mutex>
 #include <thread>
 
-#include <engine/move.hpp>
-#include <engine/search.hpp>
-#include <engine/types.hpp>
+#include "engine/move.hpp"
+#include "engine/search.hpp"
+#include "engine/types.hpp"
 
 namespace engine {
 namespace search {

@@ -1,5 +1,5 @@
-#ifndef MOVE_HPP
-#define MOVE_HPP
+#ifndef ENGINE_MOVE_HPP
+#define ENGINE_MOVE_HPP
 
 #include <cstddef>
 #include <cstdint>

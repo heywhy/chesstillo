@@ -5,8 +5,8 @@
 
 #include <ftxui/component/component_base.hpp>
 
-#include <tui/component/square.hpp>
-#include <tui/theme.hpp>
+#include "tui/component/square.hpp"
+#include "tui/theme.hpp"
 
 namespace tui {
 namespace component {

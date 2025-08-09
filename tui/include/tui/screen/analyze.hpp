@@ -9,15 +9,20 @@
 #include <thread>
 #include <vector>
 
-#include <engine/engine.hpp>
 #include <ftxui/component/component_base.hpp>
-#include <uci/uci.hpp>
 
-#include <tui/components.hpp>
-#include <tui/config.hpp>
-#include <tui/contracts.hpp>
-#include <tui/theme.hpp>
-#include <tui/types.hpp>
+#include "engine/position.hpp"
+#include "uci/command.hpp"
+#include "uci/engine.hpp"
+#include "uci/ui.hpp"
+
+#include "tui/component/chessboard.hpp"
+#include "tui/component/input.hpp"
+#include "tui/component/square.hpp"
+#include "tui/component/view.hpp"
+#include "tui/config.hpp"
+#include "tui/theme.hpp"
+#include "tui/types.hpp"
 
 namespace tui {
 namespace screen {

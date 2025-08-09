@@ -1,6 +1,7 @@
-#include <uci/uci.hpp>
+#include "uci/command.hpp"
+#include "uci/link.hpp"
 
-#include <engine/uci.hpp>
+#include "engine/uci.hpp"
 
 static command::ID kEngineAuthor(command::ID::Type::AUTHOR, "Rasheed Atanda");
 static command::ID kEngineName(command::ID::Type::NAME, "Chesstillo 0.1");

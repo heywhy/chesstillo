@@ -1,7 +1,7 @@
 #include <ftxui/component/component_base.hpp>
 #include <ftxui/component/event.hpp>
 
-#include <tui/component/scroll_view.hpp>
+#include "tui/component/scroll_view.hpp"
 
 namespace tui {
 namespace component {

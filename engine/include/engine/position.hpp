@@ -1,5 +1,5 @@
-#ifndef POSITION_HPP
-#define POSITION_HPP
+#ifndef ENGINE_POSITION_HPP
+#define ENGINE_POSITION_HPP
 
 #include <cstdint>
 #include <stack>

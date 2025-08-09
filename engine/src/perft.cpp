@@ -9,14 +9,13 @@
 #include <unordered_map>
 #include <vector>
 
-#include <engine/board.hpp>
-#include <engine/constants.hpp>
-#include <engine/move.hpp>
-#include <engine/move_gen.hpp>
-#include <engine/position.hpp>
-#include <engine/scheduler.hpp>
-#include <engine/types.hpp>
-#include <engine/utility.hpp>
+#include "engine/constants.hpp"
+#include "engine/move.hpp"
+#include "engine/move_gen.hpp"
+#include "engine/position.hpp"
+#include "engine/scheduler.hpp"
+#include "engine/types.hpp"
+#include "engine/utility.hpp"
 
 using namespace engine;
 

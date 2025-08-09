@@ -10,11 +10,11 @@
 #include <boost/system/system_error.hpp>
 #include <boost/throw_exception.hpp>
 
-#include <uci/command.hpp>
-#include <uci/engine.hpp>
-#include <uci/parser.hpp>
-#include <uci/scanner.hpp>
-#include <uci/types.hpp>
+#include "uci/command.hpp"
+#include "uci/engine.hpp"
+#include "uci/parser.hpp"
+#include "uci/scanner.hpp"
+#include "uci/types.hpp"
 
 namespace asio = boost::asio;
 namespace bsystem = boost::system;

@@ -1,5 +1,5 @@
-#ifndef MOVE_GEN_HPP
-#define MOVE_GEN_HPP
+#ifndef ENGINE_MOVE_GEN_HPP
+#define ENGINE_MOVE_GEN_HPP
 
 #include <utility>
 

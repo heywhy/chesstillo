@@ -3,9 +3,10 @@
 
 #include <string>
 
-#include <uci/uci.hpp>
+#include "uci/command.hpp"
+#include "uci/link.hpp"
 
-#include <engine/position.hpp>
+#include "engine/position.hpp"
 
 namespace command = uci::command;
 

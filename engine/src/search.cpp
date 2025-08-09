@@ -3,12 +3,12 @@
 #include <cstddef>
 #include <cstdio>
 
-#include <engine/config.hpp>
-#include <engine/evaluation.hpp>
-#include <engine/move.hpp>
-#include <engine/move_gen.hpp>
-#include <engine/search.hpp>
-#include <engine/types.hpp>
+#include "engine/config.hpp"
+#include "engine/evaluation.hpp"
+#include "engine/move.hpp"
+#include "engine/move_gen.hpp"
+#include "engine/search.hpp"
+#include "engine/types.hpp"
 
 namespace engine {
 

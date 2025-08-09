@@ -1,5 +1,5 @@
-#ifndef EVALUATION_HPP
-#define EVALUATION_HPP
+#ifndef ENGINE_EVALUATION_HPP
+#define ENGINE_EVALUATION_HPP
 
 #include <tuple>
 #include <utility>

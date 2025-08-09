@@ -1,12 +1,9 @@
 #include <cstdint>
 
-#include <engine/hash.hpp>
-#include <engine/move_gen.hpp>
-#include <engine/position.hpp>
-#include <engine/square.hpp>
-#include <engine/threads.hpp>
-#include <engine/transposition.hpp>
-#include <engine/types.hpp>
+#include "engine/position.hpp"
+#include "engine/threads.hpp"
+#include "engine/transposition.hpp"
+#include "engine/types.hpp"
 
 namespace engine {
 

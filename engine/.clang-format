@@ -3,10 +3,12 @@ BasedOnStyle: InheritParentConfig
 ---
 Language: Cpp
 IncludeCategories:
-  - Regex:           '^(<(boost|ftxui|gmock|gtest|uci)/)'
-    Priority:        2
-  - Regex:           '^<engine/'
-    Priority:        3
+  - Regex:           '^<(boost|gmock|gtest|magic_bits)/?'
+    Priority:        -2
   - Regex:           '<[[:alnum:]._]+>'
-    Priority:        1
+    Priority:        -3
+  - Regex:           '^"uci/'
+    Priority:        -1
+  - Regex:           '^"engine/'
+    Priority:        0
 ---

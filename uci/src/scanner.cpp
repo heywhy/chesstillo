@@ -3,8 +3,8 @@
 #include <string_view>
 #include <unordered_map>
 
-#include <uci/scanner.hpp>
-#include <uci/types.hpp>
+#include "uci/scanner.hpp"
+#include "uci/types.hpp"
 
 namespace uci {
 static const std::unordered_map<std::string_view, uci::TokenType> kKeywords{

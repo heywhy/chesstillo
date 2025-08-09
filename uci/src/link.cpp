@@ -5,11 +5,11 @@
 #include <string>
 #include <utility>
 
-#include <uci/command.hpp>
-#include <uci/link.hpp>
-#include <uci/parser.hpp>
-#include <uci/scanner.hpp>
-#include <uci/types.hpp>
+#include "uci/command.hpp"
+#include "uci/link.hpp"
+#include "uci/parser.hpp"
+#include "uci/scanner.hpp"
+#include "uci/types.hpp"
 
 namespace uci {
 constexpr const char *kUnknownMsg = "Error at '{}': Unknown command.";

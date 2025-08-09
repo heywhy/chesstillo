@@ -2,10 +2,9 @@
 #include <cstddef>
 #include <mutex>
 
-#include <engine/config.hpp>
-#include <engine/move.hpp>
-#include <engine/search.hpp>
-#include <engine/types.hpp>
+#include "engine/config.hpp"
+#include "engine/move.hpp"
+#include "engine/search.hpp"
 
 namespace engine {
 namespace search {

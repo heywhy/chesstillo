@@ -1,7 +1,7 @@
 #ifndef UCI_UI_HPP
 #define UCI_UI_HPP
 
-#include <uci/command.hpp>
+#include "command.hpp"
 
 namespace uci {
 struct UI {

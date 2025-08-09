@@ -1,5 +1,5 @@
-#ifndef OPTIONS_HPP
-#define OPTIONS_HPP
+#ifndef ENGINE_OPTIONS_HPP
+#define ENGINE_OPTIONS_HPP
 
 namespace engine {
 

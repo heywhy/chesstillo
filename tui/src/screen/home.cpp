@@ -1,9 +1,9 @@
 #include <ftxui/component/component_base.hpp>
 #include <ftxui/component/event.hpp>
 
-#include <tui/screen/analyze.hpp>
-#include <tui/screen/home.hpp>
-#include <tui/utility.hpp>
+#include "tui/screen/analyze.hpp"
+#include "tui/screen/home.hpp"
+#include "tui/utility.hpp"
 
 namespace tui {
 namespace screen {

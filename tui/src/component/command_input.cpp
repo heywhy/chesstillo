@@ -2,7 +2,7 @@
 
 #include <ftxui/component/component.hpp>
 
-#include <tui/component/command_input.hpp>
+#include "tui/component/command_input.hpp"
 
 namespace tui {
 namespace component {

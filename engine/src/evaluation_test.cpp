@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
-#include <engine/evaluation.hpp>
-#include <engine/position.hpp>
-#include <engine/types.hpp>
+#include "engine/evaluation.hpp"
+#include "engine/position.hpp"
+#include "engine/types.hpp"
 
 using namespace engine;
 

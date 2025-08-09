@@ -1,5 +1,5 @@
-#ifndef TRANSPOSITION_HPP
-#define TRANSPOSITION_HPP
+#ifndef ENGINE_TRANSPOSITION_HPP
+#define ENGINE_TRANSPOSITION_HPP
 
 #include <cstddef>
 #include <cstdint>

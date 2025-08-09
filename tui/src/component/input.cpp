@@ -5,7 +5,7 @@
 
 #include <ftxui/component/component.hpp>
 
-#include <tui/component/input.hpp>
+#include "tui/component/input.hpp"
 
 namespace tui {
 namespace component {

@@ -7,12 +7,11 @@
 #include <thread>
 #include <vector>
 
-#include <engine/config.hpp>
-#include <engine/move.hpp>
-#include <engine/position.hpp>
-#include <engine/threads.hpp>
-#include <engine/transposition.hpp>
-#include <engine/types.hpp>
+#include "move.hpp"
+#include "position.hpp"
+#include "threads.hpp"
+#include "transposition.hpp"
+#include "types.hpp"
 
 namespace engine {
 class Search;

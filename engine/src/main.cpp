@@ -1,5 +1,5 @@
-#include <engine/position.hpp>
-#include <engine/uci.hpp>
+#include "engine/position.hpp"
+#include "engine/uci.hpp"
 
 int main() {
   engine::Position position;

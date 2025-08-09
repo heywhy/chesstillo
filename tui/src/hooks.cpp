@@ -2,8 +2,7 @@
 #include <ftxui/component/event.hpp>
 #include <ftxui/component/screen_interactive.hpp>
 
-#include <tui/hooks.hpp>
-#include <tui/utility.hpp>
+#include "tui/hooks.hpp"
 
 namespace tui {
 namespace hooks {

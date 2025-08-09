@@ -5,10 +5,10 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <tui/component/modal_view.hpp>
-#include <tui/component/view.hpp>
-#include <tui/mapping.hpp>
-#include <tui/utility.hpp>
+#include "tui/component/modal_view.hpp"
+#include "tui/component/view.hpp"
+#include "tui/mapping.hpp"
+#include "tui/utility.hpp"
 
 using namespace tui;
 

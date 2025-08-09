@@ -4,7 +4,7 @@
 
 #include <ftxui/component/component.hpp>
 
-#include <tui/component/switch.hpp>
+#include "tui/component/switch.hpp"
 
 namespace tui {
 namespace component {

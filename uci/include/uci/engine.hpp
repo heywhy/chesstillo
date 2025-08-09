@@ -8,8 +8,8 @@
 #include <boost/asio.hpp>
 #include <boost/process.hpp>
 
-#include <uci/command.hpp>
-#include <uci/ui.hpp>
+#include "command.hpp"
+#include "ui.hpp"
 
 namespace asio = boost::asio;
 namespace process = boost::process;

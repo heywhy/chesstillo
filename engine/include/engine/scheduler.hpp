@@ -1,5 +1,5 @@
-#ifndef SCHEDULER_HPP
-#define SCHEDULER_HPP
+#ifndef ENGINE_SCHEDULER_HPP
+#define ENGINE_SCHEDULER_HPP
 
 #include <condition_variable>
 #include <cstddef>

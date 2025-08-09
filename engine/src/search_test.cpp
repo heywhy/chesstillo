@@ -2,9 +2,9 @@
 
 #include <gtest/gtest.h>
 
-#include <engine/position.hpp>
-#include <engine/search.hpp>
-#include <engine/transposition.hpp>
+#include "engine/position.hpp"
+#include "engine/search.hpp"
+#include "engine/transposition.hpp"
 
 using namespace engine;
 

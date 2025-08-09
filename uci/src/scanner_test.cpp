@@ -2,8 +2,8 @@
 
 #include <gtest/gtest.h>
 
-#include <uci/scanner.hpp>
-#include <uci/types.hpp>
+#include "uci/scanner.hpp"
+#include "uci/types.hpp"
 
 using namespace uci;
 

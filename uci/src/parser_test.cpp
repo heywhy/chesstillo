@@ -4,10 +4,10 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <uci/command.hpp>
-#include <uci/parser.hpp>
-#include <uci/scanner.hpp>
-#include <uci/types.hpp>
+#include "uci/command.hpp"
+#include "uci/parser.hpp"
+#include "uci/scanner.hpp"
+#include "uci/types.hpp"
 
 using namespace uci;
 

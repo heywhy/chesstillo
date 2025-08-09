@@ -12,8 +12,8 @@
 
 #include <ftxui/component/component_base.hpp>
 
-#include <tui/contracts.hpp>
-#include <tui/mapping.hpp>
+#include "tui/contracts.hpp"
+#include "tui/mapping.hpp"
 
 #define MAX_MAPHASH 256
 #define MAX_SEQUENCE_LEN 50

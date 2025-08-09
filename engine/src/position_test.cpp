@@ -3,10 +3,9 @@
 
 #include <gtest/gtest.h>
 
-#include <engine/board.hpp>
-#include <engine/position.hpp>
-#include <engine/types.hpp>
-#include <engine/utility.hpp>
+#include "engine/position.hpp"
+#include "engine/types.hpp"
+#include "engine/utility.hpp"
 
 using namespace engine;
 
