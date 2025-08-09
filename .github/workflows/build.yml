@@ -99,7 +99,7 @@ jobs:
         run: cmake --build ./build
 
       - name: Debug UCI Test
-        run: ./uci/uci_tests --gtest_filter='UCIEngineTestSuite.*'
+        run: ./build/uci/uci_tests --gtest_filter='UCIEngineTestSuite.*'
 
       - name: Unix - Test and coverage
         if: runner.os != 'Windows'
