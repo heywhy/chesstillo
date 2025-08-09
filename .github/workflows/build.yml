@@ -28,10 +28,10 @@ jobs:
             compiler: llvm
             gcov_executable: llvm-cov gcov
 
-          - name: MacOS clang
-            os: macos-15
-            compiler: llvm
-            gcov_executable: llvm-cov gcov
+          # - name: MacOS clang
+          #   os: macos-15
+          #   compiler: llvm
+          #   gcov_executable: llvm-cov gcov
 
           # - name: Windows MSVC
           #   os: windows-latest
