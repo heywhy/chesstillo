@@ -1,5 +1,4 @@
 #include <cstddef>
-#include <iostream>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -61,8 +60,6 @@ void Engine::Loop() {
       std::string line = output.substr(0, size);
 
       output.erase(0, size);
-
-      std::cout << "debug: " << line << std::endl;
 
       TOKENIZE(tokens, line);
 
