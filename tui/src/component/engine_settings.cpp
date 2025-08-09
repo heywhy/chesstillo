@@ -11,7 +11,7 @@
 #include "tui/color.hpp"
 #include "tui/component/engine_settings.hpp"
 #include "tui/config.hpp"
-#include "tui/utility.hpp"
+#include "tui/utils.hpp"
 
 namespace tui {
 namespace component {

@@ -10,7 +10,7 @@
 #include "tui/component/square.hpp"
 #include "tui/constants.hpp"
 #include "tui/theme.hpp"
-#include "tui/utility.hpp"
+#include "tui/utils.hpp"
 
 namespace tui {
 namespace component {

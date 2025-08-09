@@ -3,7 +3,7 @@
 
 #include "tui/component/engine_settings.hpp"
 #include "tui/config.hpp"
-#include "tui/utility.hpp"
+#include "tui/utils.hpp"
 
 using namespace tui;
 

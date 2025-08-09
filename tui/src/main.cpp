@@ -3,7 +3,7 @@
 #include "tui/hooks.hpp"
 #include "tui/screen/home.hpp"
 #include "tui/theme.hpp"
-#include "tui/utility.hpp"
+#include "tui/utils.hpp"
 
 using namespace tui;
 

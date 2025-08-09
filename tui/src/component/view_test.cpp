@@ -8,7 +8,7 @@
 #include "tui/component/modal_view.hpp"
 #include "tui/component/view.hpp"
 #include "tui/mapping.hpp"
-#include "tui/utility.hpp"
+#include "tui/utils.hpp"
 
 using namespace tui;
 

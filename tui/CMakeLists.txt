@@ -14,7 +14,7 @@ add_library(tui
   src/theme.cpp
   src/hooks.cpp
   src/mapping.cpp
-  src/utility.cpp
+  src/utils.cpp
   src/component/chessboard.cpp
   src/component/command_input.cpp
   src/component/engine_settings.cpp

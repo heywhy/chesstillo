@@ -3,7 +3,7 @@
 
 #include "tui/screen/analyze.hpp"
 #include "tui/screen/home.hpp"
-#include "tui/utility.hpp"
+#include "tui/utils.hpp"
 
 namespace tui {
 namespace screen {

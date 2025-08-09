@@ -39,7 +39,7 @@
 #include "tui/screen/analyze.hpp"
 #include "tui/theme.hpp"
 #include "tui/types.hpp"
-#include "tui/utility.hpp"
+#include "tui/utils.hpp"
 
 using namespace std::chrono_literals;
 
