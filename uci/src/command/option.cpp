@@ -91,6 +91,10 @@ type: {
 }
 
 def4ult: {
+  if (IsAtEnd()) {
+    goto maybe_return;
+  }
+
   if (command->type == OptionType::SPIN) {
     const auto &token = Consume(TokenType::NUMBER);
     const auto &literal = std::get<std::int64_t>(token.literal);

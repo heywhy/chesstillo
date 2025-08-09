@@ -1,5 +1,6 @@
 #include <cstdint>
 #include <memory>
+#include <string_view>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -486,6 +487,14 @@ TEST_F(UCIParserTestSuite, TestParseOptionInput) {
   ASSERT_EQ(std::get<std::int64_t>(command->def4ult), 2);
   ASSERT_EQ(command->min, 0);
   ASSERT_EQ(command->max, 4);
+
+  TOKENIZE(tokens, "option name Debug Log File type string default");
+  PARSE(command, tokens);
+
+  ASSERT_NE(command.get(), nullptr);
+  ASSERT_EQ(command->id, "Debug Log File");
+  ASSERT_EQ(command->type, OptionType::STRING);
+  ASSERT_EQ(std::get<std::string_view>(command->def4ult), "");
 
   TOKENIZE(tokens, "option name Nullmove type check default true");
   PARSE(command, tokens);
