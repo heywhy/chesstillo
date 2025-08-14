@@ -14,7 +14,7 @@
 // pawns is 10
 #define MAX_PIECE_NUMBER 10
 #define MAX_MOVES_BUFFER_SIZE 256
-#define IN_CHECK(mask) mask != kUniverse
+#define IN_CHECK(mask) mask != engine::kUniverse
 
 #define MOVE_NORTH(bitboard) bitboard << 8
 #define MOVE_SOUTH(bitboard) bitboard >> 8
@@ -47,9 +47,10 @@
    MOVE_SOUTH_WEST(bitboard))
 
 #define LOOP_INDEX static_cast<int>(_loop_i)
-#define BITLOOP(X)                                                      \
-  for (Bitboard _x_copy = X, _loop_i = square::Index(_x_copy); _x_copy; \
-       _x_copy ^= square::BB(LOOP_INDEX), _loop_i = square::Index(_x_copy))
+#define BITLOOP(X)                                                             \
+  for (engine::Bitboard _x_copy = X, _loop_i = engine::square::Index(_x_copy); \
+       _x_copy; _x_copy ^= engine::square::BB(LOOP_INDEX),                     \
+                        _loop_i = engine::square::Index(_x_copy))
 
 namespace engine {
 

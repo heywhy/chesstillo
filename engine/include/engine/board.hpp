@@ -5,7 +5,7 @@
 
 #include "types.hpp"
 
-#define OPP(turn) static_cast<Color>(turn ^ 1)
+#define OPP(turn) static_cast<engine::Color>(turn ^ 1)
 
 namespace engine {
 

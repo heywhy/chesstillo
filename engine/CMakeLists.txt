@@ -8,6 +8,7 @@ format(engine "${ENGINE_SRC}")
 
 add_library(engine
   STATIC
+  src/tb/tbprobe.cpp
   src/initializer.cpp
   src/utils.cpp
   src/board.cpp

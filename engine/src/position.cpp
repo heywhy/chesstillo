@@ -1,3 +1,4 @@
+#include <cassert>
 #include <tuple>
 #include <utility>
 
@@ -110,6 +111,39 @@ void Position::Reset() {
   for (int i = 0; i < 64; i++) {
     mailbox_[i] = NONE;
   }
+}
+
+void Position::SetPieceAt(Color color, Piece piece, int square) {
+  assert(piece != engine::NONE);
+
+  auto bb = square::BB(square);
+  auto &pieces = board_.pieces[color][piece];
+
+  pieces |= bb;
+
+  mailbox_[square] = piece;
+
+  UpdateInternals();
+}
+
+void Position::UnsetPieceAt(int square) {
+  auto bb = square::BB(square);
+
+  for (int color = 0; bb && color < COLOR; color++) {
+    for (int piece = 0; piece < PIECES; piece++) {
+      auto &pieces = board_.pieces[color][piece];
+
+      if (pieces & bb) {
+        pieces ^= bb;
+        bb ^= bb;
+        mailbox_[square] = engine::NONE;
+
+        break;
+      }
+    }
+  }
+
+  UpdateInternals();
 }
 
 void Position::Make(const Move &move) {

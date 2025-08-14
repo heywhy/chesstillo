@@ -65,6 +65,11 @@ class Position {
   bool PieceAt(char *, int index) const;
   bool PieceAt(Piece *, int index) const;
 
+  void UnsetPieceAt(int square);
+  void SetPieceAt(Color color, Piece piece, int square);
+
+  inline void SetTurn(Color color) { turn_ = color; }
+
   inline Color Turn() const { return turn_; }
   inline Bitboard EnPassantSquare() const { return en_passant_sq_; }
   inline bool CanCastle(Castling flag) const { return castling_rights_ & flag; }

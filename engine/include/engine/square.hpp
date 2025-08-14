@@ -2,6 +2,7 @@
 #define ENGINE_SQUARE_HPP
 
 #include <bit>
+#include <cassert>
 
 #include "constants.hpp"
 #include "types.hpp"
@@ -10,6 +11,8 @@ namespace engine {
 namespace square {
 
 constexpr Bitboard BB(const int square) {
+  assert(0 <= square && square <= 63);
+
   return static_cast<Bitboard>(1) << square;
 }
 
