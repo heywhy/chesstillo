@@ -21,10 +21,16 @@ defmodule Nn.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:axon, "~> 0.7"},
+      # {:axon, "~> 0.7"},
+      {:axon, github: "elixir-nx/axon", override: true},
+      {:csv, "~> 3.2"},
+      {:emlx, github: "elixir-nx/emlx"},
       {:exla, "~> 0.10"},
-      {:nx, "~> 0.10"},
-      {:rein, "~> 0.1"}
+      {:explorer, "~> 0.11"},
+      {:nx, "~> 0.10", override: true},
+      {:polaris, "~> 0.1"},
+      {:rein, "~> 0.1"},
+      {:table_rex, "~> 4.1", override: true}
     ]
   end
 end

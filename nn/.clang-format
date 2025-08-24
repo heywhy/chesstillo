@@ -7,7 +7,7 @@ IncludeCategories:
     Priority:        -2
   - Regex:           '<[[:alnum:]._]+>'
     Priority:        -3
-  - Regex:           '^"(engine|uci)/'
+  - Regex:           '^"(engine|tb|uci)/'
     Priority:        -1
   - Regex:           '^"nn/'
     Priority:        0

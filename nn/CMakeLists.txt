@@ -8,7 +8,8 @@ format(nn "${NN_SRC}")
 add_library(nn
   SHARED
   c_src/nif_utils.cpp
-  c_src/nn.cpp
+  c_src/chess.cpp
+  c_src/module.cpp
 )
 
 if(TARGET nn_format)

@@ -18,21 +18,25 @@
 
 #define MOVE_NORTH(bitboard) bitboard << 8
 #define MOVE_SOUTH(bitboard) bitboard >> 8
-#define MOVE_EAST(bitboard) (bitboard << 1) & ~kAFile
-#define MOVE_NORTH_EAST(bitboard) ((bitboard << 9) & ~kAFile)
-#define MOVE_SOUTH_EAST(bitboard) (bitboard >> 7) & ~kAFile
-#define MOVE_WEST(bitboard) (bitboard >> 1) & ~kHFile
-#define MOVE_SOUTH_WEST(bitboard) (bitboard >> 9) & ~kHFile
-#define MOVE_NORTH_WEST(bitboard) ((bitboard << 7) & ~kHFile)
+#define MOVE_EAST(bitboard) (bitboard << 1) & ~engine::kAFile
+#define MOVE_NORTH_EAST(bitboard) ((bitboard << 9) & ~engine::kAFile)
+#define MOVE_SOUTH_EAST(bitboard) (bitboard >> 7) & ~engine::kAFile
+#define MOVE_WEST(bitboard) (bitboard >> 1) & ~engine::kHFile
+#define MOVE_SOUTH_WEST(bitboard) (bitboard >> 9) & ~engine::kHFile
+#define MOVE_NORTH_WEST(bitboard) ((bitboard << 7) & ~engine::kHFile)
 
-#define MOVE_NORTH_NORTH_EAST(bitboard) (bitboard << 17) & ~kAFile
-#define MOVE_NORTH_EAST_EAST(bitboard) (bitboard << 10) & ~(kAFile | kBFile)
-#define MOVE_SOUTH_EAST_EAST(bitboard) (bitboard >> 6) & ~(kAFile | kBFile)
-#define MOVE_SOUTH_SOUTH_EAST(bitboard) (bitboard >> 15) & ~kAFile
-#define MOVE_NORTH_NORTH_WEST(bitboard) (bitboard << 15) & ~kHFile
-#define MOVE_NORTH_WEST_WEST(bitboard) (bitboard << 6) & ~(kGFile | kHFile)
-#define MOVE_SOUTH_WEST_WEST(bitboard) (bitboard >> 10) & ~(kGFile | kHFile)
-#define MOVE_SOUTH_SOUTH_WEST(bitboard) (bitboard >> 17) & ~kHFile
+#define MOVE_NORTH_NORTH_EAST(bitboard) (bitboard << 17) & ~engine::kAFile
+#define MOVE_NORTH_EAST_EAST(bitboard) \
+  (bitboard << 10) & ~(engine::kAFile | engine::kBFile)
+#define MOVE_SOUTH_EAST_EAST(bitboard) \
+  (bitboard >> 6) & ~(engine::kAFile | engine::kBFile)
+#define MOVE_SOUTH_SOUTH_EAST(bitboard) (bitboard >> 15) & ~engine::kAFile
+#define MOVE_NORTH_NORTH_WEST(bitboard) (bitboard << 15) & ~engine::kHFile
+#define MOVE_NORTH_WEST_WEST(bitboard) \
+  (bitboard << 6) & ~(engine::kGFile | engine::kHFile)
+#define MOVE_SOUTH_WEST_WEST(bitboard) \
+  (bitboard >> 10) & ~(engine::kGFile | engine::kHFile)
+#define MOVE_SOUTH_SOUTH_WEST(bitboard) (bitboard >> 17) & ~engine::kHFile
 
 #define KNIGHT_ATTACKS(bitboard)                                      \
   (MOVE_NORTH_NORTH_EAST(bitboard) | MOVE_NORTH_EAST_EAST(bitboard) | \

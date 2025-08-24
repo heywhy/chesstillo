@@ -24,4 +24,4 @@ nn-*.tar
 
 # Generated shared library
 
-/priv/*.so
+/priv/
