@@ -23,12 +23,10 @@ target_include_directories(nn SYSTEM PRIVATE ${ERTS_INCLUDE_DIR})
 
 target_compile_options(nn PRIVATE ${COMPILE_OPTIONS})
 
-target_link_options(nn PUBLIC ${LINK_OPTIONS})
+target_link_options(nn PUBLIC -fPIC ${LINK_OPTIONS})
 
 if (APPLE)
   target_link_options(nn PUBLIC -undefined dynamic_lookup -flat_namespace)
-else()
-  target_link_options(nn PUBLIC -fPIC)
 endif()
 
 target_link_libraries(nn
