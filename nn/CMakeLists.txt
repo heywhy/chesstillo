@@ -27,6 +27,8 @@ target_link_options(nn PUBLIC ${LINK_OPTIONS})
 
 if (APPLE)
   target_link_options(nn PUBLIC -undefined dynamic_lookup -flat_namespace)
+else()
+  target_link_options(nn PUBLIC -fPIC)
 endif()
 
 target_link_libraries(nn
