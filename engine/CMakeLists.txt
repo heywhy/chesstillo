@@ -33,6 +33,7 @@ if(TARGET engine_format)
 endif()
 
 target_include_directories(engine PUBLIC include)
+set_target_properties(engine PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 target_compile_options(engine PRIVATE ${COMPILE_OPTIONS})
 target_link_options(engine PUBLIC ${LINK_OPTIONS})
