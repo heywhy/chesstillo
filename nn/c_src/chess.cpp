@@ -7,7 +7,6 @@
 
 #include <erl_nif.h>
 
-#include "engine/board.hpp"
 #include "engine/constants.hpp"
 #include "engine/move_gen.hpp"
 #include "engine/position.hpp"

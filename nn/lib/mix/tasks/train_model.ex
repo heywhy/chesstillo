@@ -21,7 +21,7 @@ defmodule Mix.Tasks.Train.Model do
 
     {training_df, validation_df, test_df} =
       df
-      |> DF.sample(1.0)
+      |> DF.sample(1.0, shuffle: true)
       |> split_dataframe()
 
     model = Model.new(df)

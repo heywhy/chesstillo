@@ -159,7 +159,7 @@ defmodule NN.Model do
 
   defp transform(params, columns, _categories) do
     columns = Enum.map(columns, &elem(&1, 0))
-    bitboard = Enum.to_list(0..63) |> Nx.tensor() |> Nx.backend_transfer(EMLX.Backend)
+    bitboard = Enum.to_list(0..63) |> Nx.tensor()
 
     params
     |> Enum.filter(fn {key, _value} -> key in columns end)
